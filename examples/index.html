@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>测试</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="full-screen" content="true" />
+    <meta name="screen-orientation" content="portrait" />
+    <meta name="x5-fullscreen" content="true" />
+    <meta name="360-fullscreen" content="true" />
+    <!--防止index.html被浏览器缓存--begin-->
+    <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+    <META HTTP-EQUIV="Cache-Control" CONTENT="no-cache">
+    <META HTTP-EQUIV="Expires" CONTENT="0">
+    <!--防止index.html被浏览器缓存--over-->
+    <style>
+        html, body {
+            -ms-touch-action: none;
+            background: #000000;
+            color: #ffffff;
+            padding: 0;
+            border: 0;
+            margin: 0;
+            height: 100%;
+        }
+    </style>
+    <script>
+        "use strict";
+        console.log("这是严格模式");
+    </script>
+    <script type="text/javascript" src="lib/dou.js"></script>
+    <script type="text/javascript" src="bin/Main.js"></script>
+</head>
+
+<body>
+    <script>
+        new Main();
+    </script>
+</body>
+
+</html>
