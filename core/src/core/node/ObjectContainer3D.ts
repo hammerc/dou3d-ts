@@ -1,6 +1,6 @@
 namespace dou3d {
     /**
-     * 
+     * 3D 容器对象
      * @author wizardc
      */
     export class ObjectContainer3D extends Object3D {
@@ -16,10 +16,10 @@ namespace dou3d {
             return this._children.length;
         }
 
-        protected invalidGlobalTransform(): void {
+        public invalidGlobalTransform(): void {
             super.invalidGlobalTransform();
             for (let child of this._children) {
-                (<any>child).invalidTransform();
+                child.invalidTransform();
             }
         }
 
@@ -30,8 +30,8 @@ namespace dou3d {
             if (child.parent) {
                 child.parent.removeChild(child);
             }
-            (<any>child)._parent = this;
-            (<any>child).invalidTransform();
+            child.setParent(this);
+            child.invalidTransform();
             this._children.push(child);
             return child;
         }
@@ -50,8 +50,8 @@ namespace dou3d {
                 return child;
             }
             this._children.splice(index, 1);
-            (<any>child)._parent = null;
-            (<any>child).invalidTransform();
+            child.setParent(null);
+            child.invalidTransform();
             return child;
         }
 
@@ -61,8 +61,8 @@ namespace dou3d {
             }
             let child = this._children[index];
             this._children.splice(index, 1);
-            (<any>child)._parent = null;
-            (<any>child).invalidTransform();
+            child.setParent(null);
+            child.invalidTransform();
             return child;
         }
 

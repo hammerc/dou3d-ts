@@ -30,9 +30,12 @@ namespace dou3d {
          * 根据长度和角度获取一个向量
          * - 弧度制
          */
-        public static polar(length: number, angle: number): Vector2 {
-            return new Vector2(length * Math.sin(angle), length * Math.cos(angle));
-        }
+		public static polar(length: number, angle: number, result?: IVector2): IVector2 {
+			result = result || new Vector2();
+			result.x = length * Math.sin(angle);
+			result.y = length * Math.cos(angle);
+			return result;
+		}
 
         /**
          * 判断两条直线是否相交

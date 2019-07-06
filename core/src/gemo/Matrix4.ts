@@ -363,6 +363,20 @@ namespace dou3d {
         }
 
         /**
+         * 转换指定点
+         */
+        public transformVector(vector: IVector3, result?: IVector4): IVector4 {
+            result = result || new Vector4();
+            let x = vector.x, y = vector.y, z = vector.z;
+            let rawData = this.rawData;
+            result.x = x * rawData[0] + y * rawData[4] + z * rawData[8] + rawData[12];
+            result.y = x * rawData[1] + y * rawData[5] + z * rawData[9] + rawData[13];
+            result.z = x * rawData[2] + y * rawData[6] + z * rawData[10] + rawData[14];
+            result.w = x * rawData[3] + y * rawData[7] + z * rawData[11] + rawData[15];
+            return result;
+        }
+
+        /**
          * 根据投影参数设置该矩阵
          * @param offsetX 投影近平面水平偏移
          * @param offsetY 投影远平面垂直偏移

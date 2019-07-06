@@ -1,7 +1,6 @@
 namespace dou3d {
     /**
      * 3D 空间中的一个对象
-     * - 该对象可以作为场景树形结构的任意节点, 也可以看做一个容器可以添加多个子对象
      * - 内置包围盒
      * @author wizardc
      */
@@ -307,11 +306,15 @@ namespace dou3d {
             return this._parent;
         }
 
-        protected invalidTransform(): void {
+        public setParent(parent: ObjectContainer3D) {
+            this._parent = parent;
+        }
+
+        public invalidTransform(): void {
             this.invalidGlobalTransform();
         }
 
-        protected invalidGlobalTransform(): void {
+        public invalidGlobalTransform(): void {
             this._globalTransformChanged = true;
         }
 
@@ -350,7 +353,31 @@ namespace dou3d {
          */
         public lookAt(from: Vector3, to: Vector3, up: Vector3 = Vector3.UP): void {
             this.globalPosition = from;
-            
+            let matrix = dou.recyclable(Matrix4);
+            matrix.lookAt(from, to, up);
+            matrix.inverse();
+            let quaternion = dou.recyclable(Quaternion);
+            matrix.decompose(null, quaternion);
+            this.globalOrientation = quaternion;
+            matrix.recycle();
+            quaternion.recycle();
+        }
+
+        /**
+         * 朝向指定的目标
+         */
+        public lookAtTarget(target: Object3D): void {
+            let vector = dou.recyclable(Vector4);
+            target.globalMatrix.transformVector(Vector3.UP, vector);
+            let matrix = dou.recyclable(Matrix4);
+            matrix.lookAt(this._globalPosition, this._globalPosition, vector);
+            matrix.inverse();
+            let quaternion = dou.recyclable(Quaternion);
+            matrix.decompose(null, quaternion);
+            this.globalOrientation = quaternion;
+            vector.recycle();
+            matrix.recycle();
+            quaternion.recycle();
         }
 
         /**

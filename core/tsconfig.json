@@ -61,15 +61,36 @@
   ],
   /* 注: 如果有继承关系的, 父类必须排在子类前面 */
   "files": [
-    "src/Engine.ts",
+    "src/camera/Camera3D.ts",
+    "src/camera/CameraType.ts",
+    "src/camera/Frustum.ts",
 
-    "src/core/Ticker.ts",
-    "src/core/View3D.ts",
+    "src/core/bound/Bound.ts",
+    "src/core/bound/BoundBox.ts",
+
+    "src/core/context/Context3DProxy.ts",
+    "src/core/context/ContextConfig.ts",
+    "src/core/context/ContextSamplerType.ts",
+    "src/core/context/ContextTexture2D.ts",
+    "src/core/context/ContextTexture3D.ts",
+    "src/core/context/FrameBuffer.ts",
+    "src/core/context/IndexBuffer3D.ts",
+    "src/core/context/MipmapData.ts",
+    "src/core/context/Program3D.ts",
+    "src/core/context/Shader.ts",
+    "src/core/context/VertexBuffer3D.ts",
 
     "src/core/node/Object3D.ts",
     "src/core/node/ObjectContainer3D.ts",
 
-    "src/camera/Camera3D.ts",
+    "src/core/Ticker.ts",
+    "src/core/View3D.ts",
+
+    "src/enum/BlendMode.ts",
+    "src/enum/InternalFormat.ts",
+    "src/enum/FrameBufferType.ts",
+    "src/enum/FrameBufferFormat.ts",
+    "src/enum/ShaderType.ts",
 
     "src/gemo/EulerOrder.ts",
     "src/gemo/Vector2.ts",
@@ -86,8 +107,15 @@
     "src/gemo/Color.ts",
     "src/gemo/Curve3.ts",
 
+    "src/material/pass/MaterialPass.ts",
+
     "src/scene/Scene3D.ts",
 
+    "src/texture/TextureBase.ts",
+    "src/texture/Texture.ts",
+
     "src/utils/MathUtil.ts",
+
+    "src/Engine.ts",
   ]
 }
