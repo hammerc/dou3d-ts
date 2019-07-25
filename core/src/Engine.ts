@@ -10,6 +10,15 @@ namespace dou3d {
      */
     export class Engine {
         /**
+         * 渲染上下文
+         */
+        public static context3DProxy: Context3DProxy;
+
+        private _canvas: HTMLCanvasElement;
+        private _viewRect: Rectangle;
+        private _view3DS: View3D[];
+
+        /**
          * @param canvas 用户呈现 3D 图像的 Canvas 元素, 为空则会创建一个全屏的元素
          */
         public constructor(canvas?: HTMLCanvasElement) {
@@ -22,18 +31,40 @@ namespace dou3d {
                 canvas.style.height = "100%";
                 document.body.appendChild(canvas);
             }
-            dou3d.canvas = canvas;
+            this._canvas = dou3d.canvas = canvas;
+
+            let gl = <WebGLRenderingContext>(canvas.getContext("experimental-webgl") || canvas.getContext("webgl"));
+            if (!gl) {
+                console.error("You drivers not suport WEBGL!");
+                return;
+            }
+            Context3DProxy.gl = gl;
+
+            this._viewRect = new Rectangle();
+            this._view3DS = [];
+
+            Engine.context3DProxy = new Context3DProxy();
+            Engine.context3DProxy.register();
 
             ticker = new Ticker();
             this.startTicker();
         }
 
+        /**
+         * 获取当前画布的可视区域
+         */
+        public get viewRect(): Rectangle {
+            let rect = this._canvas.getBoundingClientRect();
+            this._viewRect.set(rect.left, rect.top, rect.width, rect.height);
+            return this._viewRect;
+        }
+
         private startTicker(): void {
-            let requestAnimationFrame = (<any> window)["requestAnimationFrame"] ||
-                (<any> window)["webkitRequestAnimationFrame"] ||
-                (<any> window)["mozRequestAnimationFrame"] ||
-                (<any> window)["oRequestAnimationFrame"] ||
-                (<any> window)["msRequestAnimationFrame"];
+            let requestAnimationFrame = (<any>window)["requestAnimationFrame"] ||
+                (<any>window)["webkitRequestAnimationFrame"] ||
+                (<any>window)["mozRequestAnimationFrame"] ||
+                (<any>window)["oRequestAnimationFrame"] ||
+                (<any>window)["msRequestAnimationFrame"];
             if (!requestAnimationFrame) {
                 requestAnimationFrame = function (callback: Function) {
                     return window.setTimeout(callback, 1000 / 60);

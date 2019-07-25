@@ -61,10 +61,6 @@
   ],
   /* 注: 如果有继承关系的, 父类必须排在子类前面 */
   "files": [
-    "src/camera/Camera3D.ts",
-    "src/camera/CameraType.ts",
-    "src/camera/Frustum.ts",
-
     "src/core/bound/Bound.ts",
     "src/core/bound/BoundBox.ts",
 
@@ -85,6 +81,10 @@
 
     "src/core/Ticker.ts",
     "src/core/View3D.ts",
+
+    "src/camera/Camera3D.ts",
+    "src/camera/CameraType.ts",
+    "src/camera/Frustum.ts",
 
     "src/enum/BlendMode.ts",
     "src/enum/InternalFormat.ts",

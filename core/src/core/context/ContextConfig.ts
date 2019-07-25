@@ -60,6 +60,36 @@ namespace dou3d {
         export var ColorFormat_RGBA8888: number;
 
         /**
+         * 8 位整型
+         */
+        export var BYTE: GLenum;
+
+        /**
+         * 16 位整形
+         */
+        export var SHORT: GLenum;
+
+        /**
+         * 32 位整型
+         */
+        export var INT: GLenum;
+
+        /**
+         * 无符号 8 位整型
+         */
+        export var UNSIGNED_BYTE: GLenum;
+
+        /**
+         * 无符号 16 位整型
+         */
+        export var UNSIGNED_SHORT: GLenum;
+
+        /**
+         * 无符号 32 位整型
+         */
+        export var UNSIGNED_INT: GLenum;
+
+        /**
          * 小于等于
          */
         export var LEQUAL: number;
@@ -97,6 +127,13 @@ namespace dou3d {
             ColorFormat_RGBA5551 = gl.RGB5_A1;
             ColorFormat_RGBA4444 = gl.RGBA4;
             ColorFormat_RGBA8888 = gl.RGBA;
+
+            BYTE = gl.BYTE;
+            SHORT = gl.SHORT;
+            INT = gl.INT;
+            UNSIGNED_BYTE = gl.UNSIGNED_BYTE;
+            UNSIGNED_SHORT = gl.UNSIGNED_SHORT;
+            UNSIGNED_INT = gl.UNSIGNED_INT;
 
             LEQUAL = gl.LEQUAL;
 

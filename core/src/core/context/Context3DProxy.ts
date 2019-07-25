@@ -7,7 +7,7 @@ namespace dou3d {
         /**
          * 渲染上下文
          */
-        public static readonly gl: WebGLRenderingContext;
+        public static gl: WebGLRenderingContext;
 
         private _program: Program3D;
         private _sfactor: number;
@@ -332,7 +332,7 @@ namespace dou3d {
          * 上传纹理
          */
         public upLoadTextureData(mipLevel: number, texture: TextureBase): void {
-            Context3DProxy.gl.bindTexture(Context3DProxy.gl.TEXTURE_2D, texture.texture2D.textureBuffer);
+            Context3DProxy.gl.bindTexture(Context3DProxy.gl.TEXTURE_2D, texture.texture2D.texture);
             if (texture.texture2D.internalFormat == InternalFormat.imageData) {
                 Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_2D, 0, Context3DProxy.gl.RGBA, Context3DProxy.gl.RGBA, texture.texture2D.dataFormat, texture.texture2D.imageData);
             }
@@ -411,8 +411,8 @@ namespace dou3d {
             let rttframeBuffer = Context3DProxy.gl.createFramebuffer();
             let texture2D = new ContextTexture2D();
             let depthRenderbuffer = Context3DProxy.gl.createRenderbuffer();
-            texture2D.textureBuffer = texture2D.textureBuffer || Context3DProxy.gl.createTexture();
-            Context3DProxy.gl.bindTexture(Context3DProxy.gl.TEXTURE_2D, texture2D.textureBuffer);
+            texture2D.texture = texture2D.texture || Context3DProxy.gl.createTexture();
+            Context3DProxy.gl.bindTexture(Context3DProxy.gl.TEXTURE_2D, texture2D.texture);
             switch (format) {
                 case FrameBufferFormat.UNSIGNED_BYTE_RGB:
                     Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_2D, 0, Context3DProxy.gl.RGB, width, height, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, null);
@@ -447,7 +447,7 @@ namespace dou3d {
             Context3DProxy.gl.texParameteri(Context3DProxy.gl.TEXTURE_2D, Context3DProxy.gl.TEXTURE_WRAP_S, Context3DProxy.gl.CLAMP_TO_EDGE);
             Context3DProxy.gl.texParameteri(Context3DProxy.gl.TEXTURE_2D, Context3DProxy.gl.TEXTURE_WRAP_T, Context3DProxy.gl.CLAMP_TO_EDGE);
             Context3DProxy.gl.bindFramebuffer(Context3DProxy.gl.FRAMEBUFFER, rttframeBuffer);
-            Context3DProxy.gl.framebufferTexture2D(Context3DProxy.gl.FRAMEBUFFER, Context3DProxy.gl.COLOR_ATTACHMENT0, Context3DProxy.gl.TEXTURE_2D, texture2D.textureBuffer, 0);
+            Context3DProxy.gl.framebufferTexture2D(Context3DProxy.gl.FRAMEBUFFER, Context3DProxy.gl.COLOR_ATTACHMENT0, Context3DProxy.gl.TEXTURE_2D, texture2D.texture, 0);
             Context3DProxy.gl.bindRenderbuffer(Context3DProxy.gl.RENDERBUFFER, depthRenderbuffer);
             Context3DProxy.gl.renderbufferStorage(Context3DProxy.gl.RENDERBUFFER, Context3DProxy.gl.DEPTH_COMPONENT16, width, height);
             texture2D.width = width;
@@ -469,7 +469,7 @@ namespace dou3d {
             Context3DProxy.gl.bindFramebuffer(Context3DProxy.gl.FRAMEBUFFER, texture.frameBuffer);
             Context3DProxy.gl.clearColor(0, 0, 0, 0);
             Context3DProxy.gl.clear(Context3DProxy.gl.COLOR_BUFFER_BIT | Context3DProxy.gl.DEPTH_BUFFER_BIT);
-            Context3DProxy.gl.framebufferTexture2D(Context3DProxy.gl.FRAMEBUFFER, Context3DProxy.gl.COLOR_ATTACHMENT0, Context3DProxy.gl.TEXTURE_2D, texture.textureBuffer, 0);
+            Context3DProxy.gl.framebufferTexture2D(Context3DProxy.gl.FRAMEBUFFER, Context3DProxy.gl.COLOR_ATTACHMENT0, Context3DProxy.gl.TEXTURE_2D, texture.texture, 0);
             Context3DProxy.gl.framebufferRenderbuffer(Context3DProxy.gl.FRAMEBUFFER, Context3DProxy.gl.DEPTH_ATTACHMENT, Context3DProxy.gl.RENDERBUFFER, texture.renderbuffer);
         }
 
@@ -489,7 +489,7 @@ namespace dou3d {
          */
         public setTexture2DAt(samplerIndex: number, uniLocation: any, index: number, texture: ContextTexture2D): void {
             Context3DProxy.gl.activeTexture(samplerIndex);
-            Context3DProxy.gl.bindTexture(Context3DProxy.gl.TEXTURE_2D, texture.textureBuffer);
+            Context3DProxy.gl.bindTexture(Context3DProxy.gl.TEXTURE_2D, texture.texture);
             Context3DProxy.gl.uniform1i(uniLocation, index);
         }
 

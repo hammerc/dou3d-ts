@@ -298,7 +298,7 @@ namespace dou3d {
 
         /**
          * 将该向量叉乘一个向量或将两个向量叉乘的结果写入该向量
-         * - v *= vector
+         * - v ×= vector
          * - v = vectorA × vectorB
          */
         public cross(v1: IVector3, v2?: IVector3): this {

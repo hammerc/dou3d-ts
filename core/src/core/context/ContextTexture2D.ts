@@ -4,9 +4,34 @@ namespace dou3d {
      * @author wizardc
      */
     export class ContextTexture2D {
+        /**
+         * 提交显卡的 index
+         */
         public index: number;
-        public border: number;
+
+        /**
+         * 显卡中上传使用的 border 边框像素大小
+         */
+        public border: number = 0;
+
+        /**
+         * 纹理贴图的颜色格式
+         * @see ContextConfig.ColorFormat_RGB565
+         * @see ContextConfig.ColorFormat_RGBA5551
+         * @see ContextConfig.ColorFormat_RGBA4444
+         * @see ContextConfig.ColorFormat_RGBA8888
+         */
         public colorFormat: number;
+
+        /**
+         * 纹理贴图的颜色格式
+         * @see ContextConfig.BYTE
+         * @see ContextConfig.SHORT
+         * @see ContextConfig.INT
+         * @see ContextConfig.UNSIGNED_BYTE
+         * @see ContextConfig.UNSIGNED_SHORT
+         * @see ContextConfig.UNSIGNED_INT
+         */
         public dataFormat: number;
 
         /**
@@ -14,7 +39,10 @@ namespace dou3d {
          */
         public internalFormat: InternalFormat;
 
-        public textureBuffer: WebGLTexture;
+        /**
+         * 原生贴图对象
+         */
+        public texture: WebGLTexture;
 
         /**
          * 贴图元素对象
@@ -27,40 +55,31 @@ namespace dou3d {
         public mimapData: Array<MipmapData>;
 
         /**
-         * @private
+         * 原生帧缓冲对象
          */
         public frameBuffer: WebGLFramebuffer;
 
         /**
-         * @private
+         * 原生渲染缓冲对象
          */
         public renderbuffer: WebGLRenderbuffer;
 
         /**
-         * 提交给显卡的贴图尺寸大小 贴图宽度
-         * - 当作为renderTexture使用时一定要传入真实尺寸
+         * 提交给显卡的贴图宽度
+         * - 当作为 renderTexture 使用时一定要传入真实尺寸
          */
         public width: number;
 
         /**
-         * 提交给显卡的贴图尺寸大小 贴图高度
-         * 当作为renderTexture使用时一定要传入真实尺寸
+         * 提交给显卡的贴图高度
+         * - 当作为 renderTexture 使用时一定要传入真实尺寸
          */
         public height: number;
 
-        public constructor() {
-            this.border = 0;
-            this.imageData = null;
-            //this.colorFormat = ContextConfig.ColorFormat_RGBA8888;
-            //this.dataFormat = Context3DProxy.gl.UNSIGNED_BYTE;
-            //this.internalFormat = InternalFormat.PixelArray;
-            //this.mimapData = new Array<MipmapData>();
-        }
-
         public dispose(): void {
-            if (this.textureBuffer) {
-                Context3DProxy.gl.deleteTexture(this.textureBuffer);
-                this.textureBuffer = null;
+            if (this.texture) {
+                Context3DProxy.gl.deleteTexture(this.texture);
+                this.texture = null;
             }
             if (this.frameBuffer) {
                 Context3DProxy.gl.deleteFramebuffer(this.frameBuffer);

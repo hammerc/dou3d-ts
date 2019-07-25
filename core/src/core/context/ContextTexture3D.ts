@@ -12,10 +12,14 @@ namespace dou3d {
         /**
          * 显卡中上传使用的 border 边框像素大小
          */
-        public border: number;
+        public border: number = 0;
 
         /**
          * 纹理贴图的颜色模式
+         * @see ContextConfig.ColorFormat_RGB565
+         * @see ContextConfig.ColorFormat_RGBA5551
+         * @see ContextConfig.ColorFormat_RGBA4444
+         * @see ContextConfig.ColorFormat_RGBA8888
          */
         public colorformat: number;
 
@@ -24,10 +28,14 @@ namespace dou3d {
          */
         public internalformat: InternalFormat;
 
+        /**
+         * 原生贴图对象
+         */
         public texture: WebGLTexture;
 
-        public useMipmap: boolean;
-
+        /**
+         * mipmap数据
+         */
         public mimapData: Array<MipmapData>;
 
         public image_front: ContextTexture2D;
@@ -36,14 +44,6 @@ namespace dou3d {
         public image_right: ContextTexture2D;
         public image_up: ContextTexture2D;
         public image_down: ContextTexture2D;
-
-        public constructor() {
-            this.border = 0;
-            this.useMipmap = true;
-            this.colorformat = ContextConfig.ColorFormat_RGBA8888;
-            this.internalformat = InternalFormat.pixelArray;
-            this.mimapData = new Array<MipmapData>();
-        }
 
         public dispose(): void {
             if (this.texture) {

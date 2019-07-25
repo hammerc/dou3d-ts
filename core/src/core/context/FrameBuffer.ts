@@ -5,7 +5,7 @@ namespace dou3d {
      * @author wizardc
      */
     export class FrameBuffer {
-        public frameBufferName: number;
+        public name: number;
         public width: number;
         public height: number;
         public texture: ContextTexture2D;
