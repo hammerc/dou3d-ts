@@ -491,7 +491,7 @@
             glMatrix.mat4.perspective(pwgl.projectionMatrix, 60 * Math.PI / 180, gl.viewportWidth / gl.viewportHeight, 0.1, 100);
             // 初始化模型视图矩阵
             glMatrix.mat4.identity(pwgl.modelViewMatrix);
-            glMatrix.mat4.lookAt(pwgl.modelViewMatrix, [8, 5, -10], [0, 0, 0], [0, 1, 0]);
+            glMatrix.mat4.lookAt(pwgl.modelViewMatrix, [8, 12, 8], [0, 0, 0], [0, 1, 0]);
 
             uploadModelViewMatrixToShader();
             uploadProjectionMatrixToShader();
@@ -539,7 +539,8 @@
 
         function uploadNormalMatrixToShader() {
             var normalMatrix = glMatrix.mat3.create();
-            glMatrix.mat3.normalFromMat4(normalMatrix, pwgl.modelViewMatrix);
+            glMatrix.mat3.fromMat4(normalMatrix, pwgl.modelViewMatrix);
+            glMatrix.mat3.invert(normalMatrix, normalMatrix);
             glMatrix.mat3.transpose(normalMatrix, normalMatrix);
             gl.uniformMatrix3fv(pwgl.uniformNormalMatrixLoc, false, normalMatrix);
         }
