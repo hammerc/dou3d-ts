@@ -6,15 +6,18 @@ namespace dou3d {
     export class Shader {
         private static ID: number = 0;
 
-        private _id: number;
+        private _id: string;
         private _shader: WebGLShader;
 
         public constructor(shader: WebGLShader) {
-            this._id = Shader.ID++;
+            this._id = "" + Shader.ID++;
             this._shader = shader;
         }
 
-        public get id(): number {
+        public set id(value: string) {
+            this._id = value;
+        }
+        public get id(): string {
             return this._id;
         }
 

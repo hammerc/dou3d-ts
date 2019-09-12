@@ -47,6 +47,10 @@ class Main {
     private async processCode(filePath: string): Promise<string> {
         let code = await readFileAsync(filePath, { encoding: "utf8" });
 
+        if (code.charCodeAt(0) === 0xFEFF) {
+            code = code.slice(1);
+        }
+
         code = code.replace(/(\r\n)/g, "\n");
         code = code.replace(/\/\*{1,2}[\s\S]*?\*\//g, "");
         code = code.replace(/\/\/[\s\S]*?\n/g, "");
