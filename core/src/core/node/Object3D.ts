@@ -381,6 +381,15 @@ namespace dou3d {
         }
 
         /**
+         * 更新
+         * @param time 当前时间
+         * @param delay 每帧时间间隔
+         * @param camera 当前渲染的摄相机
+         */
+        public update(time: number, delay: number, camera: Camera3D): void {
+        }
+
+        /**
          * 销毁本对象
          */
         public dispose(): void {

@@ -61,12 +61,13 @@
   ],
   /* 注: 如果有继承关系的, 父类必须排在子类前面 */
   "files": [
+    "src/utils/Reference.ts",
+
     "src/core/bound/Bound.ts",
     "src/core/bound/BoundBox.ts",
 
     "src/core/context/Context3DProxy.ts",
     "src/core/context/ContextConfig.ts",
-    "src/core/context/ContextSamplerType.ts",
     "src/core/context/ContextTexture2D.ts",
     "src/core/context/ContextTexture3D.ts",
     "src/core/context/FrameBuffer.ts",
@@ -79,18 +80,25 @@
     "src/core/node/Object3D.ts",
     "src/core/node/ObjectContainer3D.ts",
 
+    "src/core/traverse/CollectBase.ts",
+
     "src/core/Ticker.ts",
     "src/core/View3D.ts",
 
     "src/camera/Camera3D.ts",
-    "src/camera/CameraType.ts",
     "src/camera/Frustum.ts",
 
     "src/enum/BlendMode.ts",
+    "src/enum/CameraType.ts",
     "src/enum/InternalFormat.ts",
+    "src/enum/ContextSamplerType.ts",
     "src/enum/FrameBufferType.ts",
     "src/enum/FrameBufferFormat.ts",
     "src/enum/ShaderType.ts",
+    "src/enum/VertexFormat.ts",
+    "src/enum/LightType.ts",
+    "src/enum/PassType.ts",
+    "src/enum/ShaderPhaseType.ts",
 
     "src/gemo/EulerOrder.ts",
     "src/gemo/Vector2.ts",
@@ -105,10 +113,33 @@
     "src/gemo/IRaycast.ts",
     "src/gemo/RaycastInfo.ts",
     "src/gemo/Color.ts",
+    "src/gemo/ColorTransform.ts",
     "src/gemo/Curve3.ts",
 
+    "src/geometry/Geometry.ts",
+    "src/geometry/SubGeometry.ts",
+    "src/geometry/CubeGeometry.ts",
+    "src/geometry/CylinderGeometry.ts",
+    "src/geometry/PlaneGeometry.ts",
+    "src/geometry/SphereGeometry.ts",
+
+    "src/lights/LightBase.ts",
+    "src/lights/DirectLight.ts",
+    "src/lights/PointLight.ts",
+    "src/lights/SpotLight.ts",
+    "src/lights/LightGroup.ts",
+
+    "src/material/method/MethodBase.ts",
     "src/material/pass/MaterialPass.ts",
     "src/material/pass/PassUsage.ts",
+    "src/material/pass/PassUtil.ts",
+    "src/material/MaterialBase.ts",
+    "src/material/MaterialData.ts",
+    "src/material/MethodData.ts",
+
+    "src/render/RenderBase.ts",
+    "src/render/RendererBase.ts",
+    "src/render/MultiRenderer.ts",
 
     "src/scene/Scene3D.ts",
 
@@ -134,6 +165,8 @@
 
     "src/texture/TextureBase.ts",
     "src/texture/Texture.ts",
+    "src/texture/CubeTexture.ts",
+    "src/texture/RenderTexture.ts",
 
     "src/utils/MathUtil.ts",
 

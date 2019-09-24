@@ -272,6 +272,15 @@ namespace dou3d {
         }
 
         /**
+         * 设定所有的顶点属性都是非数组结构
+         */
+        public disableAllVertexAttribArray(): void {
+            for (let j = 0; j < 8; j++) {
+                Context3DProxy.gl.disableVertexAttribArray(j);
+            }
+        }
+
+        /**
          * 指定顶点着色器变量索引及结构
          * @param index 变量索引
          * @param size  数据个数

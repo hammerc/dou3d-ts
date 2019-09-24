@@ -108,6 +108,8 @@ namespace dou3d {
 
         public attributeDiry: boolean = true;
 
+        public attributeList: Attribute[];
+
         public dispose(): void {
             if (this.program3D) {
                 this.program3D.dispose();

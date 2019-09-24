@@ -89,23 +89,6 @@ namespace dou3d {
 
         public parentTexture: TextureBase;
 
-        public copyFromTexture(texture: TextureBase, x: number, y: number, width: number, height: number) {
-            this.parentTexture = texture;
-            texture.width = width;
-            texture.height = height;
-            this.texture2D = texture.texture2D;
-            this.uvRectangle = this.uvRectangle || new Rectangle();
-            this.uvRectangle.x = x;
-            this.uvRectangle.y = y;
-            this.uvRectangle.w = width;
-            this.uvRectangle.h = height;
-        }
-
-        /**
-         * 上传贴图数据给GPU
-         */
-        public abstract upload(context3D: Context3DProxy);
-
         /**
          * 是否有 Mipmap
          */
@@ -126,13 +109,30 @@ namespace dou3d {
          */
         public mimapData: Array<MipmapData>;
 
+        private _ready: boolean = false;
+
+        public copyFromTexture(texture: TextureBase, x: number, y: number, width: number, height: number) {
+            this.parentTexture = texture;
+            texture.width = width;
+            texture.height = height;
+            this.texture2D = texture.texture2D;
+            this.uvRectangle = this.uvRectangle || new Rectangle();
+            this.uvRectangle.x = x;
+            this.uvRectangle.y = y;
+            this.uvRectangle.w = width;
+            this.uvRectangle.h = height;
+        }
+
+        /**
+         * 上传贴图数据给GPU
+         */
+        public abstract upload(context3D: Context3DProxy): void;
+
         /**
          * 强制上传贴图数据给GPU, 强制要求贴图更新
          * 在 video 贴图类型需要立即改变显卡中的贴图内存
          */
         public abstract uploadForcing(context3D: Context3DProxy): void;
-
-        private _ready: boolean = false;
 
         public activeState(context3D: Context3DProxy) {
             if (this._ready) {

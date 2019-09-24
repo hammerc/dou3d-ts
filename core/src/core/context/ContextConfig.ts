@@ -90,6 +90,11 @@ namespace dou3d {
         export var UNSIGNED_INT: GLenum;
 
         /**
+         * 32 位浮点型
+         */
+        export var FLOAT: GLenum;
+
+        /**
          * 小于等于
          */
         export var LEQUAL: number;
@@ -114,6 +119,13 @@ namespace dou3d {
          */
         export var TRIANGLES: number;
 
+        export var ONE: number;
+        export var ZERO: number;
+        export var SRC_ALPHA: number;
+        export var ONE_MINUS_SRC_ALPHA: number;
+        export var SRC_COLOR: number;
+        export var ONE_MINUS_SRC_COLOR: number;
+
         export function register(gl: WebGLRenderingContext): void {
             BLEND = gl.BLEND;
             DEPTH_TEST = gl.DEPTH_TEST;
@@ -134,6 +146,7 @@ namespace dou3d {
             UNSIGNED_BYTE = gl.UNSIGNED_BYTE;
             UNSIGNED_SHORT = gl.UNSIGNED_SHORT;
             UNSIGNED_INT = gl.UNSIGNED_INT;
+            FLOAT = gl.FLOAT;
 
             LEQUAL = gl.LEQUAL;
 
@@ -141,6 +154,13 @@ namespace dou3d {
             LINES = gl.LINES;
             LINE_STRIP = gl.LINE_STRIP;
             TRIANGLES = gl.TRIANGLES;
+
+            ONE = gl.ONE;
+            ZERO = gl.ZERO;
+            SRC_ALPHA = gl.SRC_ALPHA;
+            ONE_MINUS_SRC_ALPHA = gl.ONE_MINUS_SRC_ALPHA;
+            SRC_COLOR = gl.SRC_COLOR;
+            ONE_MINUS_SRC_COLOR = gl.ONE_MINUS_SRC_COLOR;
 
             ContextSamplerType.TEXTURE_0 = gl.TEXTURE0;
             ContextSamplerType.TEXTURE_1 = gl.TEXTURE1;
