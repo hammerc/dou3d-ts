@@ -23,6 +23,8 @@ namespace dou3d {
 
         protected _parent: ObjectContainer3D;
 
+        protected _bound: Bound;
+
         public constructor() {
             super();
 
@@ -304,6 +306,23 @@ namespace dou3d {
 
         public get parent(): ObjectContainer3D {
             return this._parent;
+        }
+
+        /**
+         * 包围盒
+         * * 每个场景物件都需要有自己的包围盒子, 可以自定义包围盒形状大小也可以根据模型本身生成
+         */
+        public set bound(bound: Bound) {
+            if (this._bound == bound) {
+                return;
+            }
+            if (this._bound) {
+                this._bound.dispose();
+            }
+            this._bound = bound;
+        }
+        public get bound(): Bound {
+            return this._bound;
         }
 
         public setParent(parent: ObjectContainer3D) {

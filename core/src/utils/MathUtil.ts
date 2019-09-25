@@ -34,6 +34,9 @@ namespace dou3d {
          */
         export const SQRT1_2 = SQRT_2 * 0.5;
 
+        export const INT_MAX = 0x7fffffff;
+        export const INT_MIN = -0x7fffffff;
+
         /**
          * 把指定的数限制在指定的区间内
          */
