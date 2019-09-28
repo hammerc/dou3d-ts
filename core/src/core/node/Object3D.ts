@@ -25,6 +25,13 @@ namespace dou3d {
 
         protected _bound: Bound;
 
+        protected _enableCulling: boolean = true;
+        protected _enablePick: boolean = false;
+
+        protected _name: string;
+
+        protected _layer: Layer = Layer.normal;
+
         public constructor() {
             super();
 
@@ -323,6 +330,45 @@ namespace dou3d {
         }
         public get bound(): Bound {
             return this._bound;
+        }
+
+        /**
+         * 相机视锥裁剪
+         * * 设定这个物件是否具有视锥体裁剪功能, 为否的话将不参加场景渲染剔除, 无论是否在显示范围内都会进行相关的渲染逻辑运算
+         */
+        public set enableCulling(value: boolean) {
+            this._enableCulling = value;
+        }
+        public get enableCulling(): boolean {
+            return this._enableCulling;
+        }
+
+        /**
+         * 拣选检测
+         * * 指定这个物件是否具有鼠标交互能力
+         */
+        public set enablePick(value: boolean) {
+            this._enablePick = value;
+        }
+        public get enablePick(): boolean {
+            return this._enablePick;
+        }
+
+        public set name(value: string) {
+            this._name = value;
+        }
+        public get name(): string {
+            return this._name;
+        }
+
+        /**
+         * 渲染的层
+         */
+        public set layer(value: Layer) {
+            this._layer = value;
+        }
+        public get layer(): Layer {
+            return this._layer;
         }
 
         public setParent(parent: ObjectContainer3D) {

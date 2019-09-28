@@ -79,8 +79,14 @@
 
     "src/core/node/Object3D.ts",
     "src/core/node/ObjectContainer3D.ts",
+    "src/core/node/Mesh.ts",
+    "src/core/node/Billboard.ts",
+    "src/core/node/Wireframe.ts",
+    "src/core/node/SkyBox.ts",
 
     "src/core/traverse/CollectBase.ts",
+    "src/core/traverse/EntityCollect.ts",
+    "src/core/traverse/Layer.ts",
 
     "src/core/Ticker.ts",
     "src/core/View3D.ts",
@@ -130,12 +136,22 @@
     "src/lights/LightGroup.ts",
 
     "src/material/method/MethodBase.ts",
+    "src/material/method/ShadowMethod.ts",
     "src/material/pass/MaterialPass.ts",
     "src/material/pass/PassUsage.ts",
     "src/material/pass/PassUtil.ts",
+    "src/material/pass/ColorPass.ts",
+    "src/material/pass/DiffusePass.ts",
+    "src/material/pass/ShadowPass.ts",
+    "src/material/pass/PositionPass.ts",
+    "src/material/pass/NormalPass.ts",
+    "src/material/pass/GbufferPass.ts",
+    "src/material/pass/PickPass.ts",
     "src/material/MaterialBase.ts",
     "src/material/MaterialData.ts",
     "src/material/MethodData.ts",
+
+    "src/pick/PickSystem.ts",
 
     "src/render/RenderBase.ts",
     "src/render/RendererBase.ts",
@@ -162,6 +178,8 @@
     "src/shader/ShaderPool.ts",
     "src/shader/ShaderLib.ts",
     "src/shader/ShaderUtil.ts",
+
+    "src/shadow/ShadowCast.ts",
 
     "src/texture/TextureBase.ts",
     "src/texture/Texture.ts",

@@ -22,7 +22,7 @@ namespace dou3d {
             let material: MaterialBase;
             for (let renderIndex = 0; renderIndex < this.numEntity; renderIndex++) {
                 let renderItem = collect.renderList[renderIndex];
-                renderItem.geometry.activeState(time, delay, context3D, camera);
+                renderItem.geometry.activeState(context3D);
                 for (let i = 0; i < renderItem.geometry.subGeometrys.length; i++) {
                     let subGeometry = renderItem.geometry.subGeometrys[i];
                     let matID = subGeometry.matID;
@@ -32,7 +32,7 @@ namespace dou3d {
                     }
                     if (material.passes[this._pass]) {
                         for (let j = material.passes[this._pass].length - 1; j >= 0; j--) {
-                            material.passes[this._pass][j].draw(time, delay, context3D, renderItem.modelMatrix, camera, subGeometry, renderItem);
+                            material.passes[this._pass][j].draw(time, delay, context3D, renderItem.globalMatrix, camera, subGeometry, renderItem);
                         }
                     }
                     // 没有设定 PASS 就使用默认的 PASS 来渲染
@@ -42,7 +42,7 @@ namespace dou3d {
                         }
                         for (let j = material.passes[this._pass].length - 1; j >= 0; j--) {
                             material.passes[this._pass] = PassUtil.creatPass(this._pass, material.materialData);
-                            material.passes[this._pass][j].draw(time, delay, context3D, renderItem.modelMatrix, camera, subGeometry, renderItem);
+                            material.passes[this._pass][j].draw(time, delay, context3D, renderItem.globalMatrix, camera, subGeometry, renderItem);
                         }
                     }
                     material = null;

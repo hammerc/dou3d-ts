@@ -12,6 +12,10 @@ namespace dou3d {
             this._children = [];
         }
 
+        public get children(): Object3D[] {
+            return this._children;
+        }
+
         public get numChildren(): number {
             return this._children.length;
         }

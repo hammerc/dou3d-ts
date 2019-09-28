@@ -4,7 +4,14 @@ namespace dou3d {
      * @author wizardc
      */
     export class Scene3D {
-        protected _root: Object3D;
+        protected _root: ObjectContainer3D;
 
+        public constructor() {
+            this._root = new ObjectContainer3D();
+        }
+
+        public get root(): ObjectContainer3D {
+            return this._root;
+        }
     }
 }

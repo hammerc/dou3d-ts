@@ -125,6 +125,9 @@ namespace dou3d {
         /**
          * 视口
          */
+        public set viewPort(value: Rectangle) {
+            this._viewPort.copy(value);
+        }
         public get viewPort(): Rectangle {
             return this._viewPort;
         }

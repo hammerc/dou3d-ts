@@ -32,7 +32,7 @@ namespace dou3d {
                     this.shadersName.push(this.endShadername);
                 }
             }
-            return ShaderUtil.instance.fillShaderContent(this, this.shadersName, passUsage);
+            return ShaderUtil.fillShaderContent(this, this.shadersName, passUsage);
         }
     }
 }

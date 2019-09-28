@@ -14,6 +14,8 @@ namespace dou3d {
 
         protected _lightGroup: LightGroup;
 
+        protected _order: number = 0;
+
         /**
          * 当前对象使用的材质
          */
@@ -32,8 +34,11 @@ namespace dou3d {
         /**
          * 渲染排序的参数，数值越大，先渲染
          */
-        public get drawOrder(): number {
-            return 0;
+        public set order(value: number) {
+            this._order = value;
+        }
+        public get order(): number {
+            return this._order;
         }
 
         public set geometry(value: Geometry) {

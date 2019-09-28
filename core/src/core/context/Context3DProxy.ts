@@ -647,6 +647,13 @@ namespace dou3d {
         }
 
         /**
+         * 清除指定缓冲区
+         */
+        public clear(mask: number): void {
+            Context3DProxy.gl.clear(mask);
+        }
+
+        /**
          * 清除渲染区域的颜色和深度
          */
         public clearColor(r: number, g: number, b: number, a: number): void {
