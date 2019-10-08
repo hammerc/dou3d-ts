@@ -16,7 +16,7 @@ namespace dou3d {
 
         private _canvas: HTMLCanvasElement;
         private _viewRect: Rectangle;
-        private _view3DS: View3D[];
+        private _view3Ds: View3D[];
 
         /**
          * @param canvas 用户呈现 3D 图像的 Canvas 元素, 为空则会创建一个全屏的元素
@@ -41,12 +41,12 @@ namespace dou3d {
             Context3DProxy.gl = gl;
 
             this._viewRect = new Rectangle();
-            this._view3DS = [];
+            this._view3Ds = [];
 
             Engine.context3DProxy = new Context3DProxy();
             Engine.context3DProxy.register();
 
-            ticker = new Ticker();
+            ticker = new Ticker(this);
             this.startTicker();
         }
 
@@ -57,6 +57,33 @@ namespace dou3d {
             let rect = this._canvas.getBoundingClientRect();
             this._viewRect.set(rect.left, rect.top, rect.width, rect.height);
             return this._viewRect;
+        }
+
+        /**
+         * 获取所有的 3D 视图
+         */
+        public get view3Ds(): View3D[] {
+            return this._view3Ds;
+        }
+
+        /**
+         * 添加一个 3D 视图
+         */
+        public addView3D(view3D: View3D): void {
+            let index = this._view3Ds.indexOf(view3D);
+            if (index == -1) {
+                this._view3Ds.push(view3D);
+            }
+        }
+
+        /**
+         * 移除一个 3D 视图
+         */
+        public removeView3D(view3D: View3D): void {
+            let index = this._view3Ds.indexOf(view3D);
+            if (index != -1) {
+                this._view3Ds.splice(index, 1);
+            }
         }
 
         private startTicker(): void {
