@@ -4,13 +4,13 @@ namespace dou3d {
      * @author wizardc
      */
     export class MaterialPass {
-        public _passID: number;
-        public _passUsage: PassUsage;
-        public _materialData: MaterialData;
-        public _passChange: boolean = true;
+        protected _passID: number;
+        protected _passUsage: PassUsage;
+        protected _materialData: MaterialData;
+        protected _passChange: boolean = true;
 
-        public _vs_shader_methods: { [phaseType: number]: string[] } = {};
-        public _fs_shader_methods: { [phaseType: number]: string[] } = {};
+        protected _vs_shader_methods: { [phaseType: number]: string[] } = {};
+        protected _fs_shader_methods: { [phaseType: number]: string[] } = {};
 
         public methodList: MethodBase[] = [];
         public methodDatas: MethodData[] = [];

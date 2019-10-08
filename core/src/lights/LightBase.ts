@@ -3,7 +3,7 @@ namespace dou3d {
      * 灯光基类
      * @author wizardc
      */
-    export abstract class LightBase extends Object3D {
+    export abstract class LightBase extends ObjectContainer3D {
         protected _lightType: LightType;
 
         protected _ambientColor: number = 0;
