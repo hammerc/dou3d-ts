@@ -25,7 +25,6 @@ namespace dou3d {
 
         public constructor(cameraType: CameraType = CameraType.perspective) {
             super();
-            this.cameraType = cameraType;
             this._projectMatrix = new Matrix4();
             this._orthProjectMatrix = new Matrix4();
             this._viewPort = new Rectangle();
@@ -34,6 +33,7 @@ namespace dou3d {
             this._viewMatrix.identity();
             this._frustum = new Frustum(this);
             this._orthProjectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
+            this.cameraType = cameraType;
         }
 
         /**

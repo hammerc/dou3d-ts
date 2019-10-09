@@ -53,6 +53,36 @@ declare namespace dou {
 }
 declare namespace dou {
     /**
+     * 事件发送器接口
+     * @author wizardc
+     */
+    interface IEventDispatcher {
+        on(type: string, listener: Function, thisObj?: any): void;
+        once(type: string, listener: Function, thisObj?: any): void;
+        has(type: string): boolean;
+        dispatchEvent(event: Event): boolean;
+        off(type: string, listener: Function, thisObj?: any): void;
+    }
+}
+declare namespace dou {
+    /**
+     * 事件发送器
+     * @author wizardc
+     */
+    class EventDispatcher extends HashObject implements IEventDispatcher {
+        private $map;
+        constructor();
+        on(type: string, listener: Function, thisObj?: any): void;
+        once(type: string, listener: Function, thisObj?: any): void;
+        private $addEvent;
+        has(type: string): boolean;
+        dispatchEvent(event: Event): boolean;
+        dispatch(type: string, data?: any, cancelable?: boolean): boolean;
+        off(type: string, listener: Function, thisObj?: any): void;
+    }
+}
+declare namespace dou {
+    /**
      * 事件类
      * @author wizardc
      */
@@ -78,36 +108,6 @@ declare namespace dou {
         preventDefault(): void;
         isDefaultPrevented(): boolean;
         onRecycle(): void;
-    }
-}
-declare namespace dou {
-    /**
-     * 事件发送器
-     * @author wizardc
-     */
-    class EventDispatcher extends HashObject implements IEventDispatcher {
-        private $map;
-        constructor();
-        on(type: string, listener: Function, thisObj?: any): void;
-        once(type: string, listener: Function, thisObj?: any): void;
-        private $addEvent;
-        has(type: string): boolean;
-        dispatchEvent(event: Event): boolean;
-        dispatch(type: string, data?: any, cancelable?: boolean): boolean;
-        off(type: string, listener: Function, thisObj?: any): void;
-    }
-}
-declare namespace dou {
-    /**
-     * 事件发送器接口
-     * @author wizardc
-     */
-    interface IEventDispatcher {
-        on(type: string, listener: Function, thisObj?: any): void;
-        once(type: string, listener: Function, thisObj?: any): void;
-        has(type: string): boolean;
-        dispatchEvent(event: Event): boolean;
-        off(type: string, listener: Function, thisObj?: any): void;
     }
 }
 declare namespace dou {
@@ -142,128 +142,54 @@ declare namespace dou {
 }
 declare namespace dou {
     /**
-     * HTTP 请求方法
+     * 资源加载解析器接口
      * @author wizardc
      */
-    enum HttpMethod {
-        GET = 0,
-        POST = 1
+    interface IAnalyzer {
+        load(url: string, callback: (url: string, data: any) => void, thisObj: any): void;
+        release(data: any): boolean;
     }
 }
 declare namespace dou {
     /**
-     * HTTP 请求类
+     * HTTP 请求加载器基类
      * @author wizardc
      */
-    class HttpRequest extends EventDispatcher {
-        private _xhr;
-        private _responseType;
-        private _withCredentials;
-        private _headerMap;
-        private _url;
-        private _method;
-        constructor();
-        responseType: HttpResponseType;
-        withCredentials: boolean;
-        readonly response: any;
-        setRequestHeader(header: string, value: string): void;
-        getResponseHeader(header: string): string;
-        getAllResponseHeaders(): {
-            [key: string]: string;
-        };
-        open(url: string, method?: HttpMethod): void;
-        send(data?: any): void;
-        private onReadyStateChange;
-        private updateProgress;
-        abort(): void;
+    abstract class RequestAnalyzerBase implements IAnalyzer {
+        protected abstract getResponseType(): HttpResponseType;
+        protected abstract dataAnalyze(data: any): any;
+        load(url: string, callback: (url: string, data: any) => void, thisObj: any): void;
+        release(data: any): boolean;
     }
 }
 declare namespace dou {
     /**
-     * HTTP 返回值类型
+     * 文本加载器
      * @author wizardc
      */
-    enum HttpResponseType {
-        arraybuffer = 1,
-        blob = 2,
-        document = 3,
-        json = 4,
-        text = 5
+    class TextAnalyzer extends RequestAnalyzerBase {
+        protected getResponseType(): HttpResponseType;
+        protected dataAnalyze(data: any): any;
     }
 }
 declare namespace dou {
     /**
-     * 图片加载器
+     * JSON 加载器
      * @author wizardc
      */
-    class ImageLoader extends EventDispatcher {
-        /**
-         * 默认是否开启跨域访问控制
-         */
-        static crossOrigin: boolean;
-        private _data;
-        private _crossOrigin;
-        private _currentImage;
-        /**
-         * 是否开启跨域访问控制
-         */
-        crossOrigin: boolean;
-        readonly data: HTMLImageElement;
-        load(url: string): void;
-        private getImage;
-        private onLoad;
-        private onError;
+    class JsonAnalyzer extends RequestAnalyzerBase {
+        protected getResponseType(): HttpResponseType;
+        protected dataAnalyze(data: any): any;
     }
 }
 declare namespace dou {
     /**
-     * 套接字对象
+     * 二进制加载器
      * @author wizardc
      */
-    class Socket extends EventDispatcher {
-        private _webSocket;
-        private _endian;
-        private _input;
-        private _output;
-        private _url;
-        private _connected;
-        private _cacheInput;
-        private _addInputPosition;
-        constructor(host?: string, port?: number);
-        endian: Endian;
-        readonly input: ByteArray;
-        readonly output: ByteArray;
-        readonly url: string;
-        readonly connected: boolean;
-        /**
-         * 是否缓存服务端发送的数据到输入流中
-         */
-        cacheInput: boolean;
-        connect(host: string, port: number): void;
-        connectByUrl(url: string): void;
-        private onOpen;
-        private onMessage;
-        private onClose;
-        private onError;
-        send(data: string | ArrayBuffer): void;
-        flush(): void;
-        close(): void;
-        private cleanSocket;
-    }
-}
-declare namespace dou {
-    /**
-     * 声音加载器
-     * @author wizardc
-     */
-    class SoundLoader extends EventDispatcher {
-        private _data;
-        private _currentAudio;
-        readonly data: HTMLAudioElement;
-        load(url: string): void;
-        private getAudio;
-        private onLoaded;
-        private onError;
+    class BytesAnalyzer extends RequestAnalyzerBase {
+        protected getResponseType(): HttpResponseType;
+        protected dataAnalyze(data: any): any;
     }
 }
 declare namespace dou {
@@ -345,25 +271,196 @@ declare namespace dou {
 }
 declare namespace dou {
     /**
-     * 位运算工具类
+     * HTTP 请求方法
      * @author wizardc
      */
-    namespace BitUtil {
+    enum HttpMethod {
+        GET = 0,
+        POST = 1
+    }
+}
+declare namespace dou {
+    /**
+     * HTTP 返回值类型
+     * @author wizardc
+     */
+    enum HttpResponseType {
+        arraybuffer = 1,
+        blob = 2,
+        document = 3,
+        json = 4,
+        text = 5
+    }
+}
+declare namespace dou {
+    /**
+     * HTTP 请求类
+     * @author wizardc
+     */
+    class HttpRequest extends EventDispatcher {
+        private _xhr;
+        private _responseType;
+        private _withCredentials;
+        private _headerMap;
+        private _url;
+        private _method;
+        constructor();
+        responseType: HttpResponseType;
+        withCredentials: boolean;
+        readonly response: any;
+        setRequestHeader(header: string, value: string): void;
+        getResponseHeader(header: string): string;
+        getAllResponseHeaders(): {
+            [key: string]: string;
+        };
+        open(url: string, method?: HttpMethod): void;
+        send(data?: any): void;
+        private onReadyStateChange;
+        private updateProgress;
+        abort(): void;
+    }
+}
+declare namespace dou {
+    /**
+     * 图片加载器
+     * @author wizardc
+     */
+    class ImageLoader extends EventDispatcher {
         /**
-         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
-         * @param value 设置为 1 (true) 还是 0 (false)
+         * 默认是否开启跨域访问控制
          */
-        function setBit(target: number, position: number, value: boolean): number;
+        static crossOrigin: boolean;
+        private _data;
+        private _crossOrigin;
+        private _currentImage;
         /**
-         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
-         * @returns 对应的值为 1 (true) 还是 0 (false)
+         * 是否开启跨域访问控制
          */
-        function getBit(target: number, position: number): boolean;
+        crossOrigin: boolean;
+        readonly data: HTMLImageElement;
+        load(url: string): void;
+        private getImage;
+        private onLoad;
+        private onError;
+    }
+}
+declare namespace dou {
+    /**
+     * 声音加载器
+     * @author wizardc
+     */
+    class SoundLoader extends EventDispatcher {
+        private _data;
+        private _currentAudio;
+        readonly data: HTMLAudioElement;
+        load(url: string): void;
+        private getAudio;
+        private onLoaded;
+        private onError;
+    }
+}
+declare namespace dou {
+    /**
+     * 套接字对象
+     * @author wizardc
+     */
+    class Socket extends EventDispatcher {
+        private _webSocket;
+        private _endian;
+        private _input;
+        private _output;
+        private _url;
+        private _connected;
+        private _cacheInput;
+        private _addInputPosition;
+        constructor(host?: string, port?: number);
+        endian: Endian;
+        readonly input: ByteArray;
+        readonly output: ByteArray;
+        readonly url: string;
+        readonly connected: boolean;
         /**
-         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
-         * @returns 对应的值为 1 (true) 还是 0 (false)
+         * 是否缓存服务端发送的数据到输入流中
          */
-        function switchBit32(target: number, position: number): number;
+        cacheInput: boolean;
+        connect(host: string, port: number): void;
+        connectByUrl(url: string): void;
+        private onOpen;
+        private onMessage;
+        private onClose;
+        private onError;
+        send(data: string | ArrayBuffer): void;
+        flush(): void;
+        close(): void;
+        private cleanSocket;
+    }
+}
+declare namespace dou {
+    /**
+     * 获取引擎启动之后经过的毫秒数
+     */
+    function getTimer(): number;
+}
+declare namespace dou {
+    /**
+     * 通过对象池进行缓存的对象类型
+     * @author wizardc
+     */
+    interface ICacheable {
+        /**
+         * 加入对象池时调用
+         */
+        onRecycle?(): void;
+        /**
+         * 从对象池中取出时调用
+         */
+        onReuse?(): void;
+    }
+}
+declare namespace dou {
+    type Creator<T> = {
+        new (): T;
+    };
+    /**
+     * 对象池
+     * @author wizardc
+     */
+    class ObjectPool<T> {
+        private _creator;
+        private _maxCount;
+        private _list;
+        constructor(creator: Creator<T>, maxCount?: number);
+        readonly size: number;
+        join(obj: T): void;
+        take(): T;
+        clear(): void;
+    }
+}
+declare namespace dou {
+    type Recyclable<T> = T & {
+        recycle(): void;
+    };
+    /**
+     * 获取一个可回收的对象
+     */
+    function recyclable<T>(creator: Creator<T> & {
+        __pool?: ObjectPool<T>;
+    }): Recyclable<T>;
+    /**
+     * 对象池配置
+     */
+    function deployPool(targetClass: {
+        new (): any;
+    }, maxCount: number): void;
+}
+declare namespace dou {
+    /**
+     * 字节顺序
+     * @author wizardc
+     */
+    const enum Endian {
+        littleEndian = 0,
+        bigEndian = 1
     }
 }
 declare namespace dou {
@@ -460,22 +557,6 @@ declare namespace dou {
 }
 declare namespace dou {
     /**
-     * 字节顺序
-     * @author wizardc
-     */
-    const enum Endian {
-        littleEndian = 0,
-        bigEndian = 1
-    }
-}
-declare namespace dou {
-    /**
-     * 获取引擎启动之后经过的毫秒数
-     */
-    function getTimer(): number;
-}
-declare namespace dou {
-    /**
      * HTTP 请求工具类
      * @author wizardc
      */
@@ -484,58 +565,6 @@ declare namespace dou {
         function get(url: string, callback?: (response: any) => void, thisObj?: any, errorCallback?: (status: number) => void, errorThisObj?: any): void;
         function post(url: string, data?: any, callback?: (response: any) => void, thisObj?: any, errorCallback?: (status: number) => void, errorThisObj?: any): void;
     }
-}
-declare namespace dou {
-    /**
-     * 通过对象池进行缓存的对象类型
-     * @author wizardc
-     */
-    interface ICacheable {
-        /**
-         * 加入对象池时调用
-         */
-        onRecycle?(): void;
-        /**
-         * 从对象池中取出时调用
-         */
-        onReuse?(): void;
-    }
-}
-declare namespace dou {
-    type Creator<T> = {
-        new (): T;
-    };
-    /**
-     * 对象池
-     * @author wizardc
-     */
-    class ObjectPool<T> {
-        private _creator;
-        private _maxCount;
-        private _list;
-        constructor(creator: Creator<T>, maxCount?: number);
-        readonly size: number;
-        join(obj: T): void;
-        take(): T;
-        clear(): void;
-    }
-}
-declare namespace dou {
-    type Recyclable<T> = T & {
-        recycle(): void;
-    };
-    /**
-     * 获取一个可回收的对象
-     */
-    function recyclable<T>(creator: Creator<T> & {
-        __pool?: ObjectPool<T>;
-    }): Recyclable<T>;
-    /**
-     * 对象池配置
-     */
-    function deployPool(targetClass: {
-        new (): any;
-    }, maxCount: number): void;
 }
 declare namespace dou {
     /**
@@ -559,53 +588,24 @@ declare namespace dou {
 }
 declare namespace dou {
     /**
-     * HTTP 请求加载器基类
+     * 位运算工具类
      * @author wizardc
      */
-    abstract class RequestAnalyzerBase implements IAnalyzer {
-        protected abstract getResponseType(): HttpResponseType;
-        protected abstract dataAnalyze(data: any): any;
-        load(url: string, callback: (url: string, data: any) => void, thisObj: any): void;
-        release(data: any): boolean;
-    }
-}
-declare namespace dou {
-    /**
-     * 二进制加载器
-     * @author wizardc
-     */
-    class BytesAnalyzer extends RequestAnalyzerBase {
-        protected getResponseType(): HttpResponseType;
-        protected dataAnalyze(data: any): any;
-    }
-}
-declare namespace dou {
-    /**
-     * 资源加载解析器接口
-     * @author wizardc
-     */
-    interface IAnalyzer {
-        load(url: string, callback: (url: string, data: any) => void, thisObj: any): void;
-        release(data: any): boolean;
-    }
-}
-declare namespace dou {
-    /**
-     * JSON 加载器
-     * @author wizardc
-     */
-    class JsonAnalyzer extends RequestAnalyzerBase {
-        protected getResponseType(): HttpResponseType;
-        protected dataAnalyze(data: any): any;
-    }
-}
-declare namespace dou {
-    /**
-     * 文本加载器
-     * @author wizardc
-     */
-    class TextAnalyzer extends RequestAnalyzerBase {
-        protected getResponseType(): HttpResponseType;
-        protected dataAnalyze(data: any): any;
+    namespace BitUtil {
+        /**
+         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
+         * @param value 设置为 1 (true) 还是 0 (false)
+         */
+        function setBit(target: number, position: number, value: boolean): number;
+        /**
+         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
+         * @returns 对应的值为 1 (true) 还是 0 (false)
+         */
+        function getBit(target: number, position: number): boolean;
+        /**
+         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
+         * @returns 对应的值为 1 (true) 还是 0 (false)
+         */
+        function switchBit32(target: number, position: number): number;
     }
 }

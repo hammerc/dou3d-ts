@@ -49,7 +49,7 @@ declare namespace dou3d {
          */
         readonly transform: Matrix4;
         protected calculateTransform(): void;
-        protected abstract createChild(): void;
+        abstract createChild(): void;
         protected abstract updateAABB(): void;
         copyVertex(bound: Bound): void;
         /**
@@ -122,7 +122,7 @@ declare namespace dou3d {
         readonly radius: number;
         copy(box: BoundBox): void;
         fillBox(min: Vector3, max: Vector3): void;
-        protected createChild(): void;
+        createChild(): void;
         protected updateAABB(): void;
         /**
          * 计算包围盒数据
@@ -847,6 +847,63 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
+     * 场景中的可见物体, 可渲染对象
+     * 在渲染之前会将渲染树中对象进行筛选, 只有继承 RenderBase 的对象才会进入渲染管线
+     * @author wizardc
+     */
+    abstract class RenderBase extends Object3D {
+        /**
+         * 几何体网格信息
+         */
+        protected _geometry: Geometry;
+        protected _materialCount: number;
+        protected _lightGroup: LightGroup;
+        protected _order: number;
+        /**
+         * 当前对象使用的材质
+         */
+        material: MaterialBase;
+        /**
+         * 如果使用到多个材质时, 多个材质会存储在这里
+         */
+        multiMaterial: {
+            [matID: number]: MaterialBase;
+        };
+        /**
+         * 类型
+         */
+        type: string;
+        /**
+         * 渲染排序的参数，数值越大，先渲染
+         */
+        order: number;
+        geometry: Geometry;
+        /**
+         * 设置材质球接受的灯光组
+         */
+        lightGroup: LightGroup;
+        /**
+         * 增加一个材质
+         */
+        addSubMaterial(id: number, material: MaterialBase): void;
+        /**
+         * 删除一个材质
+         */
+        removeSubMaterial(id: number): void;
+        /**
+         * 用ID得到一个材质
+         */
+        getMaterial(id: number): MaterialBase;
+        /**
+         * 得到所有材质的个数
+         */
+        materialCount(): number;
+        update(time: number, delay: number, camera: Camera3D): void;
+        dispose(): void;
+    }
+}
+declare namespace dou3d {
+    /**
      * 3D 容器对象
      * @author wizardc
      */
@@ -867,34 +924,49 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
-     *
+     * 模型网格
      * @author wizardc
      */
-    class Mesh {
+    class Mesh extends RenderBase {
+        constructor(geometry: Geometry, material?: MaterialBase);
+        protected buildBoundBox(): Bound;
+        clone(): Mesh;
     }
 }
 declare namespace dou3d {
     /**
-     *
+     * 公告板, 始终面朝摄像机的面板
      * @author wizardc
      */
-    class Billboard {
+    class Billboard extends Mesh {
+        private _plane;
+        constructor(material: MaterialBase, geometry?: Geometry, width?: number, height?: number);
+        update(time: number, delay: number, camera: Camera3D): void;
+        clone(): Mesh;
     }
 }
 declare namespace dou3d {
     /**
-     *
+     * 渲染线框
+     * * 使用LINES的模式进行渲染
      * @author wizardc
      */
-    class Wireframe {
+    class Wireframe extends RenderBase {
+        constructor(src?: any, vf?: VertexFormat);
+        fromVertexs(src: any, vf?: VertexFormat): void;
+        fromVertexsEx(src: any, vf?: VertexFormat): void;
+        fromGeometry(geo: Geometry): void;
     }
 }
 declare namespace dou3d {
     /**
-     *
+     * 天空盒
      * @author wizardc
      */
-    class SkyBox {
+    class SkyBox extends Mesh {
+        camera: Camera3D;
+        constructor(geometry: Geometry, material: MaterialBase, camera?: Camera3D);
+        update(time: number, delay: number, camera: Camera3D): void;
     }
 }
 declare namespace dou3d {
@@ -2900,6 +2972,17 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
+     * 颜色渲染方法
+     * @author wizardc
+     */
+    class ColorMethod extends MethodBase {
+        constructor();
+        upload(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+        activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+    }
+}
+declare namespace dou3d {
+    /**
      * 阴影渲染方法
      * @author wizardc
      */
@@ -3480,6 +3563,31 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
+     * 纯颜色材质
+     * @author wizardc
+     */
+    class ColorMaterial extends MaterialBase {
+        constructor(color?: number);
+        protected initMatPass(): void;
+        color: number;
+        alpha: number;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 纹理材质
+     * * 标准的贴图材质球, 可以设置三种贴图: diffuse, normal, speclar 贴图
+     * * 不设置贴图时默认会设定为棋盘格贴图
+     * @author wizardc
+     */
+    class TextureMaterial extends MaterialBase {
+        constructor(texture?: TextureBase, materialData?: MaterialData);
+        protected initMatPass(): void;
+        clone(): TextureMaterial;
+    }
+}
+declare namespace dou3d {
+    /**
      * 拾取系统
      * @author wizardc
      */
@@ -3489,63 +3597,6 @@ declare namespace dou3d {
         enablePick: boolean;
         private constructor();
         update(entityCollect: EntityCollect, camera: Camera3D, time: number, delay: number, viewPort: Rectangle): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 场景中的可见物体, 可渲染对象
-     * 在渲染之前会将渲染树中对象进行筛选, 只有继承 RenderBase 的对象才会进入渲染管线
-     * @author wizardc
-     */
-    abstract class RenderBase extends Object3D {
-        /**
-         * 几何体网格信息
-         */
-        protected _geometry: Geometry;
-        protected _materialCount: number;
-        protected _lightGroup: LightGroup;
-        protected _order: number;
-        /**
-         * 当前对象使用的材质
-         */
-        material: MaterialBase;
-        /**
-         * 如果使用到多个材质时, 多个材质会存储在这里
-         */
-        multiMaterial: {
-            [matID: number]: MaterialBase;
-        };
-        /**
-         * 类型
-         */
-        type: string;
-        /**
-         * 渲染排序的参数，数值越大，先渲染
-         */
-        order: number;
-        geometry: Geometry;
-        /**
-         * 设置材质球接受的灯光组
-         */
-        lightGroup: LightGroup;
-        /**
-         * 增加一个材质
-         */
-        addSubMaterial(id: number, material: MaterialBase): void;
-        /**
-         * 删除一个材质
-         */
-        removeSubMaterial(id: number): void;
-        /**
-         * 用ID得到一个材质
-         */
-        getMaterial(id: number): MaterialBase;
-        /**
-         * 得到所有材质的个数
-         */
-        materialCount(): number;
-        update(time: number, delay: number, camera: Camera3D): void;
-        dispose(): void;
     }
 }
 declare namespace dou3d {
@@ -3951,6 +4002,7 @@ declare namespace dou3d {
         const base_fs = "#extension GL_OES_standard_derivatives:enable\rvarying vec3 varying_eyeNormal;\rvarying vec2 varying_uv0;\rvarying vec4 varying_color;\runiform mat4 uniform_ViewMatrix;\rvec4 outColor;\rvec4 diffuseColor;\rvec4 specularColor;\rvec4 ambientColor;\rvec4 light;\rvec3 normal;\rvec2 uv_0;\rvec3 flatNormals\rvec3 pos\r{\rvec3 fdx=dFdx\rpos\r;vec3 fdy=dFdy\rpos\r;return normalize\rcross\rfdx,fdy\r\r;\r}\rvoid main\r\r{\rdiffuseColor=vec4\r1.0,1.0,1.0,1.0\r;\rspecularColor=vec4\r0.0,0.0,0.0,0.0\r;\rambientColor=vec4\r0.0,0.0,0.0,0.0\r;\rlight=vec4\r1.0,1.0,1.0,1.0\r;\rnormal=normalize\rvarying_eyeNormal\r;\ruv_0=varying_uv0;\r}";
         const base_vs = "attribute vec3 attribute_position;\rattribute vec3 attribute_normal;\rattribute vec4 attribute_color;\rattribute vec2 attribute_uv0;\rvec3 e_position=vec3\r0.0,0.0,0.0\r;\runiform mat4 uniform_ModelMatrix;\runiform mat4 uniform_ViewMatrix;\runiform mat4 uniform_ProjectionMatrix;\rvarying vec3 varying_eyeNormal;\rvarying vec2 varying_uv0;\rvarying vec4 varying_color;\rvec4 outPosition;\rmat4 transpose\rmat4 inMatrix\r{\rvec4 i0=inMatrix[0];\rvec4 i1=inMatrix[1];\rvec4 i2=inMatrix[2];\rvec4 i3=inMatrix[3];\rmat4 outMatrix=mat4\r\rvec4\ri0.x,i1.x,i2.x,i3.x\r,\rvec4\ri0.y,i1.y,i2.y,i3.y\r,\rvec4\ri0.z,i1.z,i2.z,i3.z\r,\rvec4\ri0.w,i1.w,i2.w,i3.w\r\r\r;\rreturn outMatrix;\r}\rmat4 inverse\rmat4 m\r{\rfloat\ra00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\ra10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\ra20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\ra30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\rb00=a00*a11-a01*a10,\rb01=a00*a12-a02*a10,\rb02=a00*a13-a03*a10,\rb03=a01*a12-a02*a11,\rb04=a01*a13-a03*a11,\rb05=a02*a13-a03*a12,\rb06=a20*a31-a21*a30,\rb07=a20*a32-a22*a30,\rb08=a20*a33-a23*a30,\rb09=a21*a32-a22*a31,\rb10=a21*a33-a23*a31,\rb11=a22*a33-a23*a32,\rdet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\rreturn mat4\r\ra11*b11-a12*b10+a13*b09,\ra02*b10-a01*b11-a03*b09,\ra31*b05-a32*b04+a33*b03,\ra22*b04-a21*b05-a23*b03,\ra12*b08-a10*b11-a13*b07,\ra00*b11-a02*b08+a03*b07,\ra32*b02-a30*b05-a33*b01,\ra20*b05-a22*b02+a23*b01,\ra10*b10-a11*b08+a13*b06,\ra01*b08-a00*b10-a03*b06,\ra30*b04-a31*b02+a33*b00,\ra21*b02-a20*b04-a23*b00,\ra11*b07-a10*b09-a12*b06,\ra00*b09-a01*b07+a02*b06,\ra31*b01-a30*b03-a32*b00,\ra20*b03-a21*b01+a22*b00\r/det;\r}\rvoid main\rvoid\r{\re_position=attribute_position;\rvarying_color=attribute_color;\rvarying_uv0=attribute_uv0;\r}";
         const colorPassEnd_fs = "void main\r\r{\rgl_FragColor=vec4\rdiffuseColor.xyz,1.0\r;\r}";
+        const color_fs = "vec4 diffuseColor;\rvoid main\r\r{\rif\rdiffuseColor.w==0.0\r{\rdiscard;\r}\rdiffuseColor=vec4\r1.0,1.0,1.0,1.0\r;\rif\rdiffuseColor.w<materialSource.cutAlpha\r{\rdiscard;\r}\relse{\rdiffuseColor.xyz*=diffuseColor.w;\r}\r}";
         const diffuse_fs = "uniform sampler2D diffuseTexture;\rvec4 diffuseColor;\rvoid main\r\r{\rdiffuseColor=texture2D\rdiffuseTexture,uv_0\r;\rif\rdiffuseColor.w<materialSource.cutAlpha\r{\rdiscard;\r}\r}";
         const materialSource_fs = "struct MaterialSource{\rvec3 diffuse;\rvec3 ambient;\rvec3 specular;\rfloat alpha;\rfloat cutAlpha;\rfloat shininess;\rfloat roughness;\rfloat albedo;\rvec4 uvRectangle;\rfloat specularScale;\rfloat normalScale;\r};\runiform float uniform_materialSource[20];\rMaterialSource materialSource;\rvec2 uv_0;\rvoid main\r\r{\rmaterialSource.diffuse.x=uniform_materialSource[0];\rmaterialSource.diffuse.y=uniform_materialSource[1];\rmaterialSource.diffuse.z=uniform_materialSource[2];\rmaterialSource.ambient.x=uniform_materialSource[3];\rmaterialSource.ambient.y=uniform_materialSource[4];\rmaterialSource.ambient.z=uniform_materialSource[5];\rmaterialSource.specular.x=uniform_materialSource[6];\rmaterialSource.specular.y=uniform_materialSource[7];\rmaterialSource.specular.z=uniform_materialSource[8];\rmaterialSource.alpha=uniform_materialSource[9];\rmaterialSource.cutAlpha=uniform_materialSource[10];\rmaterialSource.shininess=uniform_materialSource[11];\rmaterialSource.specularScale=uniform_materialSource[12];\rmaterialSource.albedo=uniform_materialSource[13];\rmaterialSource.uvRectangle.x=uniform_materialSource[14];\rmaterialSource.uvRectangle.y=uniform_materialSource[15];\rmaterialSource.uvRectangle.z=uniform_materialSource[16];\rmaterialSource.uvRectangle.w=uniform_materialSource[17];\rmaterialSource.specularScale=uniform_materialSource[18];\rmaterialSource.normalScale=uniform_materialSource[19];\ruv_0=varying_uv0.xy*materialSource.uvRectangle.zw+materialSource.uvRectangle.xy;\r}";
         const normalMap_fs = "uniform sampler2D normalTexture;\rvarying vec2 varying_uv0;\rvarying vec4 varying_mvPose;\rmat3 TBN;\rmat3 cotangentFrame\rvec3 N,vec3 p,vec2 uv\r{\rvec3 dp1=dFdx\rp\r;\rvec3 dp2=dFdy\rp\r;\rvec2 duv1=dFdx\ruv\r;\rvec2 duv2=dFdy\ruv\r;\rvec3 dp2perp=cross\rdp2,N\r;\rvec3 dp1perp=cross\rN,dp1\r;\rvec3 T=dp2perp*duv1.x+dp1perp*duv2.x;\rvec3 B=dp2perp*duv1.y+dp1perp*duv2.y;\rfloat invmax=1.0/sqrt\rmax\rdot\rT,T\r,dot\rB,B\r\r\r;\rreturn mat3\rT*invmax,B*invmax,N\r;\r}\rvec3 tbn\rvec3 map,vec3 N,vec3 V,vec2 texcoord\r{\rmat3 TBN=cotangentFrame\rN,-V,texcoord\r;\rreturn normalize\rTBN*map\r;\r}\rvoid main\r\r{\rvec3 normalTex=texture2D\rnormalTexture,uv_0\r.xyz*2.0-1.0;\rnormalTex.y*=-1.0;\rnormal.xyz=tbn\rnormalTex.xyz,normal.xyz,varying_mvPose.xyz,uv_0\r;\r}";
@@ -4228,6 +4280,15 @@ declare namespace dou3d {
          * 转换为角度
          */
         function toDegrees(radians: number): number;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 几何体工具类
+     * @author wizardc
+     */
+    namespace GeometryUtil {
+        function fromVertexFormatToLength(vf: VertexFormat): number;
     }
 }
 declare namespace dou3d {

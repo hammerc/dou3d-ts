@@ -118,83 +118,6 @@ var dou;
     }());
     dou.TickerBase = TickerBase;
 })(dou || (dou = {}));
-///<reference path="./../core/HashObject.ts"/>
-var dou;
-(function (dou) {
-    /**
-     * 事件类
-     * @author wizardc
-     */
-    var Event = /** @class */ (function (_super) {
-        __extends(Event, _super);
-        function Event() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this._isDefaultPrevented = false;
-            return _this;
-        }
-        Event.prototype.init = function (type, data, cancelable) {
-            this._type = type;
-            this._data = data;
-            this._cancelable = cancelable;
-        };
-        Object.defineProperty(Event.prototype, "type", {
-            get: function () {
-                return this._type;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Event.prototype, "data", {
-            get: function () {
-                return this._data;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Event.prototype, "cancelable", {
-            get: function () {
-                return this._cancelable;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Event.prototype, "target", {
-            get: function () {
-                return this._target;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Event.prototype.setTarget = function (target) {
-            this._target = target;
-        };
-        /**
-         * 如果可以取消事件的默认行为, 则取消该行为
-         */
-        Event.prototype.preventDefault = function () {
-            if (this._cancelable) {
-                this._isDefaultPrevented = true;
-            }
-        };
-        Event.prototype.isDefaultPrevented = function () {
-            return this._isDefaultPrevented;
-        };
-        Event.prototype.onRecycle = function () {
-            this._type = null;
-            this._data = null;
-            this._cancelable = null;
-            this._isDefaultPrevented = false;
-            this._target = null;
-        };
-        Event.OPEN = "open";
-        Event.COMPLETE = "complete";
-        Event.MESSAGE = "message";
-        Event.CLOSE = "close";
-        return Event;
-    }(dou.HashObject));
-    dou.Event = Event;
-})(dou || (dou = {}));
-///<reference path="./../core/HashObject.ts"/>
 var dou;
 (function (dou) {
     /**
@@ -309,7 +232,81 @@ var dou;
         return EventBin;
     }());
 })(dou || (dou = {}));
-///<reference path="./Event.ts"/>
+var dou;
+(function (dou) {
+    /**
+     * 事件类
+     * @author wizardc
+     */
+    var Event = /** @class */ (function (_super) {
+        __extends(Event, _super);
+        function Event() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this._isDefaultPrevented = false;
+            return _this;
+        }
+        Event.prototype.init = function (type, data, cancelable) {
+            this._type = type;
+            this._data = data;
+            this._cancelable = cancelable;
+        };
+        Object.defineProperty(Event.prototype, "type", {
+            get: function () {
+                return this._type;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Event.prototype, "data", {
+            get: function () {
+                return this._data;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Event.prototype, "cancelable", {
+            get: function () {
+                return this._cancelable;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Event.prototype, "target", {
+            get: function () {
+                return this._target;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Event.prototype.setTarget = function (target) {
+            this._target = target;
+        };
+        /**
+         * 如果可以取消事件的默认行为, 则取消该行为
+         */
+        Event.prototype.preventDefault = function () {
+            if (this._cancelable) {
+                this._isDefaultPrevented = true;
+            }
+        };
+        Event.prototype.isDefaultPrevented = function () {
+            return this._isDefaultPrevented;
+        };
+        Event.prototype.onRecycle = function () {
+            this._type = null;
+            this._data = null;
+            this._cancelable = null;
+            this._isDefaultPrevented = false;
+            this._target = null;
+        };
+        Event.OPEN = "open";
+        Event.COMPLETE = "complete";
+        Event.MESSAGE = "message";
+        Event.CLOSE = "close";
+        return Event;
+    }(dou.HashObject));
+    dou.Event = Event;
+})(dou || (dou = {}));
 var dou;
 (function (dou) {
     /**
@@ -348,7 +345,6 @@ var dou;
     }(dou.Event));
     dou.IOErrorEvent = IOErrorEvent;
 })(dou || (dou = {}));
-///<reference path="./Event.ts"/>
 var dou;
 (function (dou) {
     /**
@@ -399,470 +395,94 @@ var dou;
 var dou;
 (function (dou) {
     /**
-     * HTTP 请求方法
+     * HTTP 请求加载器基类
      * @author wizardc
      */
-    var HttpMethod;
-    (function (HttpMethod) {
-        HttpMethod[HttpMethod["GET"] = 0] = "GET";
-        HttpMethod[HttpMethod["POST"] = 1] = "POST";
-    })(HttpMethod = dou.HttpMethod || (dou.HttpMethod = {}));
-})(dou || (dou = {}));
-///<reference path="./../event/EventDispatcher.ts"/>
-var dou;
-(function (dou) {
-    /**
-     * HTTP 请求类
-     * @author wizardc
-     */
-    var HttpRequest = /** @class */ (function (_super) {
-        __extends(HttpRequest, _super);
-        function HttpRequest() {
-            return _super.call(this) || this;
+    var RequestAnalyzerBase = /** @class */ (function () {
+        function RequestAnalyzerBase() {
         }
-        Object.defineProperty(HttpRequest.prototype, "responseType", {
-            get: function () {
-                return this._responseType;
-            },
-            set: function (value) {
-                this._responseType = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(HttpRequest.prototype, "withCredentials", {
-            get: function () {
-                return this._withCredentials;
-            },
-            set: function (value) {
-                this._withCredentials = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(HttpRequest.prototype, "response", {
-            get: function () {
-                if (!this._xhr) {
-                    return this._xhr.response;
-                }
-                return null;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        HttpRequest.prototype.setRequestHeader = function (header, value) {
-            if (!this._headerMap) {
-                this._headerMap = {};
-            }
-            this._headerMap[header] = value;
-        };
-        HttpRequest.prototype.getResponseHeader = function (header) {
-            return this._headerMap[header];
-        };
-        HttpRequest.prototype.getAllResponseHeaders = function () {
-            return this._headerMap;
-        };
-        HttpRequest.prototype.open = function (url, method) {
-            if (method === void 0) { method = dou.HttpMethod.GET; }
-            this._url = url;
-            this._method = method;
-            if (this._xhr) {
-                this._xhr.abort();
-                this._xhr = null;
-            }
-            this._xhr = new XMLHttpRequest();
-            this._xhr.onreadystatechange = this.onReadyStateChange.bind(this);
-            this._xhr.onprogress = this.updateProgress.bind(this);
-            this._xhr.open(dou.HttpMethod[this._method], this._url, true);
-        };
-        HttpRequest.prototype.send = function (data) {
-            if (this._responseType) {
-                this._xhr.responseType = dou.HttpResponseType[this._responseType];
-            }
-            if (this._withCredentials) {
-                this._xhr.withCredentials = true;
-            }
-            if (this._headerMap) {
-                for (var key in this._headerMap) {
-                    this._xhr.setRequestHeader(key, this._headerMap[key]);
-                }
-            }
-            this._xhr.send(data);
-        };
-        HttpRequest.prototype.onReadyStateChange = function (event) {
+        RequestAnalyzerBase.prototype.load = function (url, callback, thisObj) {
             var _this = this;
-            var xhr = this._xhr;
-            if (xhr.readyState == 4) {
-                var ioError_1 = (xhr.status >= 400 || xhr.status == 0);
-                setTimeout(function () {
-                    if (ioError_1) {
-                        dou.IOErrorEvent.dispatch(_this, dou.IOErrorEvent.IO_ERROR, "Request Error: " + _this._url);
-                    }
-                    else {
-                        _this.dispatch(dou.Event.COMPLETE);
-                    }
-                }, 0);
-            }
+            var request = new dou.HttpRequest();
+            request.responseType = this.getResponseType();
+            request.on(dou.Event.COMPLETE, function (event) {
+                callback.call(thisObj, url, _this.dataAnalyze(request.response));
+            }, this);
+            request.on(dou.IOErrorEvent.IO_ERROR, function (event) {
+                callback.call(thisObj, url);
+            }, this);
+            request.open(url, dou.HttpMethod.GET);
+            request.send();
         };
-        HttpRequest.prototype.updateProgress = function (event) {
-            if (event.lengthComputable) {
-                dou.ProgressEvent.dispatch(this, dou.ProgressEvent.PROGRESS, event.loaded, event.total);
-            }
+        RequestAnalyzerBase.prototype.release = function (data) {
+            return true;
         };
-        HttpRequest.prototype.abort = function () {
-            if (this._xhr) {
-                this._xhr.abort();
-                this._xhr = null;
-            }
-            this._url = null;
-            this._method = null;
-        };
-        return HttpRequest;
-    }(dou.EventDispatcher));
-    dou.HttpRequest = HttpRequest;
+        return RequestAnalyzerBase;
+    }());
+    dou.RequestAnalyzerBase = RequestAnalyzerBase;
 })(dou || (dou = {}));
 var dou;
 (function (dou) {
     /**
-     * HTTP 返回值类型
+     * 文本加载器
      * @author wizardc
      */
-    var HttpResponseType;
-    (function (HttpResponseType) {
-        HttpResponseType[HttpResponseType["arraybuffer"] = 1] = "arraybuffer";
-        HttpResponseType[HttpResponseType["blob"] = 2] = "blob";
-        HttpResponseType[HttpResponseType["document"] = 3] = "document";
-        HttpResponseType[HttpResponseType["json"] = 4] = "json";
-        HttpResponseType[HttpResponseType["text"] = 5] = "text";
-    })(HttpResponseType = dou.HttpResponseType || (dou.HttpResponseType = {}));
-})(dou || (dou = {}));
-///<reference path="./../event/EventDispatcher.ts"/>
-var dou;
-(function (dou) {
-    /**
-     * 图片加载器
-     * @author wizardc
-     */
-    var ImageLoader = /** @class */ (function (_super) {
-        __extends(ImageLoader, _super);
-        function ImageLoader() {
+    var TextAnalyzer = /** @class */ (function (_super) {
+        __extends(TextAnalyzer, _super);
+        function TextAnalyzer() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        Object.defineProperty(ImageLoader.prototype, "crossOrigin", {
-            get: function () {
-                return this._crossOrigin;
-            },
-            /**
-             * 是否开启跨域访问控制
-             */
-            set: function (value) {
-                this._crossOrigin = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(ImageLoader.prototype, "data", {
-            get: function () {
-                return this._data;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        ImageLoader.prototype.load = function (url) {
-            this._data = null;
-            var image = this._currentImage = new Image();
-            if (this._crossOrigin !== null) {
-                if (this._crossOrigin) {
-                    image.crossOrigin = "anonymous";
-                }
-            }
-            else {
-                if (ImageLoader.crossOrigin) {
-                    image.crossOrigin = "anonymous";
-                }
-            }
-            image.onload = this.onLoad.bind(this);
-            image.onerror = this.onError.bind(this);
-            image.src = url;
+        TextAnalyzer.prototype.getResponseType = function () {
+            return dou.HttpResponseType.text;
         };
-        ImageLoader.prototype.getImage = function (element) {
-            element.onload = element.onerror = null;
-            if (this._currentImage === element) {
-                this._data = element;
-                this._currentImage = null;
-                return element;
-            }
-            return null;
+        TextAnalyzer.prototype.dataAnalyze = function (data) {
+            return data;
         };
-        ImageLoader.prototype.onLoad = function (event) {
-            var _this = this;
-            var image = this.getImage(event.target);
-            if (image) {
-                setTimeout(function () {
-                    _this.dispatch(dou.Event.COMPLETE);
-                }, 0);
-            }
-        };
-        ImageLoader.prototype.onError = function (event) {
-            var _this = this;
-            var image = this.getImage(event.target);
-            if (image) {
-                setTimeout(function () {
-                    dou.IOErrorEvent.dispatch(_this, dou.IOErrorEvent.IO_ERROR, "Image load error: " + image.src);
-                }, 0);
-            }
-        };
-        /**
-         * 默认是否开启跨域访问控制
-         */
-        ImageLoader.crossOrigin = false;
-        return ImageLoader;
-    }(dou.EventDispatcher));
-    dou.ImageLoader = ImageLoader;
+        return TextAnalyzer;
+    }(dou.RequestAnalyzerBase));
+    dou.TextAnalyzer = TextAnalyzer;
 })(dou || (dou = {}));
-///<reference path="./../event/EventDispatcher.ts"/>
 var dou;
 (function (dou) {
     /**
-     * 套接字对象
+     * JSON 加载器
      * @author wizardc
      */
-    var Socket = /** @class */ (function (_super) {
-        __extends(Socket, _super);
-        function Socket(host, port) {
-            var _this = _super.call(this) || this;
-            _this._endian = 1 /* bigEndian */;
-            _this._connected = false;
-            _this._cacheInput = true;
-            _this._addInputPosition = 0;
-            if (host && port > 0 && port < 65535) {
-                _this.connect(host, port);
-            }
-            return _this;
-        }
-        Object.defineProperty(Socket.prototype, "endian", {
-            get: function () {
-                return this._endian;
-            },
-            set: function (value) {
-                this._endian = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Socket.prototype, "input", {
-            get: function () {
-                return this._input;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Socket.prototype, "output", {
-            get: function () {
-                return this._output;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Socket.prototype, "url", {
-            get: function () {
-                return this._url;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Socket.prototype, "connected", {
-            get: function () {
-                return this._connected;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Socket.prototype, "cacheInput", {
-            get: function () {
-                return this._cacheInput;
-            },
-            /**
-             * 是否缓存服务端发送的数据到输入流中
-             */
-            set: function (value) {
-                this._cacheInput = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Socket.prototype.connect = function (host, port) {
-            var url;
-            if (window.location.protocol == "https:") {
-                url = "wss://" + host + ":" + port;
-            }
-            else {
-                url = "ws://" + host + ":" + port;
-            }
-            this.connectByUrl(url);
-        };
-        Socket.prototype.connectByUrl = function (url) {
-            var _this = this;
-            if (this._webSocket) {
-                this.close();
-            }
-            this._url = url;
-            this._webSocket = new WebSocket(url);
-            this._webSocket.binaryType = "arraybuffer";
-            this._input = new dou.ByteArray();
-            this._input.endian = this.endian;
-            this._output = new dou.ByteArray();
-            this._output.endian = this.endian;
-            this._addInputPosition = 0;
-            this._webSocket.onopen = function (event) {
-                _this.onOpen(event);
-            };
-            this._webSocket.onmessage = function (messageEvent) {
-                _this.onMessage(messageEvent);
-            };
-            this._webSocket.onclose = function (event) {
-                _this.onClose(event);
-            };
-            this._webSocket.onerror = function (event) {
-                _this.onError(event);
-            };
-        };
-        Socket.prototype.onOpen = function (event) {
-            this._connected = true;
-            this.dispatch(dou.Event.OPEN);
-        };
-        Socket.prototype.onMessage = function (messageEvent) {
-            if (!messageEvent || !messageEvent.data) {
-                return;
-            }
-            var data = messageEvent.data;
-            if (!this._cacheInput && data) {
-                this.dispatch(dou.Event.MESSAGE, data);
-                return;
-            }
-            if (this._input.length > 0 && this._input.bytesAvailable < 1) {
-                this._input.clear();
-                this._addInputPosition = 0;
-            }
-            var pre = this._input.position;
-            if (!this._addInputPosition) {
-                this._addInputPosition = 0;
-            }
-            this._input.position = this._addInputPosition;
-            if (data) {
-                if ((typeof data == "string")) {
-                    this._input.writeUTFBytes(data);
-                }
-                else {
-                    this._input.writeUint8Array(new Uint8Array(data));
-                }
-                this._addInputPosition = this._input.position;
-                this._input.position = pre;
-            }
-            this.dispatch(dou.Event.MESSAGE, data);
-        };
-        Socket.prototype.onClose = function (event) {
-            this._connected = false;
-            this.dispatch(dou.Event.CLOSE);
-        };
-        Socket.prototype.onError = function (event) {
-            dou.IOErrorEvent.dispatch(this, dou.IOErrorEvent.IO_ERROR, "Socket connect error: " + this._url);
-        };
-        Socket.prototype.send = function (data) {
-            this._webSocket.send(data);
-        };
-        Socket.prototype.flush = function () {
-            if (this._output && this._output.length > 0) {
-                var error = void 0;
-                try {
-                    if (this._webSocket) {
-                        this._webSocket.send(this._output.buffer);
-                    }
-                }
-                catch (e) {
-                    error = e;
-                }
-                this._output.endian = this.endian;
-                this._output.clear();
-                if (error) {
-                    dou.IOErrorEvent.dispatch(this, dou.IOErrorEvent.IO_ERROR, "Socket connect error: " + this._url);
-                }
-            }
-        };
-        Socket.prototype.close = function () {
-            if (this._webSocket) {
-                this.cleanSocket();
-            }
-        };
-        Socket.prototype.cleanSocket = function () {
-            this._webSocket.close();
-            this._connected = false;
-            this._webSocket.onopen = null;
-            this._webSocket.onmessage = null;
-            this._webSocket.onclose = null;
-            this._webSocket.onerror = null;
-            this._webSocket = null;
-            this._url = null;
-        };
-        return Socket;
-    }(dou.EventDispatcher));
-    dou.Socket = Socket;
-})(dou || (dou = {}));
-///<reference path="./../event/EventDispatcher.ts"/>
-var dou;
-(function (dou) {
-    /**
-     * 声音加载器
-     * @author wizardc
-     */
-    var SoundLoader = /** @class */ (function (_super) {
-        __extends(SoundLoader, _super);
-        function SoundLoader() {
+    var JsonAnalyzer = /** @class */ (function (_super) {
+        __extends(JsonAnalyzer, _super);
+        function JsonAnalyzer() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        Object.defineProperty(SoundLoader.prototype, "data", {
-            get: function () {
-                return this._data;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        SoundLoader.prototype.load = function (url) {
-            this._data = null;
-            var audio = this._currentAudio = new Audio(url);
-            audio.addEventListener("canplaythrough", this.onLoaded.bind(this));
-            audio.addEventListener("error", this.onError.bind(this));
-            audio.load();
+        JsonAnalyzer.prototype.getResponseType = function () {
+            return dou.HttpResponseType.text;
         };
-        SoundLoader.prototype.getAudio = function (element) {
-            if (this._currentAudio === element) {
-                this._data = element;
-                this._currentAudio = null;
-                return element;
-            }
-            return null;
+        JsonAnalyzer.prototype.dataAnalyze = function (data) {
+            return JSON.parse(data);
         };
-        SoundLoader.prototype.onLoaded = function (event) {
-            var _this = this;
-            var audio = this.getAudio(event.target);
-            if (audio) {
-                setTimeout(function () {
-                    _this.dispatch(dou.Event.COMPLETE);
-                }, 0);
-            }
+        return JsonAnalyzer;
+    }(dou.RequestAnalyzerBase));
+    dou.JsonAnalyzer = JsonAnalyzer;
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * 二进制加载器
+     * @author wizardc
+     */
+    var BytesAnalyzer = /** @class */ (function (_super) {
+        __extends(BytesAnalyzer, _super);
+        function BytesAnalyzer() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        BytesAnalyzer.prototype.getResponseType = function () {
+            return dou.HttpResponseType.arraybuffer;
         };
-        SoundLoader.prototype.onError = function (event) {
-            var _this = this;
-            var audio = this.getAudio(event.target);
-            if (audio) {
-                setTimeout(function () {
-                    dou.IOErrorEvent.dispatch(_this, dou.IOErrorEvent.IO_ERROR, "Sound load error: " + audio.src);
-                }, 0);
-            }
+        BytesAnalyzer.prototype.dataAnalyze = function (data) {
+            return new dou.ByteArray(data);
         };
-        return SoundLoader;
-    }(dou.EventDispatcher));
-    dou.SoundLoader = SoundLoader;
+        return BytesAnalyzer;
+    }(dou.RequestAnalyzerBase));
+    dou.BytesAnalyzer = BytesAnalyzer;
 })(dou || (dou = {}));
 var dou;
 (function (dou) {
@@ -1103,43 +723,558 @@ var dou;
 var dou;
 (function (dou) {
     /**
-     * 位运算工具类
+     * HTTP 请求方法
      * @author wizardc
      */
-    var BitUtil;
-    (function (BitUtil) {
-        /**
-         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
-         * @param value 设置为 1 (true) 还是 0 (false)
-         */
-        function setBit(target, position, value) {
-            if (value) {
-                target |= 1 << position;
+    var HttpMethod;
+    (function (HttpMethod) {
+        HttpMethod[HttpMethod["GET"] = 0] = "GET";
+        HttpMethod[HttpMethod["POST"] = 1] = "POST";
+    })(HttpMethod = dou.HttpMethod || (dou.HttpMethod = {}));
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * HTTP 返回值类型
+     * @author wizardc
+     */
+    var HttpResponseType;
+    (function (HttpResponseType) {
+        HttpResponseType[HttpResponseType["arraybuffer"] = 1] = "arraybuffer";
+        HttpResponseType[HttpResponseType["blob"] = 2] = "blob";
+        HttpResponseType[HttpResponseType["document"] = 3] = "document";
+        HttpResponseType[HttpResponseType["json"] = 4] = "json";
+        HttpResponseType[HttpResponseType["text"] = 5] = "text";
+    })(HttpResponseType = dou.HttpResponseType || (dou.HttpResponseType = {}));
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * HTTP 请求类
+     * @author wizardc
+     */
+    var HttpRequest = /** @class */ (function (_super) {
+        __extends(HttpRequest, _super);
+        function HttpRequest() {
+            return _super.call(this) || this;
+        }
+        Object.defineProperty(HttpRequest.prototype, "responseType", {
+            get: function () {
+                return this._responseType;
+            },
+            set: function (value) {
+                this._responseType = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HttpRequest.prototype, "withCredentials", {
+            get: function () {
+                return this._withCredentials;
+            },
+            set: function (value) {
+                this._withCredentials = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HttpRequest.prototype, "response", {
+            get: function () {
+                if (!this._xhr) {
+                    return this._xhr.response;
+                }
+                return null;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        HttpRequest.prototype.setRequestHeader = function (header, value) {
+            if (!this._headerMap) {
+                this._headerMap = {};
+            }
+            this._headerMap[header] = value;
+        };
+        HttpRequest.prototype.getResponseHeader = function (header) {
+            return this._headerMap[header];
+        };
+        HttpRequest.prototype.getAllResponseHeaders = function () {
+            return this._headerMap;
+        };
+        HttpRequest.prototype.open = function (url, method) {
+            if (method === void 0) { method = dou.HttpMethod.GET; }
+            this._url = url;
+            this._method = method;
+            if (this._xhr) {
+                this._xhr.abort();
+                this._xhr = null;
+            }
+            this._xhr = new XMLHttpRequest();
+            this._xhr.onreadystatechange = this.onReadyStateChange.bind(this);
+            this._xhr.onprogress = this.updateProgress.bind(this);
+            this._xhr.open(dou.HttpMethod[this._method], this._url, true);
+        };
+        HttpRequest.prototype.send = function (data) {
+            if (this._responseType) {
+                this._xhr.responseType = dou.HttpResponseType[this._responseType];
+            }
+            if (this._withCredentials) {
+                this._xhr.withCredentials = true;
+            }
+            if (this._headerMap) {
+                for (var key in this._headerMap) {
+                    this._xhr.setRequestHeader(key, this._headerMap[key]);
+                }
+            }
+            this._xhr.send(data);
+        };
+        HttpRequest.prototype.onReadyStateChange = function (event) {
+            var _this = this;
+            var xhr = this._xhr;
+            if (xhr.readyState == 4) {
+                var ioError_1 = (xhr.status >= 400 || xhr.status == 0);
+                setTimeout(function () {
+                    if (ioError_1) {
+                        dou.IOErrorEvent.dispatch(_this, dou.IOErrorEvent.IO_ERROR, "Request Error: " + _this._url);
+                    }
+                    else {
+                        _this.dispatch(dou.Event.COMPLETE);
+                    }
+                }, 0);
+            }
+        };
+        HttpRequest.prototype.updateProgress = function (event) {
+            if (event.lengthComputable) {
+                dou.ProgressEvent.dispatch(this, dou.ProgressEvent.PROGRESS, event.loaded, event.total);
+            }
+        };
+        HttpRequest.prototype.abort = function () {
+            if (this._xhr) {
+                this._xhr.abort();
+                this._xhr = null;
+            }
+            this._url = null;
+            this._method = null;
+        };
+        return HttpRequest;
+    }(dou.EventDispatcher));
+    dou.HttpRequest = HttpRequest;
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * 图片加载器
+     * @author wizardc
+     */
+    var ImageLoader = /** @class */ (function (_super) {
+        __extends(ImageLoader, _super);
+        function ImageLoader() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Object.defineProperty(ImageLoader.prototype, "crossOrigin", {
+            get: function () {
+                return this._crossOrigin;
+            },
+            /**
+             * 是否开启跨域访问控制
+             */
+            set: function (value) {
+                this._crossOrigin = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ImageLoader.prototype, "data", {
+            get: function () {
+                return this._data;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ImageLoader.prototype.load = function (url) {
+            this._data = null;
+            var image = this._currentImage = new Image();
+            if (this._crossOrigin !== null) {
+                if (this._crossOrigin) {
+                    image.crossOrigin = "anonymous";
+                }
             }
             else {
-                target &= ~(1 << position);
+                if (ImageLoader.crossOrigin) {
+                    image.crossOrigin = "anonymous";
+                }
             }
-            return target;
-        }
-        BitUtil.setBit = setBit;
+            image.onload = this.onLoad.bind(this);
+            image.onerror = this.onError.bind(this);
+            image.src = url;
+        };
+        ImageLoader.prototype.getImage = function (element) {
+            element.onload = element.onerror = null;
+            if (this._currentImage === element) {
+                this._data = element;
+                this._currentImage = null;
+                return element;
+            }
+            return null;
+        };
+        ImageLoader.prototype.onLoad = function (event) {
+            var _this = this;
+            var image = this.getImage(event.target);
+            if (image) {
+                setTimeout(function () {
+                    _this.dispatch(dou.Event.COMPLETE);
+                }, 0);
+            }
+        };
+        ImageLoader.prototype.onError = function (event) {
+            var _this = this;
+            var image = this.getImage(event.target);
+            if (image) {
+                setTimeout(function () {
+                    dou.IOErrorEvent.dispatch(_this, dou.IOErrorEvent.IO_ERROR, "Image load error: " + image.src);
+                }, 0);
+            }
+        };
         /**
-         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
-         * @returns 对应的值为 1 (true) 还是 0 (false)
+         * 默认是否开启跨域访问控制
          */
-        function getBit(target, position) {
-            return target == (target | (1 << position));
+        ImageLoader.crossOrigin = false;
+        return ImageLoader;
+    }(dou.EventDispatcher));
+    dou.ImageLoader = ImageLoader;
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * 声音加载器
+     * @author wizardc
+     */
+    var SoundLoader = /** @class */ (function (_super) {
+        __extends(SoundLoader, _super);
+        function SoundLoader() {
+            return _super !== null && _super.apply(this, arguments) || this;
         }
-        BitUtil.getBit = getBit;
-        /**
-         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
-         * @returns 对应的值为 1 (true) 还是 0 (false)
-         */
-        function switchBit32(target, position) {
-            target ^= 1 << position;
-            return target;
+        Object.defineProperty(SoundLoader.prototype, "data", {
+            get: function () {
+                return this._data;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        SoundLoader.prototype.load = function (url) {
+            this._data = null;
+            var audio = this._currentAudio = new Audio(url);
+            audio.addEventListener("canplaythrough", this.onLoaded.bind(this));
+            audio.addEventListener("error", this.onError.bind(this));
+            audio.load();
+        };
+        SoundLoader.prototype.getAudio = function (element) {
+            if (this._currentAudio === element) {
+                this._data = element;
+                this._currentAudio = null;
+                return element;
+            }
+            return null;
+        };
+        SoundLoader.prototype.onLoaded = function (event) {
+            var _this = this;
+            var audio = this.getAudio(event.target);
+            if (audio) {
+                setTimeout(function () {
+                    _this.dispatch(dou.Event.COMPLETE);
+                }, 0);
+            }
+        };
+        SoundLoader.prototype.onError = function (event) {
+            var _this = this;
+            var audio = this.getAudio(event.target);
+            if (audio) {
+                setTimeout(function () {
+                    dou.IOErrorEvent.dispatch(_this, dou.IOErrorEvent.IO_ERROR, "Sound load error: " + audio.src);
+                }, 0);
+            }
+        };
+        return SoundLoader;
+    }(dou.EventDispatcher));
+    dou.SoundLoader = SoundLoader;
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * 套接字对象
+     * @author wizardc
+     */
+    var Socket = /** @class */ (function (_super) {
+        __extends(Socket, _super);
+        function Socket(host, port) {
+            var _this = _super.call(this) || this;
+            _this._endian = 1 /* bigEndian */;
+            _this._connected = false;
+            _this._cacheInput = true;
+            _this._addInputPosition = 0;
+            if (host && port > 0 && port < 65535) {
+                _this.connect(host, port);
+            }
+            return _this;
         }
-        BitUtil.switchBit32 = switchBit32;
-    })(BitUtil = dou.BitUtil || (dou.BitUtil = {}));
+        Object.defineProperty(Socket.prototype, "endian", {
+            get: function () {
+                return this._endian;
+            },
+            set: function (value) {
+                this._endian = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Socket.prototype, "input", {
+            get: function () {
+                return this._input;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Socket.prototype, "output", {
+            get: function () {
+                return this._output;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Socket.prototype, "url", {
+            get: function () {
+                return this._url;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Socket.prototype, "connected", {
+            get: function () {
+                return this._connected;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Socket.prototype, "cacheInput", {
+            get: function () {
+                return this._cacheInput;
+            },
+            /**
+             * 是否缓存服务端发送的数据到输入流中
+             */
+            set: function (value) {
+                this._cacheInput = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Socket.prototype.connect = function (host, port) {
+            var url;
+            if (window.location.protocol == "https:") {
+                url = "wss://" + host + ":" + port;
+            }
+            else {
+                url = "ws://" + host + ":" + port;
+            }
+            this.connectByUrl(url);
+        };
+        Socket.prototype.connectByUrl = function (url) {
+            var _this = this;
+            if (this._webSocket) {
+                this.close();
+            }
+            this._url = url;
+            this._webSocket = new WebSocket(url);
+            this._webSocket.binaryType = "arraybuffer";
+            this._input = new dou.ByteArray();
+            this._input.endian = this.endian;
+            this._output = new dou.ByteArray();
+            this._output.endian = this.endian;
+            this._addInputPosition = 0;
+            this._webSocket.onopen = function (event) {
+                _this.onOpen(event);
+            };
+            this._webSocket.onmessage = function (messageEvent) {
+                _this.onMessage(messageEvent);
+            };
+            this._webSocket.onclose = function (event) {
+                _this.onClose(event);
+            };
+            this._webSocket.onerror = function (event) {
+                _this.onError(event);
+            };
+        };
+        Socket.prototype.onOpen = function (event) {
+            this._connected = true;
+            this.dispatch(dou.Event.OPEN);
+        };
+        Socket.prototype.onMessage = function (messageEvent) {
+            if (!messageEvent || !messageEvent.data) {
+                return;
+            }
+            var data = messageEvent.data;
+            if (!this._cacheInput && data) {
+                this.dispatch(dou.Event.MESSAGE, data);
+                return;
+            }
+            if (this._input.length > 0 && this._input.bytesAvailable < 1) {
+                this._input.clear();
+                this._addInputPosition = 0;
+            }
+            var pre = this._input.position;
+            if (!this._addInputPosition) {
+                this._addInputPosition = 0;
+            }
+            this._input.position = this._addInputPosition;
+            if (data) {
+                if ((typeof data == "string")) {
+                    this._input.writeUTFBytes(data);
+                }
+                else {
+                    this._input.writeUint8Array(new Uint8Array(data));
+                }
+                this._addInputPosition = this._input.position;
+                this._input.position = pre;
+            }
+            this.dispatch(dou.Event.MESSAGE, data);
+        };
+        Socket.prototype.onClose = function (event) {
+            this._connected = false;
+            this.dispatch(dou.Event.CLOSE);
+        };
+        Socket.prototype.onError = function (event) {
+            dou.IOErrorEvent.dispatch(this, dou.IOErrorEvent.IO_ERROR, "Socket connect error: " + this._url);
+        };
+        Socket.prototype.send = function (data) {
+            this._webSocket.send(data);
+        };
+        Socket.prototype.flush = function () {
+            if (this._output && this._output.length > 0) {
+                var error = void 0;
+                try {
+                    if (this._webSocket) {
+                        this._webSocket.send(this._output.buffer);
+                    }
+                }
+                catch (e) {
+                    error = e;
+                }
+                this._output.endian = this.endian;
+                this._output.clear();
+                if (error) {
+                    dou.IOErrorEvent.dispatch(this, dou.IOErrorEvent.IO_ERROR, "Socket connect error: " + this._url);
+                }
+            }
+        };
+        Socket.prototype.close = function () {
+            if (this._webSocket) {
+                this.cleanSocket();
+            }
+        };
+        Socket.prototype.cleanSocket = function () {
+            this._webSocket.close();
+            this._connected = false;
+            this._webSocket.onopen = null;
+            this._webSocket.onmessage = null;
+            this._webSocket.onclose = null;
+            this._webSocket.onerror = null;
+            this._webSocket = null;
+            this._url = null;
+        };
+        return Socket;
+    }(dou.EventDispatcher));
+    dou.Socket = Socket;
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * 获取引擎启动之后经过的毫秒数
+     */
+    function getTimer() {
+        return Date.now() - dou.TickerBase.$startTime;
+    }
+    dou.getTimer = getTimer;
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * 对象池
+     * @author wizardc
+     */
+    var ObjectPool = /** @class */ (function () {
+        function ObjectPool(creator, maxCount) {
+            if (maxCount === void 0) { maxCount = 50; }
+            this._creator = creator;
+            this._maxCount = maxCount;
+            this._list = [];
+        }
+        Object.defineProperty(ObjectPool.prototype, "size", {
+            get: function () {
+                return this._list.length;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ObjectPool.prototype.join = function (obj) {
+            if (typeof obj.onRecycle === "function") {
+                obj.onRecycle();
+            }
+            if (this._list.length < this._maxCount) {
+                if (this._list.indexOf(obj) == -1) {
+                    this._list.push(obj);
+                }
+            }
+        };
+        ObjectPool.prototype.take = function () {
+            var obj;
+            if (this._list.length == 0) {
+                obj = new this._creator();
+            }
+            else {
+                obj = this._list.pop();
+                if (typeof obj.onReuse === "function") {
+                    obj.onReuse();
+                }
+            }
+            return obj;
+        };
+        ObjectPool.prototype.clear = function () {
+            this._list.length = 0;
+        };
+        return ObjectPool;
+    }());
+    dou.ObjectPool = ObjectPool;
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * 获取一个可回收的对象
+     */
+    function recyclable(creator) {
+        var pool;
+        if (creator.hasOwnProperty("__pool")) {
+            pool = creator.__pool;
+        }
+        else {
+            var maxCount = creator.prototype.constructor.__cacheMaxCount || 50;
+            pool = new dou.ObjectPool(creator, maxCount);
+            var prototype = creator.prototype;
+            if (!prototype.hasOwnProperty("recycle")) {
+                prototype.recycle = function () {
+                    pool.join(this);
+                };
+            }
+            creator.__pool = pool;
+        }
+        return pool.take();
+    }
+    dou.recyclable = recyclable;
+    /**
+     * 对象池配置
+     */
+    function deployPool(targetClass, maxCount) {
+        targetClass.prototype.constructor.__cacheMaxCount = maxCount;
+    }
+    dou.deployPool = deployPool;
 })(dou || (dou = {}));
 var dou;
 (function (dou) {
@@ -1775,16 +1910,6 @@ var dou;
 var dou;
 (function (dou) {
     /**
-     * 获取引擎启动之后经过的毫秒数
-     */
-    function getTimer() {
-        return Date.now() - dou.TickerBase.$startTime;
-    }
-    dou.getTimer = getTimer;
-})(dou || (dou = {}));
-var dou;
-(function (dou) {
-    /**
      * HTTP 请求工具类
      * @author wizardc
      */
@@ -1845,85 +1970,6 @@ var dou;
 var dou;
 (function (dou) {
     /**
-     * 对象池
-     * @author wizardc
-     */
-    var ObjectPool = /** @class */ (function () {
-        function ObjectPool(creator, maxCount) {
-            if (maxCount === void 0) { maxCount = 50; }
-            this._creator = creator;
-            this._maxCount = maxCount;
-            this._list = [];
-        }
-        Object.defineProperty(ObjectPool.prototype, "size", {
-            get: function () {
-                return this._list.length;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        ObjectPool.prototype.join = function (obj) {
-            if (typeof obj.onRecycle === "function") {
-                obj.onRecycle();
-            }
-            if (this._list.length < this._maxCount) {
-                if (this._list.indexOf(obj) == -1) {
-                    this._list.push(obj);
-                }
-            }
-        };
-        ObjectPool.prototype.take = function () {
-            var obj;
-            if (this._list.length == 0) {
-                obj = new this._creator();
-            }
-            else {
-                obj = this._list.pop();
-                if (typeof obj.onReuse === "function") {
-                    obj.onReuse();
-                }
-            }
-            return obj;
-        };
-        ObjectPool.prototype.clear = function () {
-            this._list.length = 0;
-        };
-        return ObjectPool;
-    }());
-    dou.ObjectPool = ObjectPool;
-})(dou || (dou = {}));
-var dou;
-(function (dou) {
-    /**
-     * 获取一个可回收的对象
-     */
-    function recyclable(creator) {
-        var pool = creator.__pool;
-        if (!pool) {
-            var maxCount = creator.prototype.constructor.__cacheMaxCount || 50;
-            pool = new dou.ObjectPool(creator, maxCount);
-            var prototype = creator.prototype;
-            if (!prototype.hasOwnProperty("recycle")) {
-                prototype.recycle = function () {
-                    pool.join(this);
-                };
-            }
-            creator.__pool = pool;
-        }
-        return pool.take();
-    }
-    dou.recyclable = recyclable;
-    /**
-     * 对象池配置
-     */
-    function deployPool(targetClass, maxCount) {
-        targetClass.prototype.constructor.__cacheMaxCount = maxCount;
-    }
-    dou.deployPool = deployPool;
-})(dou || (dou = {}));
-var dou;
-(function (dou) {
-    /**
      * 脚本工具类
      * @author wizardc
      */
@@ -1973,95 +2019,41 @@ var dou;
 var dou;
 (function (dou) {
     /**
-     * HTTP 请求加载器基类
+     * 位运算工具类
      * @author wizardc
      */
-    var RequestAnalyzerBase = /** @class */ (function () {
-        function RequestAnalyzerBase() {
+    var BitUtil;
+    (function (BitUtil) {
+        /**
+         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
+         * @param value 设置为 1 (true) 还是 0 (false)
+         */
+        function setBit(target, position, value) {
+            if (value) {
+                target |= 1 << position;
+            }
+            else {
+                target &= ~(1 << position);
+            }
+            return target;
         }
-        RequestAnalyzerBase.prototype.load = function (url, callback, thisObj) {
-            var _this = this;
-            var request = new dou.HttpRequest();
-            request.responseType = this.getResponseType();
-            request.on(dou.Event.COMPLETE, function (event) {
-                callback.call(thisObj, url, _this.dataAnalyze(request.response));
-            }, this);
-            request.on(dou.IOErrorEvent.IO_ERROR, function (event) {
-                callback.call(thisObj, url);
-            }, this);
-            request.open(url, dou.HttpMethod.GET);
-            request.send();
-        };
-        RequestAnalyzerBase.prototype.release = function (data) {
-            return true;
-        };
-        return RequestAnalyzerBase;
-    }());
-    dou.RequestAnalyzerBase = RequestAnalyzerBase;
-})(dou || (dou = {}));
-///<reference path="./RequestAnalyzerBase.ts"/>
-var dou;
-(function (dou) {
-    /**
-     * 二进制加载器
-     * @author wizardc
-     */
-    var BytesAnalyzer = /** @class */ (function (_super) {
-        __extends(BytesAnalyzer, _super);
-        function BytesAnalyzer() {
-            return _super !== null && _super.apply(this, arguments) || this;
+        BitUtil.setBit = setBit;
+        /**
+         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
+         * @returns 对应的值为 1 (true) 还是 0 (false)
+         */
+        function getBit(target, position) {
+            return target == (target | (1 << position));
         }
-        BytesAnalyzer.prototype.getResponseType = function () {
-            return dou.HttpResponseType.arraybuffer;
-        };
-        BytesAnalyzer.prototype.dataAnalyze = function (data) {
-            return new dou.ByteArray(data);
-        };
-        return BytesAnalyzer;
-    }(dou.RequestAnalyzerBase));
-    dou.BytesAnalyzer = BytesAnalyzer;
-})(dou || (dou = {}));
-///<reference path="./RequestAnalyzerBase.ts"/>
-var dou;
-(function (dou) {
-    /**
-     * JSON 加载器
-     * @author wizardc
-     */
-    var JsonAnalyzer = /** @class */ (function (_super) {
-        __extends(JsonAnalyzer, _super);
-        function JsonAnalyzer() {
-            return _super !== null && _super.apply(this, arguments) || this;
+        BitUtil.getBit = getBit;
+        /**
+         * @param position 指定的位的位置, 从低位开始, 范围为 [0-64)
+         * @returns 对应的值为 1 (true) 还是 0 (false)
+         */
+        function switchBit32(target, position) {
+            target ^= 1 << position;
+            return target;
         }
-        JsonAnalyzer.prototype.getResponseType = function () {
-            return dou.HttpResponseType.text;
-        };
-        JsonAnalyzer.prototype.dataAnalyze = function (data) {
-            return JSON.parse(data);
-        };
-        return JsonAnalyzer;
-    }(dou.RequestAnalyzerBase));
-    dou.JsonAnalyzer = JsonAnalyzer;
-})(dou || (dou = {}));
-///<reference path="./RequestAnalyzerBase.ts"/>
-var dou;
-(function (dou) {
-    /**
-     * 文本加载器
-     * @author wizardc
-     */
-    var TextAnalyzer = /** @class */ (function (_super) {
-        __extends(TextAnalyzer, _super);
-        function TextAnalyzer() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        TextAnalyzer.prototype.getResponseType = function () {
-            return dou.HttpResponseType.text;
-        };
-        TextAnalyzer.prototype.dataAnalyze = function (data) {
-            return data;
-        };
-        return TextAnalyzer;
-    }(dou.RequestAnalyzerBase));
-    dou.TextAnalyzer = TextAnalyzer;
+        BitUtil.switchBit32 = switchBit32;
+    })(BitUtil = dou.BitUtil || (dou.BitUtil = {}));
 })(dou || (dou = {}));

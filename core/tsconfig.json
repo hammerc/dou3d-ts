@@ -77,9 +77,10 @@
     "src/core/context/Shader.ts",
     "src/core/context/VertexBuffer3D.ts",
 
+    "src/core/node/Object3D.ts",
+
     "src/render/RenderBase.ts",
 
-    "src/core/node/Object3D.ts",
     "src/core/node/ObjectContainer3D.ts",
     "src/core/node/Mesh.ts",
     "src/core/node/Billboard.ts",

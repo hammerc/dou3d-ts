@@ -1899,6 +1899,122 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
+     * 场景中的可见物体, 可渲染对象
+     * 在渲染之前会将渲染树中对象进行筛选, 只有继承 RenderBase 的对象才会进入渲染管线
+     * @author wizardc
+     */
+    var RenderBase = /** @class */ (function (_super) {
+        __extends(RenderBase, _super);
+        function RenderBase() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this._materialCount = 0;
+            _this._order = 0;
+            /**
+             * 如果使用到多个材质时, 多个材质会存储在这里
+             */
+            _this.multiMaterial = {};
+            /**
+             * 类型
+             */
+            _this.type = "";
+            return _this;
+        }
+        Object.defineProperty(RenderBase.prototype, "order", {
+            get: function () {
+                return this._order;
+            },
+            /**
+             * 渲染排序的参数，数值越大，先渲染
+             */
+            set: function (value) {
+                this._order = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(RenderBase.prototype, "geometry", {
+            get: function () {
+                return this._geometry;
+            },
+            set: function (value) {
+                if (this._geometry == value) {
+                    return;
+                }
+                if (value) {
+                    value.incRef();
+                }
+                if (this._geometry) {
+                    this._geometry.dispose();
+                }
+                this._geometry = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(RenderBase.prototype, "lightGroup", {
+            get: function () {
+                return this._lightGroup;
+            },
+            /**
+             * 设置材质球接受的灯光组
+             */
+            set: function (lightGroup) {
+                this._lightGroup = lightGroup;
+                for (var id in this.multiMaterial) {
+                    this.multiMaterial[id].lightGroup = this._lightGroup;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 增加一个材质
+         */
+        RenderBase.prototype.addSubMaterial = function (id, material) {
+            if (!this.multiMaterial[id]) {
+                this._materialCount++;
+            }
+            this.multiMaterial[id] = material;
+            material.lightGroup = this._lightGroup;
+        };
+        /**
+         * 删除一个材质
+         */
+        RenderBase.prototype.removeSubMaterial = function (id) {
+            if (this.multiMaterial[id]) {
+                delete this.multiMaterial[id];
+                this._materialCount--;
+            }
+        };
+        /**
+         * 用ID得到一个材质
+         */
+        RenderBase.prototype.getMaterial = function (id) {
+            return this.multiMaterial[id];
+        };
+        /**
+         * 得到所有材质的个数
+         */
+        RenderBase.prototype.materialCount = function () {
+            return this._materialCount;
+        };
+        RenderBase.prototype.update = function (time, delay, camera) {
+            _super.prototype.update.call(this, time, delay, camera);
+            if (this.geometry.subGeometrys.length <= 0) {
+                this.geometry.buildDefaultSubGeometry();
+            }
+        };
+        RenderBase.prototype.dispose = function () {
+            this.geometry = null;
+            this.multiMaterial = {};
+        };
+        return RenderBase;
+    }(dou3d.Object3D));
+    dou3d.RenderBase = RenderBase;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
      * 3D 容器对象
      * @author wizardc
      */
@@ -1988,53 +2104,183 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
-     *
+     * 模型网格
      * @author wizardc
      */
-    var Mesh = /** @class */ (function () {
-        function Mesh() {
+    var Mesh = /** @class */ (function (_super) {
+        __extends(Mesh, _super);
+        function Mesh(geometry, material) {
+            var _this = _super.call(this) || this;
+            _this.type = "mesh";
+            _this.geometry = geometry;
+            _this.material = material || new dou3d.TextureMaterial();
+            _this.addSubMaterial(0, _this.material);
+            _this.bound = _this.buildBoundBox();
+            return _this;
         }
+        Mesh.prototype.buildBoundBox = function () {
+            var bound = new dou3d.BoundBox(this, new dou3d.Vector3(), new dou3d.Vector3());
+            if (this.geometry && this.geometry.vertexArray) {
+                bound.min.copy(new dou3d.Vector3(dou3d.MathUtil.INT_MAX, dou3d.MathUtil.INT_MAX, dou3d.MathUtil.INT_MAX));
+                bound.max.copy(new dou3d.Vector3(-dou3d.MathUtil.INT_MAX, -dou3d.MathUtil.INT_MAX, -dou3d.MathUtil.INT_MAX));
+                for (var i = 0; i < this.geometry.vertexArray.length; i += this.geometry.vertexAttLength) {
+                    if (bound.max.x < this.geometry.vertexArray[i]) {
+                        bound.max.x = this.geometry.vertexArray[i];
+                    }
+                    if (bound.max.y < this.geometry.vertexArray[i + 1]) {
+                        bound.max.y = this.geometry.vertexArray[i + 1];
+                    }
+                    if (bound.max.z < this.geometry.vertexArray[i + 2]) {
+                        bound.max.z = this.geometry.vertexArray[i + 2];
+                    }
+                    if (bound.min.x > this.geometry.vertexArray[i]) {
+                        bound.min.x = this.geometry.vertexArray[i];
+                    }
+                    if (bound.min.y > this.geometry.vertexArray[i + 1]) {
+                        bound.min.y = this.geometry.vertexArray[i + 1];
+                    }
+                    if (bound.min.z > this.geometry.vertexArray[i + 2]) {
+                        bound.min.z = this.geometry.vertexArray[i + 2];
+                    }
+                }
+            }
+            bound.fillBox(bound.min, bound.max);
+            bound.createChild();
+            this.bound = bound;
+            return bound;
+        };
+        Mesh.prototype.clone = function () {
+            var cloneMesh = new Mesh(this.geometry, this.material);
+            cloneMesh.multiMaterial = this.multiMaterial;
+            return cloneMesh;
+        };
         return Mesh;
-    }());
+    }(dou3d.RenderBase));
     dou3d.Mesh = Mesh;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
     /**
-     *
+     * 公告板, 始终面朝摄像机的面板
      * @author wizardc
      */
-    var Billboard = /** @class */ (function () {
-        function Billboard() {
+    var Billboard = /** @class */ (function (_super) {
+        __extends(Billboard, _super);
+        function Billboard(material, geometry, width, height) {
+            if (width === void 0) { width = 100; }
+            if (height === void 0) { height = 100; }
+            var _this = this;
+            if (!geometry) {
+                geometry = new dou3d.PlaneGeometry(width, height, 1, 1, 1, 1);
+            }
+            _this = _super.call(this, geometry, material) || this;
+            _this._plane = _this.geometry;
+            if (!_this.bound) {
+                _this.bound = _this.buildBoundBox();
+            }
+            return _this;
         }
+        Billboard.prototype.update = function (time, delay, camera) {
+            _super.prototype.update.call(this, time, delay, camera);
+            this.globalOrientation = camera.globalOrientation;
+        };
+        Billboard.prototype.clone = function () {
+            var cloneMesh = new Billboard(this.material, this.geometry, this._plane.width, this._plane.height);
+            cloneMesh.multiMaterial = this.multiMaterial;
+            return cloneMesh;
+        };
         return Billboard;
-    }());
+    }(dou3d.Mesh));
     dou3d.Billboard = Billboard;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
     /**
-     *
+     * 渲染线框
+     * * 使用LINES的模式进行渲染
      * @author wizardc
      */
-    var Wireframe = /** @class */ (function () {
-        function Wireframe() {
+    var Wireframe = /** @class */ (function (_super) {
+        __extends(Wireframe, _super);
+        function Wireframe(src, vf) {
+            if (vf === void 0) { vf = 1 /* VF_POSITION */; }
+            var _this = _super.call(this) || this;
+            _this.type = "wireframe";
+            _this.geometry = new dou3d.Geometry();
+            _this.material = new dou3d.ColorMaterial(0xff0000);
+            _this.addSubMaterial(0, _this.material);
+            _this.material.drawMode = dou3d.ContextConfig.LINES;
+            _this.geometry.vertexFormat = 1 /* VF_POSITION */ | 2 /* VF_NORMAL */ | 8 /* VF_COLOR */ | 16 /* VF_UV0 */;
+            _this.fromVertexs(src, vf);
+            return _this;
         }
+        Wireframe.prototype.fromVertexs = function (src, vf) {
+            if (vf === void 0) { vf = 1 /* VF_POSITION */; }
+            if (src) {
+                this.geometry.setVerticesForIndex(0, vf, src, src.length / dou3d.GeometryUtil.fromVertexFormatToLength(vf));
+                this.geometry.indexCount = (this.geometry.vertexCount - 1) * 2;
+                for (var i = 0; i < this.geometry.vertexCount - 1; ++i) {
+                    this.geometry.indexArray[i * 2 + 0] = i;
+                    this.geometry.indexArray[i * 2 + 1] = i + 1;
+                }
+            }
+        };
+        Wireframe.prototype.fromVertexsEx = function (src, vf) {
+            if (vf === void 0) { vf = 1 /* VF_POSITION */; }
+            if (src) {
+                this.geometry.setVerticesForIndex(0, vf, src, src.length / dou3d.GeometryUtil.fromVertexFormatToLength(vf));
+                this.geometry.indexCount = this.geometry.vertexCount;
+                for (var i = 0; i < this.geometry.vertexCount; ++i) {
+                    this.geometry.indexArray[i] = i;
+                }
+            }
+        };
+        Wireframe.prototype.fromGeometry = function (geo) {
+            var target = [];
+            geo.getVertexForIndex(0, 1 /* VF_POSITION */ | 8 /* VF_COLOR */, target, geo.vertexCount);
+            this.geometry.setVerticesForIndex(0, 1 /* VF_POSITION */ | 8 /* VF_COLOR */, target, geo.vertexCount);
+            this.geometry.indexCount = geo.faceCount * 6;
+            for (var i = 0; i < geo.faceCount; ++i) {
+                var _0 = geo.indexArray[i * 3 + 0];
+                var _1 = geo.indexArray[i * 3 + 1];
+                var _2 = geo.indexArray[i * 3 + 2];
+                this.geometry.indexArray[i * 6 + 0] = _0;
+                this.geometry.indexArray[i * 6 + 1] = _1;
+                this.geometry.indexArray[i * 6 + 2] = _1;
+                this.geometry.indexArray[i * 6 + 3] = _2;
+                this.geometry.indexArray[i * 6 + 4] = _2;
+                this.geometry.indexArray[i * 6 + 5] = _0;
+            }
+        };
         return Wireframe;
-    }());
+    }(dou3d.RenderBase));
     dou3d.Wireframe = Wireframe;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
     /**
-     *
+     * 天空盒
      * @author wizardc
      */
-    var SkyBox = /** @class */ (function () {
-        function SkyBox() {
+    var SkyBox = /** @class */ (function (_super) {
+        __extends(SkyBox, _super);
+        function SkyBox(geometry, material, camera) {
+            var _this = _super.call(this, geometry, material) || this;
+            _this.camera = camera;
+            material.cullMode = dou3d.ContextConfig.FRONT;
+            if (!_this.bound) {
+                _this.bound = _this.buildBoundBox();
+            }
+            return _this;
         }
+        SkyBox.prototype.update = function (time, delay, camera) {
+            _super.prototype.update.call(this, time, delay, camera);
+            if (this.camera) {
+                this.position = this.camera.globalPosition;
+            }
+        };
         return SkyBox;
-    }());
+    }(dou3d.Mesh));
     dou3d.SkyBox = SkyBox;
 })(dou3d || (dou3d = {}));
 var dou3d;
@@ -2231,8 +2477,9 @@ var dou3d;
         Ticker.prototype.updateLogic = function (passedTime) {
             var viewRect = this._engine.viewRect;
             var view3Ds = this._engine.view3Ds;
-            dou3d.Engine.context3DProxy.viewPort(viewRect.x, viewRect.y, viewRect.w, viewRect.h);
-            dou3d.Engine.context3DProxy.setScissorRectangle(viewRect.x, viewRect.y, viewRect.w, viewRect.h);
+            dou3d.ContextConfig.canvasRectangle = viewRect;
+            dou3d.Engine.context3DProxy.viewPort(0, 0, viewRect.w, viewRect.h);
+            dou3d.Engine.context3DProxy.setScissorRectangle(0, 0, viewRect.w, viewRect.h);
             for (var i = 0; i < view3Ds.length; i++) {
                 view3Ds[i].update(dou.getTimer(), passedTime);
             }
@@ -2257,10 +2504,11 @@ var dou3d;
             this._viewPort = new dou3d.Rectangle();
             this._camera = camera || new dou3d.Camera3D(0 /* perspective */);
             this._camera.name = "MainCamera";
-            this._scene.root.addChild(this._camera);
             this._scene = new dou3d.Scene3D();
+            this._scene.root.addChild(this._camera);
             this._render = new dou3d.MultiRenderer(0 /* diffusePass */);
             this._entityCollect = new dou3d.EntityCollect();
+            this._entityCollect.scene = this._scene;
             this._backColor = new dou3d.Vector4(0.3, 0.3, 0.6, 1);
             this.x = x;
             this.y = y;
@@ -2442,7 +2690,6 @@ var dou3d;
             _this._near = 1;
             _this._far = 10000;
             _this._orthProjectChange = true;
-            _this.cameraType = cameraType;
             _this._projectMatrix = new dou3d.Matrix4();
             _this._orthProjectMatrix = new dou3d.Matrix4();
             _this._viewPort = new dou3d.Rectangle();
@@ -2451,6 +2698,7 @@ var dou3d;
             _this._viewMatrix.identity();
             _this._frustum = new dou3d.Frustum(_this);
             _this._orthProjectMatrix.orthographicProjectMatrix(0, 0, _this._viewPort.w, _this._viewPort.h, _this._near, _this._far);
+            _this.cameraType = cameraType;
             return _this;
         }
         Object.defineProperty(Camera3D.prototype, "projectMatrix", {
@@ -7603,6 +7851,28 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
+     * 颜色渲染方法
+     * @author wizardc
+     */
+    var ColorMethod = /** @class */ (function (_super) {
+        __extends(ColorMethod, _super);
+        function ColorMethod() {
+            var _this = _super.call(this) || this;
+            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] = _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] || [];
+            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment].push("color_fs");
+            return _this;
+        }
+        ColorMethod.prototype.upload = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+        };
+        ColorMethod.prototype.activeState = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+        };
+        return ColorMethod;
+    }(dou3d.MethodBase));
+    dou3d.ColorMethod = ColorMethod;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
      * 阴影渲染方法
      * @author wizardc
      */
@@ -9132,6 +9402,78 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
+     * 纯颜色材质
+     * @author wizardc
+     */
+    var ColorMaterial = /** @class */ (function (_super) {
+        __extends(ColorMaterial, _super);
+        function ColorMaterial(color) {
+            if (color === void 0) { color = 0xcccccc; }
+            var _this = _super.call(this) || this;
+            _this.color = color;
+            _this.initMatPass();
+            return _this;
+        }
+        ColorMaterial.prototype.initMatPass = function () {
+            this.addPass(0 /* diffusePass */);
+            this.diffusePass.addMethod(new dou3d.ColorMethod());
+        };
+        Object.defineProperty(ColorMaterial.prototype, "color", {
+            get: function () {
+                return this.materialData.diffuseColor;
+            },
+            set: function (value) {
+                this.materialData.diffuseColor = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ColorMaterial.prototype, "alpha", {
+            get: function () {
+                return this.materialData.alpha;
+            },
+            set: function (value) {
+                this.materialData.alpha = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return ColorMaterial;
+    }(dou3d.MaterialBase));
+    dou3d.ColorMaterial = ColorMaterial;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 纹理材质
+     * * 标准的贴图材质球, 可以设置三种贴图: diffuse, normal, speclar 贴图
+     * * 不设置贴图时默认会设定为棋盘格贴图
+     * @author wizardc
+     */
+    var TextureMaterial = /** @class */ (function (_super) {
+        __extends(TextureMaterial, _super);
+        function TextureMaterial(texture, materialData) {
+            var _this = _super.call(this, materialData) || this;
+            if (!texture) {
+                // texture = CheckerboardTexture.texture;
+            }
+            _this.diffuseTexture = texture;
+            _this.initMatPass();
+            return _this;
+        }
+        TextureMaterial.prototype.initMatPass = function () {
+            this.addPass(0 /* diffusePass */);
+        };
+        TextureMaterial.prototype.clone = function () {
+            return new TextureMaterial(this.diffuseTexture, this.materialData.clone());
+        };
+        return TextureMaterial;
+    }(dou3d.MaterialBase));
+    dou3d.TextureMaterial = TextureMaterial;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
      * 拾取系统
      * @author wizardc
      */
@@ -9151,122 +9493,6 @@ var dou3d;
         return PickSystem;
     }());
     dou3d.PickSystem = PickSystem;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 场景中的可见物体, 可渲染对象
-     * 在渲染之前会将渲染树中对象进行筛选, 只有继承 RenderBase 的对象才会进入渲染管线
-     * @author wizardc
-     */
-    var RenderBase = /** @class */ (function (_super) {
-        __extends(RenderBase, _super);
-        function RenderBase() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this._materialCount = 0;
-            _this._order = 0;
-            /**
-             * 如果使用到多个材质时, 多个材质会存储在这里
-             */
-            _this.multiMaterial = {};
-            /**
-             * 类型
-             */
-            _this.type = "";
-            return _this;
-        }
-        Object.defineProperty(RenderBase.prototype, "order", {
-            get: function () {
-                return this._order;
-            },
-            /**
-             * 渲染排序的参数，数值越大，先渲染
-             */
-            set: function (value) {
-                this._order = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(RenderBase.prototype, "geometry", {
-            get: function () {
-                return this._geometry;
-            },
-            set: function (value) {
-                if (this._geometry == value) {
-                    return;
-                }
-                if (value) {
-                    value.incRef();
-                }
-                if (this._geometry) {
-                    this._geometry.dispose();
-                }
-                this._geometry = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(RenderBase.prototype, "lightGroup", {
-            get: function () {
-                return this._lightGroup;
-            },
-            /**
-             * 设置材质球接受的灯光组
-             */
-            set: function (lightGroup) {
-                this._lightGroup = lightGroup;
-                for (var id in this.multiMaterial) {
-                    this.multiMaterial[id].lightGroup = this._lightGroup;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 增加一个材质
-         */
-        RenderBase.prototype.addSubMaterial = function (id, material) {
-            if (!this.multiMaterial[id]) {
-                this._materialCount++;
-            }
-            this.multiMaterial[id] = material;
-            material.lightGroup = this._lightGroup;
-        };
-        /**
-         * 删除一个材质
-         */
-        RenderBase.prototype.removeSubMaterial = function (id) {
-            if (this.multiMaterial[id]) {
-                delete this.multiMaterial[id];
-                this._materialCount--;
-            }
-        };
-        /**
-         * 用ID得到一个材质
-         */
-        RenderBase.prototype.getMaterial = function (id) {
-            return this.multiMaterial[id];
-        };
-        /**
-         * 得到所有材质的个数
-         */
-        RenderBase.prototype.materialCount = function () {
-            return this._materialCount;
-        };
-        RenderBase.prototype.update = function (time, delay, camera) {
-            _super.prototype.update.call(this, time, delay, camera);
-            if (this.geometry.subGeometrys.length <= 0) {
-                this.geometry.buildDefaultSubGeometry();
-            }
-        };
-        RenderBase.prototype.dispose = function () {
-            this.geometry = null;
-            this.multiMaterial = {};
-        };
-        return RenderBase;
-    }(dou3d.Object3D));
-    dou3d.RenderBase = RenderBase;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -10186,6 +10412,7 @@ var dou3d;
         ShaderLib.base_fs = "#extension GL_OES_standard_derivatives:enable\rvarying vec3 varying_eyeNormal;\rvarying vec2 varying_uv0;\rvarying vec4 varying_color;\runiform mat4 uniform_ViewMatrix;\rvec4 outColor;\rvec4 diffuseColor;\rvec4 specularColor;\rvec4 ambientColor;\rvec4 light;\rvec3 normal;\rvec2 uv_0;\rvec3 flatNormals\rvec3 pos\r{\rvec3 fdx=dFdx\rpos\r;vec3 fdy=dFdy\rpos\r;return normalize\rcross\rfdx,fdy\r\r;\r}\rvoid main\r\r{\rdiffuseColor=vec4\r1.0,1.0,1.0,1.0\r;\rspecularColor=vec4\r0.0,0.0,0.0,0.0\r;\rambientColor=vec4\r0.0,0.0,0.0,0.0\r;\rlight=vec4\r1.0,1.0,1.0,1.0\r;\rnormal=normalize\rvarying_eyeNormal\r;\ruv_0=varying_uv0;\r}";
         ShaderLib.base_vs = "attribute vec3 attribute_position;\rattribute vec3 attribute_normal;\rattribute vec4 attribute_color;\rattribute vec2 attribute_uv0;\rvec3 e_position=vec3\r0.0,0.0,0.0\r;\runiform mat4 uniform_ModelMatrix;\runiform mat4 uniform_ViewMatrix;\runiform mat4 uniform_ProjectionMatrix;\rvarying vec3 varying_eyeNormal;\rvarying vec2 varying_uv0;\rvarying vec4 varying_color;\rvec4 outPosition;\rmat4 transpose\rmat4 inMatrix\r{\rvec4 i0=inMatrix[0];\rvec4 i1=inMatrix[1];\rvec4 i2=inMatrix[2];\rvec4 i3=inMatrix[3];\rmat4 outMatrix=mat4\r\rvec4\ri0.x,i1.x,i2.x,i3.x\r,\rvec4\ri0.y,i1.y,i2.y,i3.y\r,\rvec4\ri0.z,i1.z,i2.z,i3.z\r,\rvec4\ri0.w,i1.w,i2.w,i3.w\r\r\r;\rreturn outMatrix;\r}\rmat4 inverse\rmat4 m\r{\rfloat\ra00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\ra10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\ra20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\ra30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\rb00=a00*a11-a01*a10,\rb01=a00*a12-a02*a10,\rb02=a00*a13-a03*a10,\rb03=a01*a12-a02*a11,\rb04=a01*a13-a03*a11,\rb05=a02*a13-a03*a12,\rb06=a20*a31-a21*a30,\rb07=a20*a32-a22*a30,\rb08=a20*a33-a23*a30,\rb09=a21*a32-a22*a31,\rb10=a21*a33-a23*a31,\rb11=a22*a33-a23*a32,\rdet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\rreturn mat4\r\ra11*b11-a12*b10+a13*b09,\ra02*b10-a01*b11-a03*b09,\ra31*b05-a32*b04+a33*b03,\ra22*b04-a21*b05-a23*b03,\ra12*b08-a10*b11-a13*b07,\ra00*b11-a02*b08+a03*b07,\ra32*b02-a30*b05-a33*b01,\ra20*b05-a22*b02+a23*b01,\ra10*b10-a11*b08+a13*b06,\ra01*b08-a00*b10-a03*b06,\ra30*b04-a31*b02+a33*b00,\ra21*b02-a20*b04-a23*b00,\ra11*b07-a10*b09-a12*b06,\ra00*b09-a01*b07+a02*b06,\ra31*b01-a30*b03-a32*b00,\ra20*b03-a21*b01+a22*b00\r/det;\r}\rvoid main\rvoid\r{\re_position=attribute_position;\rvarying_color=attribute_color;\rvarying_uv0=attribute_uv0;\r}";
         ShaderLib.colorPassEnd_fs = "void main\r\r{\rgl_FragColor=vec4\rdiffuseColor.xyz,1.0\r;\r}";
+        ShaderLib.color_fs = "vec4 diffuseColor;\rvoid main\r\r{\rif\rdiffuseColor.w==0.0\r{\rdiscard;\r}\rdiffuseColor=vec4\r1.0,1.0,1.0,1.0\r;\rif\rdiffuseColor.w<materialSource.cutAlpha\r{\rdiscard;\r}\relse{\rdiffuseColor.xyz*=diffuseColor.w;\r}\r}";
         ShaderLib.diffuse_fs = "uniform sampler2D diffuseTexture;\rvec4 diffuseColor;\rvoid main\r\r{\rdiffuseColor=texture2D\rdiffuseTexture,uv_0\r;\rif\rdiffuseColor.w<materialSource.cutAlpha\r{\rdiscard;\r}\r}";
         ShaderLib.materialSource_fs = "struct MaterialSource{\rvec3 diffuse;\rvec3 ambient;\rvec3 specular;\rfloat alpha;\rfloat cutAlpha;\rfloat shininess;\rfloat roughness;\rfloat albedo;\rvec4 uvRectangle;\rfloat specularScale;\rfloat normalScale;\r};\runiform float uniform_materialSource[20];\rMaterialSource materialSource;\rvec2 uv_0;\rvoid main\r\r{\rmaterialSource.diffuse.x=uniform_materialSource[0];\rmaterialSource.diffuse.y=uniform_materialSource[1];\rmaterialSource.diffuse.z=uniform_materialSource[2];\rmaterialSource.ambient.x=uniform_materialSource[3];\rmaterialSource.ambient.y=uniform_materialSource[4];\rmaterialSource.ambient.z=uniform_materialSource[5];\rmaterialSource.specular.x=uniform_materialSource[6];\rmaterialSource.specular.y=uniform_materialSource[7];\rmaterialSource.specular.z=uniform_materialSource[8];\rmaterialSource.alpha=uniform_materialSource[9];\rmaterialSource.cutAlpha=uniform_materialSource[10];\rmaterialSource.shininess=uniform_materialSource[11];\rmaterialSource.specularScale=uniform_materialSource[12];\rmaterialSource.albedo=uniform_materialSource[13];\rmaterialSource.uvRectangle.x=uniform_materialSource[14];\rmaterialSource.uvRectangle.y=uniform_materialSource[15];\rmaterialSource.uvRectangle.z=uniform_materialSource[16];\rmaterialSource.uvRectangle.w=uniform_materialSource[17];\rmaterialSource.specularScale=uniform_materialSource[18];\rmaterialSource.normalScale=uniform_materialSource[19];\ruv_0=varying_uv0.xy*materialSource.uvRectangle.zw+materialSource.uvRectangle.xy;\r}";
         ShaderLib.normalMap_fs = "uniform sampler2D normalTexture;\rvarying vec2 varying_uv0;\rvarying vec4 varying_mvPose;\rmat3 TBN;\rmat3 cotangentFrame\rvec3 N,vec3 p,vec2 uv\r{\rvec3 dp1=dFdx\rp\r;\rvec3 dp2=dFdy\rp\r;\rvec2 duv1=dFdx\ruv\r;\rvec2 duv2=dFdy\ruv\r;\rvec3 dp2perp=cross\rdp2,N\r;\rvec3 dp1perp=cross\rN,dp1\r;\rvec3 T=dp2perp*duv1.x+dp1perp*duv2.x;\rvec3 B=dp2perp*duv1.y+dp1perp*duv2.y;\rfloat invmax=1.0/sqrt\rmax\rdot\rT,T\r,dot\rB,B\r\r\r;\rreturn mat3\rT*invmax,B*invmax,N\r;\r}\rvec3 tbn\rvec3 map,vec3 N,vec3 V,vec2 texcoord\r{\rmat3 TBN=cotangentFrame\rN,-V,texcoord\r;\rreturn normalize\rTBN*map\r;\r}\rvoid main\r\r{\rvec3 normalTex=texture2D\rnormalTexture,uv_0\r.xyz*2.0-1.0;\rnormalTex.y*=-1.0;\rnormal.xyz=tbn\rnormalTex.xyz,normal.xyz,varying_mvPose.xyz,uv_0\r;\r}";
@@ -11267,6 +11494,42 @@ var dou3d;
         }
         MathUtil.toDegrees = toDegrees;
     })(MathUtil = dou3d.MathUtil || (dou3d.MathUtil = {}));
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 几何体工具类
+     * @author wizardc
+     */
+    var GeometryUtil;
+    (function (GeometryUtil) {
+        function fromVertexFormatToLength(vf) {
+            var length = 0;
+            if (vf & 1 /* VF_POSITION */) {
+                length += dou3d.Geometry.positionSize;
+            }
+            if (vf & 2 /* VF_NORMAL */) {
+                length += dou3d.Geometry.normalSize;
+            }
+            if (vf & 4 /* VF_TANGENT */) {
+                length += dou3d.Geometry.tangentSize;
+            }
+            if (vf & 8 /* VF_COLOR */) {
+                length += dou3d.Geometry.colorSize;
+            }
+            if (vf & 16 /* VF_UV0 */) {
+                length += dou3d.Geometry.uvSize;
+            }
+            if (vf & 32 /* VF_UV1 */) {
+                length += dou3d.Geometry.uv2Size;
+            }
+            if (vf & 64 /* VF_SKIN */) {
+                length += dou3d.Geometry.skinSize;
+            }
+            return length;
+        }
+        GeometryUtil.fromVertexFormatToLength = fromVertexFormatToLength;
+    })(GeometryUtil = dou3d.GeometryUtil || (dou3d.GeometryUtil = {}));
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {

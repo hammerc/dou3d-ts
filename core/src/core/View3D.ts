@@ -22,12 +22,13 @@ namespace dou3d {
             this._viewPort = new Rectangle();
             this._camera = camera || new Camera3D(CameraType.perspective);
             this._camera.name = "MainCamera";
-            this._scene.root.addChild(this._camera);
             this._scene = new Scene3D();
+            this._scene.root.addChild(this._camera);
 
             this._render = new MultiRenderer(PassType.diffusePass);
 
             this._entityCollect = new EntityCollect();
+            this._entityCollect.scene = this._scene;
             this._backColor = new Vector4(0.3, 0.3, 0.6, 1);
 
             this.x = x;
