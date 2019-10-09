@@ -19,6 +19,8 @@ namespace dou3d {
             Context3DProxy.gl.enableVertexAttribArray(4);
             Context3DProxy.gl.enableVertexAttribArray(5);
             Context3DProxy.gl.enableVertexAttribArray(6);
+            ShaderUtil.load();
+            ShaderPool.register(Engine.context3DProxy);
         }
 
         public updateLogic(passedTime: number): void {
