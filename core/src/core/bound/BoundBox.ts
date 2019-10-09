@@ -94,7 +94,7 @@ namespace dou3d {
             this.calculateBox();
         }
 
-        protected createChild(): void {
+        public createChild(): void {
             this._childBound = new BoundBox(this.owner, new Vector3(), new Vector3());
             let max = new Vector3();
             let min = new Vector3();

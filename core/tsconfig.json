@@ -77,6 +77,8 @@
     "src/core/context/Shader.ts",
     "src/core/context/VertexBuffer3D.ts",
 
+    "src/render/RenderBase.ts",
+
     "src/core/node/Object3D.ts",
     "src/core/node/ObjectContainer3D.ts",
     "src/core/node/Mesh.ts",
@@ -136,7 +138,9 @@
     "src/lights/LightGroup.ts",
 
     "src/material/method/MethodBase.ts",
+    "src/material/method/ColorMethod.ts",
     "src/material/method/ShadowMethod.ts",
+
     "src/material/pass/MaterialPass.ts",
     "src/material/pass/PassUsage.ts",
     "src/material/pass/PassUtil.ts",
@@ -147,13 +151,15 @@
     "src/material/pass/NormalPass.ts",
     "src/material/pass/GbufferPass.ts",
     "src/material/pass/PickPass.ts",
+
     "src/material/MaterialBase.ts",
     "src/material/MaterialData.ts",
     "src/material/MethodData.ts",
+    "src/material/ColorMaterial.ts",
+    "src/material/TextureMaterial.ts",
 
     "src/pick/PickSystem.ts",
 
-    "src/render/RenderBase.ts",
     "src/render/RendererBase.ts",
     "src/render/MultiRenderer.ts",
 
@@ -187,6 +193,7 @@
     "src/texture/RenderTexture.ts",
 
     "src/utils/MathUtil.ts",
+    "src/utils/GeometryUtil.ts",
 
     "src/Engine.ts",
   ]

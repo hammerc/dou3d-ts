@@ -79,7 +79,7 @@ namespace dou3d {
             vec4.recycle();
         }
 
-        protected abstract createChild(): void;
+        public abstract createChild(): void;
 
         protected abstract updateAABB(): void;
 

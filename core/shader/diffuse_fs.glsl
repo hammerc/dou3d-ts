@@ -8,7 +8,7 @@ vec4 diffuseColor;
 
 void main() {
     diffuseColor = texture2D(diffuseTexture, uv_0);
-    if(diffuseColor.w < materialSource.cutAlpha) {
+    if (diffuseColor.w < materialSource.cutAlpha) {
         discard;
     }
 }
