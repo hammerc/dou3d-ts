@@ -6,6 +6,7 @@ attribute vec3 attribute_normal;
 attribute vec4 attribute_color;
 
 varying vec4 varying_mvPose;
+varying vec4 varying_color;
 
 void main() {
     mat4 mvMatrix = mat4(uniform_ViewMatrix * uniform_ModelMatrix);

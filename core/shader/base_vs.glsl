@@ -78,7 +78,7 @@ mat4 inverse(mat4 m) {
         a20 * b03 - a21 * b01 + a22 * b00) / det;
 }
 
-void main(void){
+void main() {
     e_position = attribute_position;
     varying_color = attribute_color;
     varying_uv0 = attribute_uv0;

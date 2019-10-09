@@ -52,9 +52,10 @@ namespace dou3d {
          */
         private addRenderList(renderItem: RenderBase, camera: Camera3D, cameraCulling: boolean = true): void {
             if (renderItem.enableCulling && cameraCulling) {
-                if (!camera.isVisibleToCamera(renderItem)) {
-                    return;
-                }
+                // TODO : 判断存在bug
+                // if (!camera.isVisibleToCamera(renderItem)) {
+                //     return;
+                // }
             }
             if (renderItem.material) {
                 if (renderItem.layer == Layer.normal && renderItem.material.materialData.alphaBlending) {

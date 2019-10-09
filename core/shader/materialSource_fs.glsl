@@ -18,6 +18,8 @@ struct MaterialSource {
 
 uniform float uniform_materialSource[20];
 
+varying vec2 varying_uv0;
+
 MaterialSource materialSource;
 
 vec2 uv_0;

@@ -2,6 +2,9 @@
 // 结束片段着色器
 // -----
 
+varying vec4 varying_color;
+
+vec4 outColor;
 vec4 diffuseColor;
 vec4 specularColor;
 vec4 ambientColor;

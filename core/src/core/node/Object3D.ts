@@ -44,7 +44,7 @@ namespace dou3d {
 
             this._globalPosition = new Vector3();
             this._globalRotation = new Vector3();
-            this._globalScale = new Vector3();
+            this._globalScale = new Vector3(1, 1, 1);
             this._globalOrientation = new Quaternion();
         }
 
