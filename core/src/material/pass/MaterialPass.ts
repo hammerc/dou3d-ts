@@ -330,7 +330,7 @@ namespace dou3d {
             }
         }
 
-        public draw(time: number, delay: number, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D, subGeometry: SubGeometry, render: RenderBase): void {
+        public draw(time: number, delay: number, context3DProxy: Context3DProxy, modelTransform: Matrix4, camera3D: Camera3D, subGeometry: SubGeometry, render: RenderBase): void {
             // 如果材质中的变量改变了, 就更新这些变量的数据到 materialSourceData 中
             if (this._materialData.materialDataNeedChange) {
                 let tintValue = this._materialData.tintColor;
@@ -365,7 +365,7 @@ namespace dou3d {
             }
             // 通道改变之后需要重新提交
             if (this._passChange) {
-                this.upload(time, delay, context3DProxy, modeltransform, camera3D);
+                this.upload(time, delay, context3DProxy, modelTransform, camera3D);
             }
             context3DProxy.setProgram(this._passUsage.program3D);
             subGeometry.activeState(this._passUsage, context3DProxy);
@@ -448,7 +448,7 @@ namespace dou3d {
                 }
             }
             if (this._passUsage.uniform_ModelMatrix) {
-                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ModelMatrix.uniformIndex, false, modeltransform.rawData);
+                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ModelMatrix.uniformIndex, false, modelTransform.rawData);
             }
             if (this._passUsage.uniform_ViewMatrix) {
                 context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ViewMatrix.uniformIndex, false, camera3D.viewMatrix.rawData);
@@ -464,7 +464,7 @@ namespace dou3d {
             }
             if (this.methodList) {
                 for (let i = 0; i < this.methodList.length; i++) {
-                    this.methodList[i].activeState(time, delay, this._passUsage, null, context3DProxy, modeltransform, camera3D);
+                    this.methodList[i].activeState(time, delay, this._passUsage, null, context3DProxy, modelTransform, camera3D);
                 }
             }
             if (this._passUsage.uniform_eyepos) {

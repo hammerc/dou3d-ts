@@ -13,7 +13,7 @@ namespace dou3d {
 
         private _viewPort: Rectangle;
         private _aspectRatio: number = 1;
-        private _fov: number = 45;
+        private _fov: number = 0.78;
         private _near: number = 1;
         private _far: number = 10000;
 
@@ -60,7 +60,7 @@ namespace dou3d {
                     this._projectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
                     break;
                 case CameraType.perspective:
-                    this._projectMatrix.fromProjection(this._near, this._far, this._fov, 0, 1, this._aspectRatio, 0);
+                    this._projectMatrix.fromProjection(this._near, this._far, this._fov, 1, 1, this._aspectRatio, 1);
                     break;
             }
             this._orthProjectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
@@ -173,7 +173,7 @@ namespace dou3d {
          * @param up 向上的方向
          */
         public lookAt(pos: Vector3, target: Vector3, up: Vector3 = Vector3.UP): void {
-            this.globalPosition = pos;
+            this.position = pos;
             this._lookAtPosition.copy(target);
             this._viewMatrix.lookAt(pos, target, up);
             let quaternion = dou.recyclable(Quaternion);

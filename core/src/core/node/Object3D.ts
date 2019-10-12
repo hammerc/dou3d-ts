@@ -39,7 +39,7 @@ namespace dou3d {
 
             this._position = new Vector3();
             this._rotation = new Vector3();
-            this._scale = new Vector3();
+            this._scale = new Vector3(1, 1, 1);
             this._orientation = new Quaternion();
 
             this._globalPosition = new Vector3();

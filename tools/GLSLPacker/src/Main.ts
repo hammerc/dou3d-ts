@@ -33,8 +33,8 @@ class Main {
         for (let filePath of list) {
             let name = path.basename(filePath, ".glsl");
             let code = await this.processCode(filePath);
-            code = code.replace(/(\r\n)/g, "\\r");
-            code = code.replace(/[\n]/g, "\\r");
+            code = code.replace(/(\r\n)/g, "\\n");
+            code = code.replace(/[\r\n]/g, "\\n");
             shaderCode.push("        export const " + name + " = `" + code + "`;");
         }
         shaderCode.push("    }");

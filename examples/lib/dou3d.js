@@ -475,6 +475,30 @@ var dou3d;
         function Context3DProxy() {
         }
         Context3DProxy.prototype.register = function () {
+            var extension;
+            Context3DProxy.gl.getExtension('WEBGL_depth_texture') || Context3DProxy.gl.getExtension('MOZ_WEBGL_depth_texture') || Context3DProxy.gl.getExtension('WEBKIT_WEBGL_depth_texture');
+            Context3DProxy.gl.getExtension('EXT_texture_filter_anisotropic') || Context3DProxy.gl.getExtension('MOZ_EXT_texture_filter_anisotropic') || Context3DProxy.gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
+            Context3DProxy.gl.getExtension('WEBGL_compressed_texture_pvrtc') || Context3DProxy.gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc');
+            Context3DProxy.gl.getExtension('WEBGL_compressed_texture_etc1');
+            Context3DProxy.gl.getExtension('OES_element_index_uint');
+            Context3DProxy.gl.getExtension("OES_texture_float_linear");
+            extension = Context3DProxy.gl.getExtension("OES_texture_float");
+            //alert(extension);
+            extension = Context3DProxy.gl.getExtension("OES_texture_half_float");
+            //alert(extension);
+            Context3DProxy.gl.getExtension("OES_texture_half_float_linear");
+            Context3DProxy.gl.getExtension("OES_standard_derivatives");
+            Context3DProxy.gl.getExtension("GL_OES_standard_derivatives");
+            Context3DProxy.gl.getExtension("WEBGL_draw_buffers");
+            Context3DProxy.gl.getExtension("WEBGL_depth_texture");
+            Context3DProxy.gl.getExtension("WEBGL_lose_context");
+            extension = Context3DProxy.gl.getExtension('WEBGL_compressed_texture_s3tc') || Context3DProxy.gl.getExtension('MOZ_WEBGL_compressed_texture_s3tc') || Context3DProxy.gl.getExtension('WEBKIT_WEBGL_compressed_texture_s3tc');
+            if (extension) {
+                // ContextConfig.ColorFormat_DXT1_RGB = extension.COMPRESSED_RGB_S3TC_DXT1_EXT;
+                // ContextConfig.ColorFormat_DXT1_RGBA = extension.COMPRESSED_RGBA_S3TC_DXT1_EXT;
+                // ContextConfig.ColorFormat_DXT3_RGBA = extension.COMPRESSED_RGBA_S3TC_DXT3_EXT;
+                // ContextConfig.ColorFormat_DXT5_RGBA = extension.COMPRESSED_RGBA_S3TC_DXT5_EXT;
+            }
             dou3d.ContextConfig.register(Context3DProxy.gl);
         };
         /**
@@ -993,20 +1017,20 @@ var dou3d;
          * 开启混合模式
          */
         Context3DProxy.prototype.enableBlend = function () {
-            if (this._blend) {
-                return;
-            }
-            this._blend = true;
+            // if (this._blend) {
+            //     return;
+            // }
+            // this._blend = true;
             Context3DProxy.gl.enable(dou3d.ContextConfig.BLEND);
         };
         /**
          * 关闭混合模式
          */
         Context3DProxy.prototype.disableBlend = function () {
-            if (!this._blend) {
-                return;
-            }
-            this._blend = false;
+            // if (!this._blend) {
+            //     return;
+            // }
+            // this._blend = false;
             Context3DProxy.gl.disable(dou3d.ContextConfig.BLEND);
         };
         /**
@@ -1394,7 +1418,7 @@ var dou3d;
             _this._globalMatrix = new dou3d.Matrix4();
             _this._position = new dou3d.Vector3();
             _this._rotation = new dou3d.Vector3();
-            _this._scale = new dou3d.Vector3();
+            _this._scale = new dou3d.Vector3(1, 1, 1);
             _this._orientation = new dou3d.Quaternion();
             _this._globalPosition = new dou3d.Vector3();
             _this._globalRotation = new dou3d.Vector3();
@@ -2689,7 +2713,7 @@ var dou3d;
             if (cameraType === void 0) { cameraType = 0 /* perspective */; }
             var _this = _super.call(this) || this;
             _this._aspectRatio = 1;
-            _this._fov = 45;
+            _this._fov = 0.78;
             _this._near = 1;
             _this._far = 10000;
             _this._orthProjectChange = true;
@@ -2738,7 +2762,7 @@ var dou3d;
                         this._projectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
                         break;
                     case 0 /* perspective */:
-                        this._projectMatrix.fromProjection(this._near, this._far, this._fov, 0, 1, this._aspectRatio, 0);
+                        this._projectMatrix.fromProjection(this._near, this._far, this._fov, 1, 1, this._aspectRatio, 1);
                         break;
                 }
                 this._orthProjectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
@@ -2871,7 +2895,7 @@ var dou3d;
          */
         Camera3D.prototype.lookAt = function (pos, target, up) {
             if (up === void 0) { up = dou3d.Vector3.UP; }
-            this.globalPosition = pos;
+            this.position = pos;
             this._lookAtPosition.copy(target);
             this._viewMatrix.lookAt(pos, target, up);
             var quaternion = dou.recyclable(dou3d.Quaternion);
@@ -8236,7 +8260,7 @@ var dou3d;
                 }
             }
         };
-        MaterialPass.prototype.draw = function (time, delay, context3DProxy, modeltransform, camera3D, subGeometry, render) {
+        MaterialPass.prototype.draw = function (time, delay, context3DProxy, modelTransform, camera3D, subGeometry, render) {
             // 如果材质中的变量改变了, 就更新这些变量的数据到 materialSourceData 中
             if (this._materialData.materialDataNeedChange) {
                 var tintValue = this._materialData.tintColor;
@@ -8271,7 +8295,7 @@ var dou3d;
             }
             // 通道改变之后需要重新提交
             if (this._passChange) {
-                this.upload(time, delay, context3DProxy, modeltransform, camera3D);
+                this.upload(time, delay, context3DProxy, modelTransform, camera3D);
             }
             context3DProxy.setProgram(this._passUsage.program3D);
             subGeometry.activeState(this._passUsage, context3DProxy);
@@ -8354,7 +8378,7 @@ var dou3d;
                 }
             }
             if (this._passUsage.uniform_ModelMatrix) {
-                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ModelMatrix.uniformIndex, false, modeltransform.rawData);
+                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ModelMatrix.uniformIndex, false, modelTransform.rawData);
             }
             if (this._passUsage.uniform_ViewMatrix) {
                 context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ViewMatrix.uniformIndex, false, camera3D.viewMatrix.rawData);
@@ -8370,7 +8394,7 @@ var dou3d;
             }
             if (this.methodList) {
                 for (var i = 0; i < this.methodList.length; i++) {
-                    this.methodList[i].activeState(time, delay, this._passUsage, null, context3DProxy, modeltransform, camera3D);
+                    this.methodList[i].activeState(time, delay, this._passUsage, null, context3DProxy, modelTransform, camera3D);
                 }
             }
             if (this._passUsage.uniform_eyepos) {
@@ -9309,7 +9333,7 @@ var dou3d;
             /**
              * cutAlpha 值
              */
-            this.cutAlpha = 0;
+            this.cutAlpha = 0.7;
             /**
              * 是否重复
              */
@@ -10412,25 +10436,25 @@ var dou3d;
      */
     var ShaderLib;
     (function (ShaderLib) {
-        ShaderLib.base_fs = "#extension GL_OES_standard_derivatives:enable\rvarying vec3 varying_eyeNormal;\rvarying vec2 varying_uv0;\rvarying vec4 varying_color;\runiform mat4 uniform_ViewMatrix;\rvec4 outColor;\rvec4 diffuseColor;\rvec4 specularColor;\rvec4 ambientColor;\rvec4 light;\rvec3 normal;\rvec2 uv_0;\rvec3 flatNormals(vec3 pos){\rvec3 fdx=dFdx(pos);vec3 fdy=dFdy(pos);return normalize(cross(fdx,fdy));\r}\rvoid main(){\rdiffuseColor=vec4(1.0,1.0,1.0,1.0);\rspecularColor=vec4(0.0,0.0,0.0,0.0);\rambientColor=vec4(0.0,0.0,0.0,0.0);\rlight=vec4(1.0,1.0,1.0,1.0);\rnormal=normalize(varying_eyeNormal);\ruv_0=varying_uv0;\r}";
-        ShaderLib.base_vs = "attribute vec3 attribute_position;\rattribute vec3 attribute_normal;\rattribute vec4 attribute_color;\rattribute vec2 attribute_uv0;\rvec3 e_position=vec3(0.0,0.0,0.0);\runiform mat4 uniform_ModelMatrix;\runiform mat4 uniform_ViewMatrix;\runiform mat4 uniform_ProjectionMatrix;\rvarying vec3 varying_eyeNormal;\rvarying vec2 varying_uv0;\rvarying vec4 varying_color;\rvec4 outPosition;\rmat4 transpose(mat4 inMatrix){\rvec4 i0=inMatrix[0];\rvec4 i1=inMatrix[1];\rvec4 i2=inMatrix[2];\rvec4 i3=inMatrix[3];\rmat4 outMatrix=mat4(\rvec4(i0.x,i1.x,i2.x,i3.x),\rvec4(i0.y,i1.y,i2.y,i3.y),\rvec4(i0.z,i1.z,i2.z,i3.z),\rvec4(i0.w,i1.w,i2.w,i3.w)\r);\rreturn outMatrix;\r}\rmat4 inverse(mat4 m){\rfloat\ra00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\ra10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\ra20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\ra30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\rb00=a00*a11-a01*a10,\rb01=a00*a12-a02*a10,\rb02=a00*a13-a03*a10,\rb03=a01*a12-a02*a11,\rb04=a01*a13-a03*a11,\rb05=a02*a13-a03*a12,\rb06=a20*a31-a21*a30,\rb07=a20*a32-a22*a30,\rb08=a20*a33-a23*a30,\rb09=a21*a32-a22*a31,\rb10=a21*a33-a23*a31,\rb11=a22*a33-a23*a32,\rdet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\rreturn mat4(\ra11*b11-a12*b10+a13*b09,\ra02*b10-a01*b11-a03*b09,\ra31*b05-a32*b04+a33*b03,\ra22*b04-a21*b05-a23*b03,\ra12*b08-a10*b11-a13*b07,\ra00*b11-a02*b08+a03*b07,\ra32*b02-a30*b05-a33*b01,\ra20*b05-a22*b02+a23*b01,\ra10*b10-a11*b08+a13*b06,\ra01*b08-a00*b10-a03*b06,\ra30*b04-a31*b02+a33*b00,\ra21*b02-a20*b04-a23*b00,\ra11*b07-a10*b09-a12*b06,\ra00*b09-a01*b07+a02*b06,\ra31*b01-a30*b03-a32*b00,\ra20*b03-a21*b01+a22*b00)/det;\r}\rvoid main(){\re_position=attribute_position;\rvarying_color=attribute_color;\rvarying_uv0=attribute_uv0;\r}";
-        ShaderLib.colorPassEnd_fs = "void main(){\rgl_FragColor=vec4(diffuseColor.xyz,1.0);\r}";
-        ShaderLib.color_fs = "vec4 diffuseColor;\rvoid main(){\rif(diffuseColor.w==0.0){\rdiscard;\r}\rdiffuseColor=vec4(1.0,1.0,1.0,1.0);\rif(diffuseColor.w<materialSource.cutAlpha){\rdiscard;\r}\relse{\rdiffuseColor.xyz*=diffuseColor.w;\r}\r}";
-        ShaderLib.diffuse_fs = "uniform sampler2D diffuseTexture;\rvec4 diffuseColor;\rvoid main(){\rdiffuseColor=texture2D(diffuseTexture,uv_0);\rif(diffuseColor.w<materialSource.cutAlpha){\rdiscard;\r}\r}";
-        ShaderLib.diffuse_vs = "attribute vec3 attribute_normal;\rattribute vec4 attribute_color;\rvarying vec4 varying_mvPose;\rvarying vec4 varying_color;\rvoid main(){\rmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\rvarying_mvPose=mvMatrix*vec4(e_position,1.0);\rmat4 normalMatrix=inverse(mvMatrix);\rnormalMatrix=transpose(normalMatrix);\rvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\routPosition=varying_mvPose;\rvarying_color=attribute_color;\r}";
-        ShaderLib.end_fs = "varying vec4 varying_color;\rvec4 outColor;\rvec4 diffuseColor;\rvec4 specularColor;\rvec4 ambientColor;\rvec4 light;\rvoid main(){\routColor.xyz=(light.xyz+materialSource.ambient)*diffuseColor.xyz*materialSource.diffuse*varying_color.xyz;\routColor.w=materialSource.alpha*diffuseColor.w*varying_color.w;\routColor.xyz*=outColor.w;\rgl_FragColor=outColor;\r}";
-        ShaderLib.end_vs = "vec4 endPosition;\runiform float uniform_materialSource[20];\rvoid main(){\rgl_PointSize=50.0;\rgl_PointSize=uniform_materialSource[18];\rgl_Position=uniform_ProjectionMatrix*outPosition;\r}";
-        ShaderLib.materialSource_fs = "struct MaterialSource{\rvec3 diffuse;\rvec3 ambient;\rvec3 specular;\rfloat alpha;\rfloat cutAlpha;\rfloat shininess;\rfloat roughness;\rfloat albedo;\rvec4 uvRectangle;\rfloat specularScale;\rfloat normalScale;\r};\runiform float uniform_materialSource[20];\rvarying vec2 varying_uv0;\rMaterialSource materialSource;\rvec2 uv_0;\rvoid main(){\rmaterialSource.diffuse.x=uniform_materialSource[0];\rmaterialSource.diffuse.y=uniform_materialSource[1];\rmaterialSource.diffuse.z=uniform_materialSource[2];\rmaterialSource.ambient.x=uniform_materialSource[3];\rmaterialSource.ambient.y=uniform_materialSource[4];\rmaterialSource.ambient.z=uniform_materialSource[5];\rmaterialSource.specular.x=uniform_materialSource[6];\rmaterialSource.specular.y=uniform_materialSource[7];\rmaterialSource.specular.z=uniform_materialSource[8];\rmaterialSource.alpha=uniform_materialSource[9];\rmaterialSource.cutAlpha=uniform_materialSource[10];\rmaterialSource.shininess=uniform_materialSource[11];\rmaterialSource.specularScale=uniform_materialSource[12];\rmaterialSource.albedo=uniform_materialSource[13];\rmaterialSource.uvRectangle.x=uniform_materialSource[14];\rmaterialSource.uvRectangle.y=uniform_materialSource[15];\rmaterialSource.uvRectangle.z=uniform_materialSource[16];\rmaterialSource.uvRectangle.w=uniform_materialSource[17];\rmaterialSource.specularScale=uniform_materialSource[18];\rmaterialSource.normalScale=uniform_materialSource[19];\ruv_0=varying_uv0.xy*materialSource.uvRectangle.zw+materialSource.uvRectangle.xy;\r}";
-        ShaderLib.normalMap_fs = "uniform sampler2D normalTexture;\rvarying vec2 varying_uv0;\rvarying vec4 varying_mvPose;\rmat3 TBN;\rmat3 cotangentFrame(vec3 N,vec3 p,vec2 uv){\rvec3 dp1=dFdx(p);\rvec3 dp2=dFdy(p);\rvec2 duv1=dFdx(uv);\rvec2 duv2=dFdy(uv);\rvec3 dp2perp=cross(dp2,N);\rvec3 dp1perp=cross(N,dp1);\rvec3 T=dp2perp*duv1.x+dp1perp*duv2.x;\rvec3 B=dp2perp*duv1.y+dp1perp*duv2.y;\rfloat invmax=1.0/sqrt(max(dot(T,T),dot(B,B)));\rreturn mat3(T*invmax,B*invmax,N);\r}\rvec3 tbn(vec3 map,vec3 N,vec3 V,vec2 texcoord){\rmat3 TBN=cotangentFrame(N,-V,texcoord);\rreturn normalize(TBN*map);\r}\rvoid main(){\rvec3 normalTex=texture2D(normalTexture,uv_0).xyz*2.0-1.0;\rnormalTex.y*=-1.0;\rnormal.xyz=tbn(normalTex.xyz,normal.xyz,varying_mvPose.xyz,uv_0);\r}";
-        ShaderLib.normalPassEnd_fs = "void main(){\rgl_FragColor=vec4(normal,1.0);\r}";
-        ShaderLib.pickPass_fs = "uniform vec4 uniform_ObjectId;\rvoid main(){\rgl_FragColor=uniform_ObjectId;\r}";
-        ShaderLib.pickPass_vs = "attribute vec3 attribute_position;\rattribute vec4 attribute_color;\rattribute vec2 attribute_uv0;\runiform mat4 uniform_ModelMatrix;\runiform mat4 uniform_ViewMatrix;\runiform mat4 uniform_ProjectionMatrix;\rvoid main(void){\rgl_Position=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\r}";
-        ShaderLib.positionEndPass_fs = "varying vec4 varying_position;\rvoid main(){\rgl_FragColor=vec4(varying_position.xyz,1.0);\r}";
-        ShaderLib.positionEndPass_vs = "varying vec4 varying_position;\rvoid main(){\rgl_Position=uniform_ProjectionMatrix*outPosition;\rvarying_position=gl_Position.xyzw;\r}";
-        ShaderLib.shadowMapping_fs = "uniform sampler2D shadowMapTexture;\runiform vec4 uniform_ShadowColor;\rvarying vec4 varying_ShadowCoord;\rvoid main(){\rvec3 shadowColor=vec3(1.0,1.0,1.0);\rfloat offset=uniform_ShadowColor.w;\rvec2 sample=varying_ShadowCoord.xy/varying_ShadowCoord.w*0.5+0.5;\rif(sample.x>=0.0 && sample.x<=1.0 && sample.y>=0.0 && sample.y<=1.0){\rvec4 sampleDepth=texture2D(shadowMapTexture,sample).xyzw;\rfloat depth=varying_ShadowCoord.z;\rif(sampleDepth.z !=0.0){\rif(sampleDepth.z<depth-offset){\rshadowColor=uniform_ShadowColor.xyz;\r}\r}\r}\rdiffuseColor.xyz=diffuseColor.xyz*shadowColor;\r}";
-        ShaderLib.shadowMapping_vs = "uniform mat4 uniform_ShadowMatrix;\runiform mat4 uniform_ModelMatrix;\rvarying vec4 varying_ShadowCoord;\rvoid main(){\rvarying_ShadowCoord=uniform_ShadowMatrix*uniform_ModelMatrix*vec4(e_position,1.0);\r}";
-        ShaderLib.shadowPass_fs = "uniform sampler2D diffuseTexture;\rvec4 diffuseColor;\rvarying vec2 varying_uv0;\rvarying vec4 varying_color;\rvarying vec4 varying_pos;\rvoid main(){\rdiffuseColor=varying_color;\rif(diffuseColor.w==0.0){\rdiscard;\r}\rdiffuseColor=texture2D(diffuseTexture,varying_uv0);\rif(diffuseColor.w<=0.3){\rdiscard;\r}\rgl_FragColor=vec4(varying_pos.zzz,1.0);\r}";
-        ShaderLib.shadowPass_vs = "attribute vec3 attribute_position;\rattribute vec4 attribute_color;\rattribute vec2 attribute_uv0;\runiform mat4 uniform_ModelMatrix;\runiform mat4 uniform_ViewMatrix;\runiform mat4 uniform_ProjectionMatrix;\rvarying vec2 varying_uv0;\rvarying vec4 varying_color;\rvarying vec4 varying_pos;\rvoid main(void){\rmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\rvarying_color=attribute_color;\rvarying_uv0=attribute_uv0;\rvarying_pos=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\rgl_Position=varying_pos;\r}";
+        ShaderLib.base_fs = "#extension GL_OES_standard_derivatives:enable\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nuniform mat4 uniform_ViewMatrix;\nvec4 outColor;\nvec4 diffuseColor;\nvec4 specularColor;\nvec4 ambientColor;\nvec4 light;\nvec3 normal;\nvec2 uv_0;\nvec3 flatNormals(vec3 pos){\nvec3 fdx=dFdx(pos);vec3 fdy=dFdy(pos);return normalize(cross(fdx,fdy));\n}\nvoid main(){\ndiffuseColor=vec4(1.0,1.0,1.0,1.0);\nspecularColor=vec4(0.0,0.0,0.0,0.0);\nambientColor=vec4(0.0,0.0,0.0,0.0);\nlight=vec4(1.0,1.0,1.0,1.0);\nnormal=normalize(varying_eyeNormal);\nuv_0=varying_uv0;\n}";
+        ShaderLib.base_vs = "attribute vec3 attribute_position;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nvec3 e_position=vec3(0.0,0.0,0.0);\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvec4 outPosition;\nmat4 transpose(mat4 inMatrix){\nvec4 i0=inMatrix[0];\nvec4 i1=inMatrix[1];\nvec4 i2=inMatrix[2];\nvec4 i3=inMatrix[3];\nmat4 outMatrix=mat4(\nvec4(i0.x,i1.x,i2.x,i3.x),\nvec4(i0.y,i1.y,i2.y,i3.y),\nvec4(i0.z,i1.z,i2.z,i3.z),\nvec4(i0.w,i1.w,i2.w,i3.w)\n);\nreturn outMatrix;\n}\nmat4 inverse(mat4 m){\nfloat\na00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\na10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\na20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\na30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\nb00=a00*a11-a01*a10,\nb01=a00*a12-a02*a10,\nb02=a00*a13-a03*a10,\nb03=a01*a12-a02*a11,\nb04=a01*a13-a03*a11,\nb05=a02*a13-a03*a12,\nb06=a20*a31-a21*a30,\nb07=a20*a32-a22*a30,\nb08=a20*a33-a23*a30,\nb09=a21*a32-a22*a31,\nb10=a21*a33-a23*a31,\nb11=a22*a33-a23*a32,\ndet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\nreturn mat4(\na11*b11-a12*b10+a13*b09,\na02*b10-a01*b11-a03*b09,\na31*b05-a32*b04+a33*b03,\na22*b04-a21*b05-a23*b03,\na12*b08-a10*b11-a13*b07,\na00*b11-a02*b08+a03*b07,\na32*b02-a30*b05-a33*b01,\na20*b05-a22*b02+a23*b01,\na10*b10-a11*b08+a13*b06,\na01*b08-a00*b10-a03*b06,\na30*b04-a31*b02+a33*b00,\na21*b02-a20*b04-a23*b00,\na11*b07-a10*b09-a12*b06,\na00*b09-a01*b07+a02*b06,\na31*b01-a30*b03-a32*b00,\na20*b03-a21*b01+a22*b00)/det;\n}\nvoid main(){\ne_position=attribute_position;\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\n}";
+        ShaderLib.colorPassEnd_fs = "void main(){\ngl_FragColor=vec4(diffuseColor.xyz,1.0);\n}";
+        ShaderLib.color_fs = "vec4 diffuseColor;\nvoid main(){\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=vec4(1.0,1.0,1.0,1.0);\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\nelse{\ndiffuseColor.xyz*=diffuseColor.w;\n}\n}";
+        ShaderLib.diffuse_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvoid main(){\ndiffuseColor=texture2D(diffuseTexture,uv_0);\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\n}";
+        ShaderLib.diffuse_vs = "attribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvarying vec4 varying_mvPose;\nvarying vec4 varying_color;\nvoid main(){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_mvPose=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition=varying_mvPose;\nvarying_color=attribute_color;\n}";
+        ShaderLib.end_fs = "varying vec4 varying_color;\nvec4 outColor;\nvec4 diffuseColor;\nvec4 specularColor;\nvec4 ambientColor;\nvec4 light;\nvoid main(){\noutColor.xyz=(light.xyz+materialSource.ambient)*diffuseColor.xyz*materialSource.diffuse*varying_color.xyz;\noutColor.w=materialSource.alpha*diffuseColor.w*varying_color.w;\noutColor.xyz*=outColor.w;\ngl_FragColor=outColor;\n}";
+        ShaderLib.end_vs = "vec4 endPosition;\nuniform float uniform_materialSource[20];\nvoid main(){\ngl_PointSize=50.0;\ngl_PointSize=uniform_materialSource[18];\ngl_Position=uniform_ProjectionMatrix*outPosition;\n}";
+        ShaderLib.materialSource_fs = "struct MaterialSource{\nvec3 diffuse;\nvec3 ambient;\nvec3 specular;\nfloat alpha;\nfloat cutAlpha;\nfloat shininess;\nfloat roughness;\nfloat albedo;\nvec4 uvRectangle;\nfloat specularScale;\nfloat normalScale;\n};\nuniform float uniform_materialSource[20];\nvarying vec2 varying_uv0;\nMaterialSource materialSource;\nvec2 uv_0;\nvoid main(){\nmaterialSource.diffuse.x=uniform_materialSource[0];\nmaterialSource.diffuse.y=uniform_materialSource[1];\nmaterialSource.diffuse.z=uniform_materialSource[2];\nmaterialSource.ambient.x=uniform_materialSource[3];\nmaterialSource.ambient.y=uniform_materialSource[4];\nmaterialSource.ambient.z=uniform_materialSource[5];\nmaterialSource.specular.x=uniform_materialSource[6];\nmaterialSource.specular.y=uniform_materialSource[7];\nmaterialSource.specular.z=uniform_materialSource[8];\nmaterialSource.alpha=uniform_materialSource[9];\nmaterialSource.cutAlpha=uniform_materialSource[10];\nmaterialSource.shininess=uniform_materialSource[11];\nmaterialSource.specularScale=uniform_materialSource[12];\nmaterialSource.albedo=uniform_materialSource[13];\nmaterialSource.uvRectangle.x=uniform_materialSource[14];\nmaterialSource.uvRectangle.y=uniform_materialSource[15];\nmaterialSource.uvRectangle.z=uniform_materialSource[16];\nmaterialSource.uvRectangle.w=uniform_materialSource[17];\nmaterialSource.specularScale=uniform_materialSource[18];\nmaterialSource.normalScale=uniform_materialSource[19];\nuv_0=varying_uv0.xy*materialSource.uvRectangle.zw+materialSource.uvRectangle.xy;\n}";
+        ShaderLib.normalMap_fs = "uniform sampler2D normalTexture;\nvarying vec2 varying_uv0;\nvarying vec4 varying_mvPose;\nmat3 TBN;\nmat3 cotangentFrame(vec3 N,vec3 p,vec2 uv){\nvec3 dp1=dFdx(p);\nvec3 dp2=dFdy(p);\nvec2 duv1=dFdx(uv);\nvec2 duv2=dFdy(uv);\nvec3 dp2perp=cross(dp2,N);\nvec3 dp1perp=cross(N,dp1);\nvec3 T=dp2perp*duv1.x+dp1perp*duv2.x;\nvec3 B=dp2perp*duv1.y+dp1perp*duv2.y;\nfloat invmax=1.0/sqrt(max(dot(T,T),dot(B,B)));\nreturn mat3(T*invmax,B*invmax,N);\n}\nvec3 tbn(vec3 map,vec3 N,vec3 V,vec2 texcoord){\nmat3 TBN=cotangentFrame(N,-V,texcoord);\nreturn normalize(TBN*map);\n}\nvoid main(){\nvec3 normalTex=texture2D(normalTexture,uv_0).xyz*2.0-1.0;\nnormalTex.y*=-1.0;\nnormal.xyz=tbn(normalTex.xyz,normal.xyz,varying_mvPose.xyz,uv_0);\n}";
+        ShaderLib.normalPassEnd_fs = "void main(){\ngl_FragColor=vec4(normal,1.0);\n}";
+        ShaderLib.pickPass_fs = "uniform vec4 uniform_ObjectId;\nvoid main(){\ngl_FragColor=uniform_ObjectId;\n}";
+        ShaderLib.pickPass_vs = "attribute vec3 attribute_position;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvoid main(void){\ngl_Position=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\n}";
+        ShaderLib.positionEndPass_fs = "varying vec4 varying_position;\nvoid main(){\ngl_FragColor=vec4(varying_position.xyz,1.0);\n}";
+        ShaderLib.positionEndPass_vs = "varying vec4 varying_position;\nvoid main(){\ngl_Position=uniform_ProjectionMatrix*outPosition;\nvarying_position=gl_Position.xyzw;\n}";
+        ShaderLib.shadowMapping_fs = "uniform sampler2D shadowMapTexture;\nuniform vec4 uniform_ShadowColor;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvec3 shadowColor=vec3(1.0,1.0,1.0);\nfloat offset=uniform_ShadowColor.w;\nvec2 sample=varying_ShadowCoord.xy/varying_ShadowCoord.w*0.5+0.5;\nif(sample.x>=0.0 && sample.x<=1.0 && sample.y>=0.0 && sample.y<=1.0){\nvec4 sampleDepth=texture2D(shadowMapTexture,sample).xyzw;\nfloat depth=varying_ShadowCoord.z;\nif(sampleDepth.z !=0.0){\nif(sampleDepth.z<depth-offset){\nshadowColor=uniform_ShadowColor.xyz;\n}\n}\n}\ndiffuseColor.xyz=diffuseColor.xyz*shadowColor;\n}";
+        ShaderLib.shadowMapping_vs = "uniform mat4 uniform_ShadowMatrix;\nuniform mat4 uniform_ModelMatrix;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvarying_ShadowCoord=uniform_ShadowMatrix*uniform_ModelMatrix*vec4(e_position,1.0);\n}";
+        ShaderLib.shadowPass_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\ndiffuseColor=varying_color;\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=texture2D(diffuseTexture,varying_uv0);\nif(diffuseColor.w<=0.3){\ndiscard;\n}\ngl_FragColor=vec4(varying_pos.zzz,1.0);\n}";
+        ShaderLib.shadowPass_vs = "attribute vec3 attribute_position;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(void){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\nvarying_pos=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\ngl_Position=varying_pos;\n}";
     })(ShaderLib = dou3d.ShaderLib || (dou3d.ShaderLib = {}));
 })(dou3d || (dou3d = {}));
 var dou3d;

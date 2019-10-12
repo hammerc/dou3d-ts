@@ -15,10 +15,39 @@ namespace dou3d {
         private _cullingMode: number;
         private _depthTest: boolean;
         private _cullFace: boolean;
-        private _blend: boolean;
+        // private _blend: boolean;
         private _depthCompareMode: number;
 
         public register(): void {
+            let extension;
+            Context3DProxy.gl.getExtension('WEBGL_depth_texture') || Context3DProxy.gl.getExtension('MOZ_WEBGL_depth_texture') || Context3DProxy.gl.getExtension('WEBKIT_WEBGL_depth_texture');
+            Context3DProxy.gl.getExtension('EXT_texture_filter_anisotropic') || Context3DProxy.gl.getExtension('MOZ_EXT_texture_filter_anisotropic') || Context3DProxy.gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
+            Context3DProxy.gl.getExtension('WEBGL_compressed_texture_pvrtc') || Context3DProxy.gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc');
+            Context3DProxy.gl.getExtension('WEBGL_compressed_texture_etc1');
+            Context3DProxy.gl.getExtension('OES_element_index_uint');
+
+            Context3DProxy.gl.getExtension("OES_texture_float_linear");
+
+            extension = Context3DProxy.gl.getExtension("OES_texture_float");
+            //alert(extension);
+            extension = Context3DProxy.gl.getExtension("OES_texture_half_float");
+            //alert(extension);
+
+            Context3DProxy.gl.getExtension("OES_texture_half_float_linear");
+            Context3DProxy.gl.getExtension("OES_standard_derivatives");
+            Context3DProxy.gl.getExtension("GL_OES_standard_derivatives");
+            Context3DProxy.gl.getExtension("WEBGL_draw_buffers");
+            Context3DProxy.gl.getExtension("WEBGL_depth_texture");
+            Context3DProxy.gl.getExtension("WEBGL_lose_context");
+
+            extension = Context3DProxy.gl.getExtension('WEBGL_compressed_texture_s3tc') || Context3DProxy.gl.getExtension('MOZ_WEBGL_compressed_texture_s3tc') || Context3DProxy.gl.getExtension('WEBKIT_WEBGL_compressed_texture_s3tc');
+            if (extension) {
+                // ContextConfig.ColorFormat_DXT1_RGB = extension.COMPRESSED_RGB_S3TC_DXT1_EXT;
+                // ContextConfig.ColorFormat_DXT1_RGBA = extension.COMPRESSED_RGBA_S3TC_DXT1_EXT;
+                // ContextConfig.ColorFormat_DXT3_RGBA = extension.COMPRESSED_RGBA_S3TC_DXT3_EXT;
+                // ContextConfig.ColorFormat_DXT5_RGBA = extension.COMPRESSED_RGBA_S3TC_DXT5_EXT;
+            }
+
             ContextConfig.register(Context3DProxy.gl);
         }
 
@@ -589,10 +618,10 @@ namespace dou3d {
          * 开启混合模式
          */
         public enableBlend(): void {
-            if (this._blend) {
-                return;
-            }
-            this._blend = true;
+            // if (this._blend) {
+            //     return;
+            // }
+            // this._blend = true;
             Context3DProxy.gl.enable(ContextConfig.BLEND);
         }
 
@@ -600,10 +629,10 @@ namespace dou3d {
          * 关闭混合模式
          */
         public disableBlend(): void {
-            if (!this._blend) {
-                return;
-            }
-            this._blend = false;
+            // if (!this._blend) {
+            //     return;
+            // }
+            // this._blend = false;
             Context3DProxy.gl.disable(ContextConfig.BLEND);
         }
 

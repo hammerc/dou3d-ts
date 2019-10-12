@@ -1,7 +1,6 @@
 class Main {
     public constructor() {
-        let canvas = document.getElementById("dou") as HTMLCanvasElement;
-        let engine = new dou3d.Engine(canvas);
+        let engine = new dou3d.Engine();
         let viewRect = engine.viewRect;
         let view3D = new dou3d.View3D(0, 0, viewRect.w, viewRect.h);
         engine.addView3D(view3D);

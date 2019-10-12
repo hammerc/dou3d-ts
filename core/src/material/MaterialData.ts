@@ -143,7 +143,7 @@ namespace dou3d {
         /**
          * cutAlpha 值
          */
-        public cutAlpha: number = 0;
+        public cutAlpha: number = 0.7;
 
         /**
          * 是否重复
