@@ -2407,6 +2407,7 @@ var dou3d;
         EntityCollect.prototype.addRenderList = function (renderItem, camera, cameraCulling) {
             if (cameraCulling === void 0) { cameraCulling = true; }
             if (renderItem.enableCulling && cameraCulling) {
+                // TODO : 判断存在bug
                 // if (!camera.isVisibleToCamera(renderItem)) {
                 //     return;
                 // }
@@ -11613,20 +11614,21 @@ var dou3d;
             }
         };
         Engine.prototype.startTicker = function () {
-            var requestAnimationFrame = window["requestAnimationFrame"] ||
-                window["webkitRequestAnimationFrame"] ||
-                window["mozRequestAnimationFrame"] ||
-                window["oRequestAnimationFrame"] ||
-                window["msRequestAnimationFrame"];
-            if (!requestAnimationFrame) {
-                requestAnimationFrame = function (callback) {
-                    return window.setTimeout(callback, 1000 / 60);
-                };
-            }
+            // 下面的兼容处理会导致部分 WebGL 工具不能正常运行, 所以先注释掉
+            // let requestAnimationFrame = (<any>window).requestAnimationFrame ||
+            //     (<any>window).webkitRequestAnimationFrame ||
+            //     (<any>window).mozRequestAnimationFrame ||
+            //     (<any>window).oRequestAnimationFrame ||
+            //     (<any>window).msRequestAnimationFrame;
+            // if (!requestAnimationFrame) {
+            //     requestAnimationFrame = function (callback: Function) {
+            //         return window.setTimeout(callback, 1000 / 60);
+            //     };
+            // }
             requestAnimationFrame(onTick);
             function onTick() {
-                requestAnimationFrame(onTick);
                 dou3d.ticker.update();
+                requestAnimationFrame(onTick);
             }
         };
         return Engine;

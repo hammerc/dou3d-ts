@@ -87,20 +87,21 @@ namespace dou3d {
         }
 
         private startTicker(): void {
-            let requestAnimationFrame = (<any>window)["requestAnimationFrame"] ||
-                (<any>window)["webkitRequestAnimationFrame"] ||
-                (<any>window)["mozRequestAnimationFrame"] ||
-                (<any>window)["oRequestAnimationFrame"] ||
-                (<any>window)["msRequestAnimationFrame"];
-            if (!requestAnimationFrame) {
-                requestAnimationFrame = function (callback: Function) {
-                    return window.setTimeout(callback, 1000 / 60);
-                };
-            }
+            // 下面的兼容处理会导致部分 WebGL 工具不能正常运行, 所以先注释掉
+            // let requestAnimationFrame = (<any>window).requestAnimationFrame ||
+            //     (<any>window).webkitRequestAnimationFrame ||
+            //     (<any>window).mozRequestAnimationFrame ||
+            //     (<any>window).oRequestAnimationFrame ||
+            //     (<any>window).msRequestAnimationFrame;
+            // if (!requestAnimationFrame) {
+            //     requestAnimationFrame = function (callback: Function) {
+            //         return window.setTimeout(callback, 1000 / 60);
+            //     };
+            // }
             requestAnimationFrame(onTick);
             function onTick() {
-                requestAnimationFrame(onTick);
                 ticker.update();
+                requestAnimationFrame(onTick);
             }
         }
     }

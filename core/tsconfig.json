@@ -6,7 +6,8 @@
     "lib": [
       "es5",
       "dom",
-      "es2015.promise"
+      "es2015.promise",
+      "es2015.iterable"
     ], /* Specify library files to be included in the compilation. */
     // "allowJs": true,                       /* Allow javascript files to be compiled. */
     // "checkJs": true,                       /* Report errors in .js files. */
