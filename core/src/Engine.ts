@@ -24,11 +24,7 @@ namespace dou3d {
         public constructor(canvas?: HTMLCanvasElement) {
             if (!canvas) {
                 canvas = document.createElement("canvas");
-                canvas.style.position = "fixed";
-                canvas.style.left = "0px";
-                canvas.style.top = "0px";
-                canvas.style.width = "100%";
-                canvas.style.height = "100%";
+                canvas.style.position = "absolute";
                 document.body.appendChild(canvas);
             }
             this._canvas = dou3d.canvas = canvas;
