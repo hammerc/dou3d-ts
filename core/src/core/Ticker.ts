@@ -4,6 +4,8 @@ namespace dou3d {
      * @author wizardc
      */
     export class Ticker extends dou.TickerBase {
+        private _deltaTime: number = 0;
+
         private _engine: Engine;
 
         public constructor(engine: Engine) {
@@ -23,7 +25,13 @@ namespace dou3d {
             ShaderPool.register(Engine.context3DProxy);
         }
 
+        public get deltaTime(): number {
+            return this._deltaTime;
+        }
+
         public updateLogic(passedTime: number): void {
+            this._deltaTime = passedTime;
+
             let viewRect = this._engine.viewRect;
             let view3Ds = this._engine.view3Ds;
             ContextConfig.canvasRectangle = viewRect;

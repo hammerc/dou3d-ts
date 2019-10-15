@@ -1481,6 +1481,7 @@ var dou3d;
                     return;
                 }
                 this._rotation.copy(value);
+                this._orientation.fromEuler(this._rotation.x, this._rotation.y, this._rotation.z);
                 this.invalidTransform();
             },
             enumerable: true,
@@ -1495,6 +1496,7 @@ var dou3d;
                     return;
                 }
                 this._rotation.x = value;
+                this._orientation.fromEuler(this._rotation.x, this._rotation.y, this._rotation.z);
                 this.invalidTransform();
             },
             enumerable: true,
@@ -1509,6 +1511,7 @@ var dou3d;
                     return;
                 }
                 this._rotation.y = value;
+                this._orientation.fromEuler(this._rotation.x, this._rotation.y, this._rotation.z);
                 this.invalidTransform();
             },
             enumerable: true,
@@ -1523,6 +1526,7 @@ var dou3d;
                     return;
                 }
                 this._rotation.z = value;
+                this._orientation.fromEuler(this._rotation.x, this._rotation.y, this._rotation.z);
                 this.invalidTransform();
             },
             enumerable: true,
@@ -2476,6 +2480,7 @@ var dou3d;
         __extends(Ticker, _super);
         function Ticker(engine) {
             var _this = _super.call(this) || this;
+            _this._deltaTime = 0;
             _this._engine = engine;
             dou3d.Engine.context3DProxy.enableBlend();
             dou3d.Engine.context3DProxy.enableCullFace();
@@ -2491,7 +2496,15 @@ var dou3d;
             dou3d.ShaderPool.register(dou3d.Engine.context3DProxy);
             return _this;
         }
+        Object.defineProperty(Ticker.prototype, "deltaTime", {
+            get: function () {
+                return this._deltaTime;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Ticker.prototype.updateLogic = function (passedTime) {
+            this._deltaTime = passedTime;
             var viewRect = this._engine.viewRect;
             var view3Ds = this._engine.view3Ds;
             dou3d.ContextConfig.canvasRectangle = viewRect;

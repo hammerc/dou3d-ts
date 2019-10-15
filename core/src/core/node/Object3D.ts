@@ -97,6 +97,7 @@ namespace dou3d {
                 return;
             }
             this._rotation.copy(value);
+            this._orientation.fromEuler(this._rotation.x, this._rotation.y, this._rotation.z);
             this.invalidTransform();
         }
         public get rotation(): Readonly<Vector3> {
@@ -108,6 +109,7 @@ namespace dou3d {
                 return;
             }
             this._rotation.x = value;
+            this._orientation.fromEuler(this._rotation.x, this._rotation.y, this._rotation.z);
             this.invalidTransform();
         }
         public get rotationX(): number {
@@ -119,6 +121,7 @@ namespace dou3d {
                 return;
             }
             this._rotation.y = value;
+            this._orientation.fromEuler(this._rotation.x, this._rotation.y, this._rotation.z);
             this.invalidTransform();
         }
         public get rotationY(): number {
@@ -130,6 +133,7 @@ namespace dou3d {
                 return;
             }
             this._rotation.z = value;
+            this._orientation.fromEuler(this._rotation.x, this._rotation.y, this._rotation.z);
             this.invalidTransform();
         }
         public get rotationZ(): number {

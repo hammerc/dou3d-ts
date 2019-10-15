@@ -9,6 +9,11 @@ namespace examples {
             let geometery = new dou3d.CubeGeometry();
             let cube = new dou3d.Mesh(geometery, mat);
             view3D.scene.root.addChild(cube);
+
+            cube.rotationX = 45;
+            cube.on(dou3d.Event3D.ENTER_FRAME, () => {
+                cube.rotationY += dou3d.MathUtil.toRadians(90 * dou3d.ticker.deltaTime * 0.001);
+            });
         }
     }
 }

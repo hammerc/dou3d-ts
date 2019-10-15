@@ -1046,8 +1046,10 @@ declare namespace dou3d {
      * @author wizardc
      */
     class Ticker extends dou.TickerBase {
+        private _deltaTime;
         private _engine;
         constructor(engine: Engine);
+        readonly deltaTime: number;
         updateLogic(passedTime: number): void;
     }
 }
