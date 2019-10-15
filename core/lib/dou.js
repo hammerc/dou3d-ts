@@ -556,7 +556,7 @@ var dou;
             if (priority === void 0) { priority = 0; }
             if (cache === void 0) { cache = true; }
             if (this.isLoaded(url)) {
-                callback.call(thisObj, url, this.get(url));
+                callback.call(thisObj, this.get(url), url);
                 return;
             }
             if (!type) {
@@ -581,12 +581,16 @@ var dou;
             this.loadNext();
         };
         LoadManager.prototype.getDefaultType = function (url) {
+            var suffix;
             var regexp = /\.(\w+)\?|\.(\w+)$/;
             var result = regexp.exec(url);
             if (result) {
-                return result[1] || result[2];
+                suffix = result[1] || result[2];
             }
-            return null;
+            if (this._extensionMap.hasOwnProperty(suffix)) {
+                return this._extensionMap[suffix];
+            }
+            return suffix;
         };
         LoadManager.prototype.sortFunc = function (a, b) {
             return b - a;

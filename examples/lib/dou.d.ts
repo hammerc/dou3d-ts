@@ -231,7 +231,7 @@ declare namespace dou {
         /**
          * 加载指定项
          */
-        load(url: string, callback?: (url: string, data: any) => void, thisObj?: any, type?: string, priority?: number, cache?: boolean): void;
+        load(url: string, callback?: (data: any, url: string) => void, thisObj?: any, type?: string, priority?: number, cache?: boolean): void;
         private getDefaultType;
         private sortFunc;
         private loadNext;

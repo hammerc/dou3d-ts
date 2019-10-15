@@ -37,7 +37,7 @@ namespace dou3d {
             }
         }
 
-        public uploadForcing(context3D: Context3DProxy) {
+        public uploadForcing(context3D: Context3DProxy): void {
             context3D.upLoadTextureData(0, this);
         }
     }

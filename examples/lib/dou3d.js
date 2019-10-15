@@ -7892,6 +7892,41 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
+     * 纹理贴图加载器
+     * @author wizardc
+     */
+    var TextureAnalyzer = /** @class */ (function () {
+        function TextureAnalyzer() {
+        }
+        TextureAnalyzer.prototype.load = function (url, callback, thisObj) {
+            var _this = this;
+            var loader = new dou.ImageLoader();
+            loader.crossOrigin = true;
+            loader.on(dou.Event.COMPLETE, function () {
+                callback.call(thisObj, url, _this.createTexture(loader.data));
+            });
+            loader.on(dou.IOErrorEvent.IO_ERROR, function () {
+                callback.call(thisObj, url);
+            });
+            loader.load(url);
+        };
+        TextureAnalyzer.prototype.createTexture = function (img) {
+            return new dou3d.ImageTexture(img);
+        };
+        TextureAnalyzer.prototype.release = function (data) {
+            if (data) {
+                data.dispose();
+                return true;
+            }
+            return false;
+        };
+        return TextureAnalyzer;
+    }());
+    dou3d.TextureAnalyzer = TextureAnalyzer;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
      * 渲染方法基类
      * @author wizardc
      */
@@ -11369,6 +11404,52 @@ var dou3d;
         return TextureBase;
     }(dou.HashObject));
     dou3d.TextureBase = TextureBase;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 图片贴图对象
+     * @author wizardc
+     */
+    var ImageTexture = /** @class */ (function (_super) {
+        __extends(ImageTexture, _super);
+        function ImageTexture(img) {
+            var _this = _super.call(this) || this;
+            _this._imageData = img;
+            _this.texture2D = new dou3d.ContextTexture2D();
+            _this.texture2D.imageData = img;
+            return _this;
+        }
+        Object.defineProperty(ImageTexture.prototype, "width", {
+            get: function () {
+                return this._imageData.width;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ImageTexture.prototype, "height", {
+            get: function () {
+                return this._imageData.height;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ImageTexture.prototype.upload = function (context3D) {
+            if (!this.texture2D.texture) {
+                this.texture2D.texture = context3D.createTexture();
+                this.texture2D.internalFormat = 2 /* imageData */;
+                this.texture2D.imageData = this._imageData;
+                this.texture2D.dataFormat = dou3d.Context3DProxy.gl.UNSIGNED_BYTE;
+                this.texture2D.colorFormat = dou3d.ContextConfig.ColorFormat_RGBA8888;
+                context3D.upLoadTextureData(0, this);
+            }
+        };
+        ImageTexture.prototype.uploadForcing = function (context3D) {
+            context3D.upLoadTextureData(0, this);
+        };
+        return ImageTexture;
+    }(dou3d.TextureBase));
+    dou3d.ImageTexture = ImageTexture;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {

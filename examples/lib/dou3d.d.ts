@@ -2959,6 +2959,17 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
+     * 纹理贴图加载器
+     * @author wizardc
+     */
+    class TextureAnalyzer implements dou.IAnalyzer {
+        load(url: string, callback: (url: string, data: any) => void, thisObj: any): void;
+        private createTexture;
+        release(data: ImageTexture): boolean;
+    }
+}
+declare namespace dou3d {
+    /**
      * 渲染方法基类
      * @author wizardc
      */
@@ -4207,6 +4218,20 @@ declare namespace dou3d {
         abstract uploadForcing(context3D: Context3DProxy): void;
         activeState(context3D: Context3DProxy): void;
         dispose(): void;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 图片贴图对象
+     * @author wizardc
+     */
+    class ImageTexture extends TextureBase {
+        private _imageData;
+        constructor(img: HTMLImageElement);
+        readonly width: number;
+        readonly height: number;
+        upload(context3D: Context3DProxy): void;
+        uploadForcing(context3D: Context3DProxy): void;
     }
 }
 declare namespace dou3d {

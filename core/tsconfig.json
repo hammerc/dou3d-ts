@@ -141,6 +141,8 @@
     "src/lights/SpotLight.ts",
     "src/lights/LightGroup.ts",
 
+    "src/load/analyzer/TextureAnalyzer.ts",
+
     "src/material/method/MethodBase.ts",
     "src/material/method/ColorMethod.ts",
     "src/material/method/ShadowMethod.ts",
@@ -192,6 +194,7 @@
     "src/shadow/ShadowCast.ts",
 
     "src/texture/TextureBase.ts",
+    "src/texture/ImageTexture.ts",
     "src/texture/Texture.ts",
     "src/texture/CubeTexture.ts",
     "src/texture/RenderTexture.ts",
