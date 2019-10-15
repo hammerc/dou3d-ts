@@ -24,7 +24,11 @@ namespace dou3d {
         public constructor(canvas?: HTMLCanvasElement) {
             if (!canvas) {
                 canvas = document.createElement("canvas");
-                canvas.style.position = "absolute";
+                canvas.style.position = "fixed";
+                canvas.style.left = "0px";
+                canvas.style.top = "0px";
+                canvas.style.width = "100%";
+                canvas.style.height = "100%";
                 document.body.appendChild(canvas);
             }
             this._canvas = dou3d.canvas = canvas;
@@ -35,6 +39,14 @@ namespace dou3d {
                 return;
             }
             Context3DProxy.gl = gl;
+
+            window.addEventListener("resize", () => {
+                setTimeout(() => {
+                    for (let view3D of this._view3Ds) {
+                        Event3D.dispatch(view3D, Event3D.RESIZE);
+                    }
+                }, 300);
+            });
 
             this._viewRect = new Rectangle();
             this._view3Ds = [];
@@ -52,6 +64,8 @@ namespace dou3d {
         public get viewRect(): Rectangle {
             let rect = this._canvas.getBoundingClientRect();
             this._viewRect.set(rect.left, rect.top, rect.width, rect.height);
+            this._canvas.width = rect.width;
+            this._canvas.height = rect.height;
             return this._viewRect;
         }
 

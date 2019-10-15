@@ -110,6 +110,8 @@
     "src/enum/PassType.ts",
     "src/enum/ShaderPhaseType.ts",
 
+    "src/event/Event3D.ts",
+
     "src/gemo/EulerOrder.ts",
     "src/gemo/Vector2.ts",
     "src/gemo/Vector3.ts",

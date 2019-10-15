@@ -1059,7 +1059,7 @@ declare namespace dou3d {
      * - 目前不支持添加多个摄像机
      * @author wizardc
      */
-    class View3D {
+    class View3D extends dou.EventDispatcher {
         protected _viewPort: Rectangle;
         protected _camera: Camera3D;
         protected _scene: Scene3D;
@@ -1497,6 +1497,19 @@ declare namespace dou3d {
         lighting_fragment = 13,
         multi_end_fragment = 14,
         end_fragment = 15
+    }
+}
+declare namespace dou3d {
+    /**
+     * 3D 事件
+     * @author wizardc
+     */
+    class Event3D extends dou.Event {
+        static ENTER_FRAME: string;
+        static RESIZE: string;
+        static dispatch(target: dou.IEventDispatcher, type: string, data?: any, cancelable?: boolean): boolean;
+        initEvent(type: string, data?: any, cancelable?: boolean): void;
+        onRecycle(): void;
     }
 }
 declare namespace dou3d {

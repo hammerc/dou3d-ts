@@ -2515,24 +2515,27 @@ var dou3d;
      * - 目前不支持添加多个摄像机
      * @author wizardc
      */
-    var View3D = /** @class */ (function () {
+    var View3D = /** @class */ (function (_super) {
+        __extends(View3D, _super);
         function View3D(x, y, width, height, camera) {
-            this._cleanParmerts = dou3d.Context3DProxy.gl.COLOR_BUFFER_BIT | dou3d.Context3DProxy.gl.DEPTH_BUFFER_BIT;
-            this._viewPort = new dou3d.Rectangle();
-            this._camera = camera || new dou3d.Camera3D(0 /* perspective */);
-            this._camera.name = "MainCamera";
-            this._scene = new dou3d.Scene3D();
-            this._scene.root.addChild(this._camera);
-            this._render = new dou3d.MultiRenderer(0 /* diffusePass */);
-            this._entityCollect = new dou3d.EntityCollect();
-            this._entityCollect.scene = this._scene;
-            this._backColor = new dou3d.Vector4(0.3, 0.3, 0.6, 1);
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-            this._camera.aspectRatio = this._viewPort.w / this._viewPort.h;
-            this._camera.updateViewport(this._viewPort.x, this._viewPort.y, this._viewPort.w, this._viewPort.h);
+            var _this = _super.call(this) || this;
+            _this._cleanParmerts = dou3d.Context3DProxy.gl.COLOR_BUFFER_BIT | dou3d.Context3DProxy.gl.DEPTH_BUFFER_BIT;
+            _this._viewPort = new dou3d.Rectangle();
+            _this._camera = camera || new dou3d.Camera3D(0 /* perspective */);
+            _this._camera.name = "MainCamera";
+            _this._scene = new dou3d.Scene3D();
+            _this._scene.root.addChild(_this._camera);
+            _this._render = new dou3d.MultiRenderer(0 /* diffusePass */);
+            _this._entityCollect = new dou3d.EntityCollect();
+            _this._entityCollect.scene = _this._scene;
+            _this._backColor = new dou3d.Vector4(0.3, 0.3, 0.6, 1);
+            _this.x = x;
+            _this.y = y;
+            _this.width = width;
+            _this.height = height;
+            _this._camera.aspectRatio = _this._viewPort.w / _this._viewPort.h;
+            _this._camera.updateViewport(_this._viewPort.x, _this._viewPort.y, _this._viewPort.w, _this._viewPort.h);
+            return _this;
         }
         Object.defineProperty(View3D.prototype, "x", {
             get: function () {
@@ -2679,6 +2682,7 @@ var dou3d;
         };
         View3D.prototype.updateObject3D = function (object3d, time, delay) {
             if (object3d) {
+                object3d.dispatch(dou3d.Event3D.ENTER_FRAME);
                 object3d.update(time, delay, this.camera3D);
                 if (object3d instanceof dou3d.ObjectContainer3D) {
                     for (var i = 0; i < object3d.children.length; ++i) {
@@ -2688,7 +2692,7 @@ var dou3d;
             }
         };
         return View3D;
-    }());
+    }(dou.EventDispatcher));
     dou3d.View3D = View3D;
 })(dou3d || (dou3d = {}));
 var dou3d;
@@ -3292,6 +3296,36 @@ var dou3d;
         ShaderPhaseType[ShaderPhaseType["multi_end_fragment"] = 14] = "multi_end_fragment";
         ShaderPhaseType[ShaderPhaseType["end_fragment"] = 15] = "end_fragment";
     })(ShaderPhaseType = dou3d.ShaderPhaseType || (dou3d.ShaderPhaseType = {}));
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 3D 事件
+     * @author wizardc
+     */
+    var Event3D = /** @class */ (function (_super) {
+        __extends(Event3D, _super);
+        function Event3D() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Event3D.dispatch = function (target, type, data, cancelable) {
+            var event = dou.recyclable(Event3D);
+            event.initEvent(type, data, cancelable);
+            var result = target.dispatchEvent(event);
+            event.recycle();
+            return result;
+        };
+        Event3D.prototype.initEvent = function (type, data, cancelable) {
+            this.init(type, data, cancelable);
+        };
+        Event3D.prototype.onRecycle = function () {
+            _super.prototype.onRecycle.call(this);
+        };
+        Event3D.ENTER_FRAME = "enterFrame";
+        Event3D.RESIZE = "resize";
+        return Event3D;
+    }(dou.Event));
+    dou3d.Event3D = Event3D;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -11564,9 +11598,14 @@ var dou3d;
          * @param canvas 用户呈现 3D 图像的 Canvas 元素, 为空则会创建一个全屏的元素
          */
         function Engine(canvas) {
+            var _this = this;
             if (!canvas) {
                 canvas = document.createElement("canvas");
-                canvas.style.position = "absolute";
+                canvas.style.position = "fixed";
+                canvas.style.left = "0px";
+                canvas.style.top = "0px";
+                canvas.style.width = "100%";
+                canvas.style.height = "100%";
                 document.body.appendChild(canvas);
             }
             this._canvas = dou3d.canvas = canvas;
@@ -11576,6 +11615,14 @@ var dou3d;
                 return;
             }
             dou3d.Context3DProxy.gl = gl;
+            window.addEventListener("resize", function () {
+                setTimeout(function () {
+                    for (var _i = 0, _a = _this._view3Ds; _i < _a.length; _i++) {
+                        var view3D = _a[_i];
+                        dou3d.Event3D.dispatch(view3D, dou3d.Event3D.RESIZE);
+                    }
+                }, 300);
+            });
             this._viewRect = new dou3d.Rectangle();
             this._view3Ds = [];
             Engine.context3DProxy = new dou3d.Context3DProxy();
@@ -11590,6 +11637,8 @@ var dou3d;
             get: function () {
                 var rect = this._canvas.getBoundingClientRect();
                 this._viewRect.set(rect.left, rect.top, rect.width, rect.height);
+                this._canvas.width = rect.width;
+                this._canvas.height = rect.height;
                 return this._viewRect;
             },
             enumerable: true,

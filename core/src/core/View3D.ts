@@ -6,7 +6,7 @@ namespace dou3d {
      * - 目前不支持添加多个摄像机
      * @author wizardc
      */
-    export class View3D {
+    export class View3D extends dou.EventDispatcher {
         protected _viewPort: Rectangle;
         protected _camera: Camera3D;
         protected _scene: Scene3D;
@@ -19,6 +19,8 @@ namespace dou3d {
         protected _cleanParmerts: number = Context3DProxy.gl.COLOR_BUFFER_BIT | Context3DProxy.gl.DEPTH_BUFFER_BIT;
 
         public constructor(x: number, y: number, width: number, height: number, camera?: Camera3D) {
+            super();
+
             this._viewPort = new Rectangle();
             this._camera = camera || new Camera3D(CameraType.perspective);
             this._camera.name = "MainCamera";
@@ -168,6 +170,7 @@ namespace dou3d {
 
         private updateObject3D(object3d: Object3D, time: number, delay: number) {
             if (object3d) {
+                object3d.dispatch(Event3D.ENTER_FRAME);
                 object3d.update(time, delay, this.camera3D);
                 if (object3d instanceof ObjectContainer3D) {
                     for (var i = 0; i < object3d.children.length; ++i) {
