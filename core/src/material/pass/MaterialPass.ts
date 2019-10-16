@@ -149,15 +149,15 @@ namespace dou3d {
                 if (this.lightGroup.directList.length) {
                     this._passUsage.directLightData = new Float32Array(DirectLight.stride * this.lightGroup.directList.length);
                     this._vs_shader_methods[ShaderPhaseType.local_vertex].push("varyingViewDir_vs");
-                    this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("directLight_fragment");
+                    this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("directLight_fs");
                 }
                 if (this.lightGroup.spotList.length) {
                     this._passUsage.spotLightData = new Float32Array(SpotLight.stride * this.lightGroup.spotList.length);
-                    this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("spotLight_fragment");
+                    this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("spotLight_fs");
                 }
                 if (this.lightGroup.pointList.length) {
                     this._passUsage.pointLightData = new Float32Array(PointLight.stride * this.lightGroup.pointList.length);
-                    this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("pointLight_fragment");
+                    this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("pointLight_fs");
                 }
             }
             this.initOtherMethods();

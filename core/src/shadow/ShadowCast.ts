@@ -37,7 +37,7 @@ namespace dou3d {
         }
 
         public set enableShadow(value: boolean) {
-            this.enableShadow = value;
+            this._enableShadow = value;
         }
         public get enableShadow(): boolean {
             return this._enableShadow;

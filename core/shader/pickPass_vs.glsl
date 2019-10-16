@@ -10,6 +10,6 @@ uniform mat4 uniform_ModelMatrix;
 uniform mat4 uniform_ViewMatrix;
 uniform mat4 uniform_ProjectionMatrix;
 
-void main(void) {
+void main() {
     gl_Position = uniform_ProjectionMatrix * uniform_ViewMatrix * uniform_ModelMatrix * vec4(attribute_position, 1.0);
 }

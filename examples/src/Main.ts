@@ -5,6 +5,8 @@ function loadJS(url: string): void {
 function loadAllJS(): void {
     this.loadJS("bin/examples/CubeTest.js");
     this.loadJS("bin/examples/TextureTest.js");
+    this.loadJS("bin/examples/LightTest.js");
+    this.loadJS("bin/examples/ShadowTest.js");
 }
 
 class Main {
@@ -25,6 +27,8 @@ class Main {
         engine.addView3D(view3D);
 
         // new examples.CubeTest(view3D);
-        new examples.TextureTest(view3D);
+        // new examples.TextureTest(view3D);
+        // new examples.LightTest(view3D);
+        new examples.ShadowTest(view3D);
     }
 }

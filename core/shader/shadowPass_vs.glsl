@@ -14,7 +14,7 @@ varying vec2 varying_uv0;
 varying vec4 varying_color;
 varying vec4 varying_pos;
 
-void main(void) {
+void main() {
     mat4 mvMatrix = mat4(uniform_ViewMatrix * uniform_ModelMatrix);
 
     varying_color = attribute_color;
