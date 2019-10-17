@@ -32,6 +32,11 @@ namespace dou3d {
         public type: string = "";
 
         /**
+         * 动画对象, 控制骨骼动画
+         */
+        public animation: IAnimation;
+
+        /**
          * 渲染排序的参数，数值越大，先渲染
          */
         public set order(value: number) {
@@ -107,6 +112,9 @@ namespace dou3d {
 
         public update(time: number, delay: number, camera: Camera3D) {
             super.update(time, delay, camera);
+            if (this.animation) {
+                this.animation.update(time, delay, this._geometry);
+            }
             if (this.geometry.subGeometrys.length <= 0) {
                 this.geometry.buildDefaultSubGeometry();
             }

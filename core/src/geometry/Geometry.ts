@@ -115,6 +115,13 @@ namespace dou3d {
          */
         public _faceCount: number = 0;
 
+        private _skeleton: Skeleton;
+
+        /**
+         * 骨骼动画会上传到 GPU 的数据
+         */
+        public skeletonGPUData: Float32Array;
+
         public set bufferDiry(value: boolean) {
             this._bufferDiry = value;
         }
@@ -223,6 +230,24 @@ namespace dou3d {
         }
         public get vertexFormat(): number {
             return this._vertexFormat;
+        }
+
+        /**
+         * 当前模型的骨骼
+         */
+        public set skeleton(skeleton: Skeleton) {
+            if (!skeleton) {
+                return;
+            }
+            this._skeleton = skeleton;
+            this.skeletonGPUData = new Float32Array(skeleton.jointNum * 8);
+            for (var i: number = 0; i < skeleton.jointNum; ++i) {
+                this.skeletonGPUData[i * 8 + 3] = 1;
+                this.skeletonGPUData[i * 8 + 7] = 1;
+            }
+        }
+        public get skeleton(): Skeleton {
+            return this._skeleton;
         }
 
         /**

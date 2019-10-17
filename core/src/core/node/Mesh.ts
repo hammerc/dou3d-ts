@@ -4,13 +4,23 @@ namespace dou3d {
      * @author wizardc
      */
     export class Mesh extends RenderBase {
-        public constructor(geometry: Geometry, material?: MaterialBase) {
+        public constructor(geometry: Geometry, material?: MaterialBase, animation?: IAnimation) {
             super();
             this.type = "mesh";
             this.geometry = geometry;
             this.material = material || new TextureMaterial();
             this.addSubMaterial(0, this.material);
             this.bound = this.buildBoundBox();
+            if (animation) {
+                this.animation = animation;
+            }
+            else {
+                if (geometry) {
+                    if (this.geometry.vertexFormat & VertexFormat.VF_SKIN) {
+                        this.animation = new SkeletonAnimation();
+                    }
+                }
+            }
         }
 
         protected buildBoundBox(): Bound {
@@ -46,7 +56,7 @@ namespace dou3d {
         }
 
         public clone(): Mesh {
-            let cloneMesh = new Mesh(this.geometry, this.material);
+            let cloneMesh = new Mesh(this.geometry, this.material, this.animation ? this.animation.clone() : null);
             cloneMesh.multiMaterial = this.multiMaterial;
             return cloneMesh;
         }

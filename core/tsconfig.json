@@ -95,6 +95,15 @@
     "src/core/Ticker.ts",
     "src/core/View3D.ts",
 
+    "src/animation/IAnimation.ts",
+    "src/animation/IAnimationState.ts",
+    "src/animation/skeleton/Joint.ts",
+    "src/animation/skeleton/Skeleton.ts",
+    "src/animation/skeleton/SkeletonAnimation.ts",
+    "src/animation/skeleton/SkeletonAnimationClip.ts",
+    "src/animation/skeleton/SkeletonAnimationState.ts",
+    "src/animation/skeleton/SkeletonPose.ts",
+
     "src/camera/Camera3D.ts",
     "src/camera/Frustum.ts",
 

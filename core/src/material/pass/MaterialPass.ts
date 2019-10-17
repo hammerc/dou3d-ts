@@ -111,11 +111,20 @@ namespace dou3d {
         /**
          * 初始化所有的渲染方法
          */
-        public initUseMethod(): void {
+        public initUseMethod(animation: IAnimation): void {
             this._passChange = false;
             this._passUsage = new PassUsage();
             this._vs_shader_methods = {};
             this._fs_shader_methods = {};
+            // 动画
+            if (animation) {
+                // 添加骨骼动画处理着色器
+                if (animation instanceof SkeletonAnimation) {
+                    this._passUsage.maxBone = animation.jointNum * 2;
+                    this._vs_shader_methods[ShaderPhaseType.start_vertex] = [];
+                    this._vs_shader_methods[ShaderPhaseType.start_vertex].push("skeleton_vs");
+                }
+            }
             // 根据属性设定加入需要的渲染方法
             if (this._materialData.acceptShadow) {
                 // 添加接受阴影的 Shader
@@ -299,9 +308,9 @@ namespace dou3d {
             }
         }
 
-        public upload(time: number, delay: number, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void {
+        public upload(time: number, delay: number, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D, animation: IAnimation): void {
             this._passChange = false;
-            this.initUseMethod();
+            this.initUseMethod(animation);
             this._passUsage.vertexShader.shader = this._passUsage.vertexShader.getShader(this._passUsage);
             this._passUsage.fragmentShader.shader = this._passUsage.fragmentShader.getShader(this._passUsage);
             this._passUsage.program3D = ShaderPool.getProgram(this._passUsage.vertexShader.shader.id, this._passUsage.fragmentShader.shader.id);
@@ -365,7 +374,7 @@ namespace dou3d {
             }
             // 通道改变之后需要重新提交
             if (this._passChange) {
-                this.upload(time, delay, context3DProxy, modelTransform, camera3D);
+                this.upload(time, delay, context3DProxy, modelTransform, camera3D, render.animation);
             }
             context3DProxy.setProgram(this._passUsage.program3D);
             subGeometry.activeState(this._passUsage, context3DProxy);
@@ -461,6 +470,9 @@ namespace dou3d {
             }
             if (this._passUsage.uniform_orthProectMatrix) {
                 context3DProxy.uniformMatrix4fv(this._passUsage.uniform_orthProectMatrix.uniformIndex, false, camera3D.orthProjectionMatrix.rawData);
+            }
+            if (render.animation) {
+                render.animation.activeState(time, delay, this._passUsage, subGeometry, context3DProxy, modelTransform, camera3D);
             }
             if (this.methodList) {
                 for (let i = 0; i < this.methodList.length; i++) {
