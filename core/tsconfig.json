@@ -143,6 +143,7 @@
     "src/geometry/CylinderGeometry.ts",
     "src/geometry/PlaneGeometry.ts",
     "src/geometry/SphereGeometry.ts",
+    "src/geometry/GeometryCreator.ts",
 
     "src/lights/LightBase.ts",
     "src/lights/DirectLight.ts",
@@ -151,6 +152,8 @@
     "src/lights/LightGroup.ts",
 
     "src/load/analyzer/TextureAnalyzer.ts",
+    "src/load/analyzer/ESMAnalzyer.ts",
+    "src/load/analyzer/EAMAnalzyer.ts",
 
     "src/material/method/MethodBase.ts",
     "src/material/method/ColorMethod.ts",

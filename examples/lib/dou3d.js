@@ -2018,6 +2018,9 @@ var dou3d;
         };
         RenderBase.prototype.update = function (time, delay, camera) {
             _super.prototype.update.call(this, time, delay, camera);
+            if (this.animation) {
+                this.animation.update(time, delay, this._geometry);
+            }
             if (this.geometry.subGeometrys.length <= 0) {
                 this.geometry.buildDefaultSubGeometry();
             }
@@ -2127,13 +2130,23 @@ var dou3d;
      */
     var Mesh = /** @class */ (function (_super) {
         __extends(Mesh, _super);
-        function Mesh(geometry, material) {
+        function Mesh(geometry, material, animation) {
             var _this = _super.call(this) || this;
             _this.type = "mesh";
             _this.geometry = geometry;
             _this.material = material || new dou3d.TextureMaterial();
             _this.addSubMaterial(0, _this.material);
             _this.bound = _this.buildBoundBox();
+            if (animation) {
+                _this.animation = animation;
+            }
+            else {
+                if (geometry) {
+                    if (_this.geometry.vertexFormat & 64 /* VF_SKIN */) {
+                        _this.animation = new dou3d.SkeletonAnimation();
+                    }
+                }
+            }
             return _this;
         }
         Mesh.prototype.buildBoundBox = function () {
@@ -2168,7 +2181,7 @@ var dou3d;
             return bound;
         };
         Mesh.prototype.clone = function () {
-            var cloneMesh = new Mesh(this.geometry, this.material);
+            var cloneMesh = new Mesh(this.geometry, this.material, this.animation ? this.animation.clone() : null);
             cloneMesh.multiMaterial = this.multiMaterial;
             return cloneMesh;
         };
@@ -2707,6 +2720,1080 @@ var dou3d;
         return View3D;
     }(dou.EventDispatcher));
     dou3d.View3D = View3D;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 骨骼关节
+     * * 属于骨架类的组成部分
+     * @author wizardc
+     */
+    var Joint = /** @class */ (function () {
+        function Joint(name) {
+            this.name = name;
+            this.parentIndex = -1;
+            this.scale = new dou3d.Vector3(1, 1, 1);
+            this.orientation = new dou3d.Quaternion();
+            this.translation = new dou3d.Vector3();
+            this.localMatrix = new dou3d.Matrix4();
+            this.worldMatrix = new dou3d.Matrix4();
+            this.worldMatrixValid = false;
+        }
+        /**
+         * 构建骨骼本地矩阵
+         */
+        Joint.prototype.buildLocalMatrix = function (scale, rotation, translation) {
+            this.scale.copy(scale);
+            this.translation.copy(translation);
+            if (rotation instanceof dou3d.Vector3) {
+                this.orientation.fromEuler(rotation.x, rotation.y, rotation.z);
+            }
+            else {
+                this.orientation.copy(rotation);
+            }
+            this.localMatrix.compose(this.translation, this.orientation, this.scale);
+            this.worldMatrixValid = false;
+        };
+        /**
+         * 构建骨骼逆矩阵
+         */
+        Joint.prototype.buildInverseMatrix = function (scale, rotation, translation) {
+            this.inverseMatrix = this.inverseMatrix || new dou3d.Matrix4();
+            if (rotation instanceof dou3d.Vector3) {
+                var quaternion = dou.recyclable(dou3d.Quaternion);
+                quaternion.fromEuler(rotation.x, rotation.y, rotation.z);
+                this.inverseMatrix.compose(translation, quaternion, scale);
+                quaternion.recycle();
+            }
+            else {
+                this.inverseMatrix.compose(translation, rotation, scale);
+            }
+        };
+        Joint.prototype.clone = function () {
+            var joint = new Joint(this.name);
+            joint.parent = this.parent;
+            joint.parentIndex = this.parentIndex;
+            joint.scale.copy(this.scale);
+            joint.orientation.copy(this.orientation);
+            joint.translation.copy(this.translation);
+            joint.localMatrix.copy(this.localMatrix);
+            joint.worldMatrix.copy(this.worldMatrix);
+            joint.worldMatrixValid = this.worldMatrixValid;
+            return joint;
+        };
+        return Joint;
+    }());
+    dou3d.Joint = Joint;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 骨架类
+     * * 其中包含若干个 Joint (骨骼关节) 对象
+     * @author wizardc
+     */
+    var Skeleton = /** @class */ (function () {
+        function Skeleton() {
+            this.joints = [];
+        }
+        Object.defineProperty(Skeleton.prototype, "jointNum", {
+            /**
+             * 骨骼数量
+             */
+            get: function () {
+                return this.joints.length;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 通过名称查找指定骨骼
+         */
+        Skeleton.prototype.findJoint = function (name) {
+            for (var i = 0; i < this.joints.length; i++) {
+                if (this.joints[i].name == name) {
+                    return this.joints[i];
+                }
+            }
+            return null;
+        };
+        /**
+         * 通过名称查找骨骼索引编号
+         */
+        Skeleton.prototype.findJointIndex = function (name) {
+            for (var i = 0; i < this.joints.length; i++) {
+                if (this.joints[i].name == name) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+        Skeleton.prototype.clone = function () {
+            var skeleton = new Skeleton();
+            for (var i = 0; i < this.joints.length; i++) {
+                skeleton.joints.push(this.joints[i].clone());
+            }
+            return skeleton;
+        };
+        return Skeleton;
+    }());
+    dou3d.Skeleton = Skeleton;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 骨骼动画控制类
+     * @author wizardc
+     */
+    var SkeletonAnimation = /** @class */ (function (_super) {
+        __extends(SkeletonAnimation, _super);
+        function SkeletonAnimation() {
+            var _this = _super.call(this) || this;
+            /**
+             * 播放速度
+             */
+            _this.speed = 1;
+            _this.isLoop = true;
+            _this._isPlay = false;
+            _this._animTime = 0;
+            _this._animStateNames = [];
+            _this._animStates = [];
+            _this._blendSpeed = 0; //300;
+            _this._blendSkeleton = null;
+            _this._blendList = [];
+            _this._bindList = {};
+            _this._changeFrameTime = 0;
+            _this._oldFrameIndex = 0;
+            _this._movePosIndex = -1;
+            _this._movePosObject3D = null;
+            _this._movePosition = new dou3d.Vector3();
+            _this._resetMovePos = true;
+            _this._currentSkeletonPose = null;
+            _this._oldTime = 0;
+            _this._isPlay = false;
+            return _this;
+        }
+        Object.defineProperty(SkeletonAnimation.prototype, "jointNum", {
+            /**
+             * 骨架骨骼数量
+             */
+            get: function () {
+                return 48;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimation.prototype, "animStateNames", {
+            /**
+             * 动画名列表
+             */
+            get: function () {
+                return this._animStateNames;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimation.prototype, "animStates", {
+            /**
+             * 动画状态对象列表
+             */
+            get: function () {
+                return this._animStates;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimation.prototype, "animTime", {
+            get: function () {
+                return this._animTime;
+            },
+            /**
+             * 动画时间
+             */
+            set: function (value) {
+                if (this._blendList.length <= 0) {
+                    return;
+                }
+                if (this._blendList[this._blendList.length - 1].timePosition == value) {
+                    return;
+                }
+                var delay = value - this._animTime;
+                if (this._blendSpeed <= 0) {
+                    if (this._blendList.length > 1) {
+                        this._blendList.splice(0, this._blendList.length - 1);
+                    }
+                    this._blendList[0].weight = 1.0;
+                    this._blendList[0].timePosition += delay;
+                }
+                else {
+                    var blendSpeed = Math.abs(delay / this._blendSpeed);
+                    for (var i = 0; i < this._blendList.length; ++i) {
+                        var animationState = this._blendList[i];
+                        if (i != this._blendList.length - 1) {
+                            animationState.weight = Math.max(0, animationState.weight - blendSpeed);
+                            if (animationState.weight <= 0) {
+                                this._blendList.splice(i, 1);
+                                --i;
+                                continue;
+                            }
+                        }
+                        else {
+                            animationState.weight = Math.min(1, animationState.weight + blendSpeed);
+                        }
+                    }
+                    this._blendList[this._blendList.length - 1].timePosition += delay;
+                }
+                this._animTime = this._blendList[this._blendList.length - 1].timePosition;
+                var animationStateA = this._blendList[0];
+                var currentSkeletonA = animationStateA.currentSkeletonPose;
+                if (this._blendList.length <= 1) {
+                    if (!this._blendSkeleton) {
+                        this._blendSkeleton = currentSkeletonA.clone();
+                    }
+                    this.updateBindList(currentSkeletonA);
+                    this.updateMovePos(currentSkeletonA);
+                    this._currentSkeletonPose = currentSkeletonA;
+                }
+                else {
+                    var animationStateB = this._blendList[1];
+                    var currentSkeletonB = animationStateB.currentSkeletonPose;
+                    if (!this._blendSkeleton) {
+                        this._blendSkeleton = currentSkeletonA.clone();
+                    }
+                    this._blendSkeleton.lerp(currentSkeletonA, currentSkeletonB, animationStateB.weight);
+                    this._blendSkeleton.resetWorldMatrix();
+                    this._blendSkeleton.calculateJointWorldMatrix();
+                    this.updateBindList(this._blendSkeleton);
+                    this.updateMovePos(this._blendSkeleton);
+                    this._currentSkeletonPose = this._blendSkeleton;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimation.prototype, "timeLength", {
+            /**
+             * 动画时间长度
+             */
+            get: function () {
+                if (this._blendList.length <= 0) {
+                    return 0;
+                }
+                return this._blendList[this._blendList.length - 1].timeLength;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimation.prototype, "frameIndex", {
+            get: function () {
+                return this.animTime / SkeletonAnimation.fps;
+            },
+            /**
+             * 动画帧索引
+             */
+            set: function (value) {
+                this.animTime = value * SkeletonAnimation.fps;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimation.prototype, "blendSpeed", {
+            get: function () {
+                return this._blendSpeed;
+            },
+            /**
+             * 融合速度(默认300毫秒)
+             */
+            set: function (value) {
+                this._blendSpeed = Math.max(value, 0);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimation.prototype, "currentAnimName", {
+            /**
+             * 当前播放的动画名称
+             */
+            get: function () {
+                return this._currentAnimName;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 当前动画是否正在播放
+         */
+        SkeletonAnimation.prototype.isPlay = function () {
+            return this._isPlay;
+        };
+        /**
+         * 添加骨骼动画剪辑对象
+         */
+        SkeletonAnimation.prototype.addSkeletonAnimationClip = function (animationClip) {
+            var animState = new dou3d.SkeletonAnimationState(animationClip.animationName);
+            animState.skeletonAnimation = this;
+            animState.addAnimationClip(animationClip);
+            this.addAnimState(animState);
+        };
+        /**
+         * 添加骨骼动画状态对象
+         */
+        SkeletonAnimation.prototype.addAnimState = function (animState) {
+            for (var i = 0; i < this._animStates.length; i++) {
+                if (this._animStates[i].name == animState.name) {
+                    return;
+                }
+            }
+            this._animStates.push(animState);
+            this._animStateNames.push(animState.name);
+        };
+        /**
+         * 移除骨骼动画状态对象
+         */
+        SkeletonAnimation.prototype.removeAnimState = function (animState) {
+            for (var i = 0; i < this._animStates.length; i++) {
+                if (this._animStates[i].name == animState.name) {
+                    this._animStates.slice(i, 1);
+                    this._animStateNames.slice(i, 1);
+                    return;
+                }
+            }
+        };
+        /**
+         * 播放骨骼动画
+         * @param animName 动画名称
+         * @param speed 播放速度
+         * @param reset 是否重置
+         * @param prewarm 是否预热
+         */
+        SkeletonAnimation.prototype.play = function (animName, speed, reset, prewarm) {
+            if (speed === void 0) { speed = 1; }
+            if (reset === void 0) { reset = true; }
+            if (prewarm === void 0) { prewarm = true; }
+            if (this._animStates.length <= 0) {
+                return;
+            }
+            if (!animName) {
+                animName = this._animStates[0].name;
+            }
+            var playSkeletonAnimationState;
+            for (var i = 0; i < this._animStates.length; i++) {
+                if (this._animStates[i].name == animName) {
+                    playSkeletonAnimationState = this._animStates[i];
+                    break;
+                }
+            }
+            if (!playSkeletonAnimationState) {
+                return;
+            }
+            this._currentAnimName = animName;
+            this._blendList.push(playSkeletonAnimationState);
+            if (this._blendSpeed <= 0) {
+                if (this._blendList.length > 1) {
+                    this._blendList.splice(0, this._blendList.length - 1);
+                }
+            }
+            playSkeletonAnimationState.weight = this._blendList.length > 1 ? 0 : 1;
+            if (reset) {
+                this._animTime = playSkeletonAnimationState.timePosition = 0;
+            }
+            this._changeFrameTime = playSkeletonAnimationState.timePosition;
+            this._oldFrameIndex = Math.floor(this._changeFrameTime / SkeletonAnimation.fps);
+            this.speed = speed;
+            this._isPlay = true;
+            this._resetMovePos = true;
+            if (this._movePosIndex != -1) {
+                var position = dou.recyclable(dou3d.Vector3);
+                playSkeletonAnimationState.getSkeletonPose(0).joints[this._movePosIndex].worldMatrix.decompose(position);
+                this._movePosition.copy(position);
+                position.recycle();
+            }
+        };
+        /**
+         * 暂停骨骼动画播放（停留在当前帧）
+         */
+        SkeletonAnimation.prototype.pause = function () {
+            this._isPlay = false;
+        };
+        /**
+         * 停止骨骼动画播放（停留在第一帧）
+         */
+        SkeletonAnimation.prototype.stop = function () {
+            this._isPlay = false;
+        };
+        /**
+         * 更新骨骼动画
+         * @param time 总时间
+         * @param delay 延迟时间
+         * @param geometry 该值无效
+         */
+        SkeletonAnimation.prototype.update = function (time, delay, geometry) {
+            if (this._oldTime == time) {
+                return;
+            }
+            this._oldTime = time;
+            if (!this._isPlay) {
+                return;
+            }
+            if (this._blendList.length <= 0) {
+                return;
+            }
+            var mainState = this._blendList[this._blendList.length - 1];
+            var delayTime = delay * this.speed;
+            this._changeFrameTime += delayTime;
+            var count = Math.floor(Math.abs(this._changeFrameTime / SkeletonAnimation.fps));
+            var playAnimName = this.currentAnimName;
+            var frameNum = 0;
+            for (var i = 0; i < count; ++i) {
+                if (delayTime < 0) {
+                    frameNum = ((this._oldFrameIndex - 1 - i) % mainState.frameNum);
+                    if (frameNum < 0) {
+                        frameNum += mainState.frameNum;
+                    }
+                }
+                else {
+                    frameNum = (this._oldFrameIndex + 1 + i) % mainState.frameNum;
+                }
+                this.dispatch(dou3d.Event3D.ENTER_FRAME, frameNum);
+                if (this.currentAnimName != playAnimName) {
+                    frameNum = Math.floor(this._changeFrameTime / SkeletonAnimation.fps);
+                    break;
+                }
+                this._changeFrameTime += (delayTime > 0) ? -SkeletonAnimation.fps : SkeletonAnimation.fps;
+            }
+            this._oldFrameIndex = frameNum;
+            this.animTime += delay * this.speed;
+        };
+        SkeletonAnimation.prototype.activeState = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+            if (this._currentSkeletonPose) {
+                this._currentSkeletonPose.updateGPUCacheData(geometry.geometry.skeleton, geometry.geometry.skeletonGPUData, this._movePosition);
+            }
+            if (usage.uniform_time) {
+                context3DProxy.uniform1f(usage.uniform_time.uniformIndex, this.animTime);
+            }
+            context3DProxy.uniform4fv(usage.uniform_PoseMatrix.uniformIndex, geometry.geometry.skeletonGPUData);
+        };
+        /**
+         * 绑定3D对象到骨骼
+         * @param jointName 骨骼名称
+         * @param obj3d 3D对象
+         * @returns boolean 是否成功
+         */
+        SkeletonAnimation.prototype.bindToJointPose = function (jointName, object3D) {
+            var jointIndex = this._animStates[0].skeletonAnimationClip.findJointIndex(jointName);
+            if (jointIndex < 0) {
+                return false;
+            }
+            var list;
+            if (this._bindList[jointIndex]) {
+                list = this._bindList[jointIndex];
+            }
+            else {
+                list = [];
+                this._bindList[jointIndex] = list;
+            }
+            list.push(object3D);
+            return true;
+        };
+        SkeletonAnimation.prototype.setMovePosJointName = function (jointName, target) {
+            var jointIndex = this._animStates[0].skeletonAnimationClip.findJointIndex(jointName);
+            if (jointIndex < 0) {
+                return false;
+            }
+            this._movePosIndex = jointIndex;
+            this._movePosObject3D = target;
+            this._resetMovePos = true;
+            return true;
+        };
+        SkeletonAnimation.prototype.updateBindList = function (skeletonPose) {
+            var list;
+            var jointPose;
+            var object3D;
+            for (var jointIndex in this._bindList) {
+                list = this._bindList[jointIndex];
+                if (list.length <= 0) {
+                    continue;
+                }
+                jointPose = skeletonPose.joints[jointIndex];
+                if (!jointPose) {
+                    continue;
+                }
+                for (var i = 0; i < list.length; i++) {
+                    object3D = list[i];
+                    var position = dou.recyclable(dou3d.Vector3);
+                    var quaternion = dou.recyclable(dou3d.Quaternion);
+                    jointPose.worldMatrix.decompose(position, quaternion);
+                    object3D.orientation = quaternion;
+                    object3D.x = position.x - this._movePosition.x;
+                    object3D.y = position.y - this._movePosition.y;
+                    object3D.z = position.z - this._movePosition.z;
+                    position.recycle();
+                    quaternion.recycle();
+                }
+            }
+        };
+        SkeletonAnimation.prototype.updateMovePos = function (skeletonPose) {
+            var jointPose;
+            if (this._movePosIndex != -1) {
+                jointPose = skeletonPose.joints[this._movePosIndex];
+                var position = dou.recyclable(dou3d.Vector3);
+                jointPose.worldMatrix.decompose(position);
+                if (this._movePosObject3D) {
+                    this._movePosition.x = position.x - this._movePosition.x;
+                    this._movePosition.y = position.y - this._movePosition.y;
+                    this._movePosition.z = position.z - this._movePosition.z;
+                    this._movePosObject3D.orientation.transformVector(this._movePosition, this._movePosition);
+                    this._movePosObject3D.x += this._movePosition.x;
+                    this._movePosObject3D.y += this._movePosition.y;
+                    this._movePosObject3D.z += this._movePosition.z;
+                    if (this._resetMovePos) {
+                        this._resetMovePos = false;
+                        this._movePosObject3D.x -= this._movePosition.x;
+                        this._movePosObject3D.y += this._movePosition.y;
+                        this._movePosObject3D.z -= this._movePosition.z;
+                    }
+                }
+                this._movePosition.copy(position);
+                position.recycle();
+            }
+        };
+        SkeletonAnimation.prototype.clone = function () {
+            var skeletonAnimation = new SkeletonAnimation();
+            skeletonAnimation._blendSpeed = this._blendSpeed;
+            skeletonAnimation.isLoop = this.isLoop;
+            skeletonAnimation._animStateNames = this._animStateNames.concat([]);
+            for (var i = 0; i < this._animStates.length; i++) {
+                skeletonAnimation._animStates.push(this._animStates[i].clone());
+            }
+            return skeletonAnimation;
+        };
+        /**
+         * 动画速率
+         */
+        SkeletonAnimation.fps = 1000 / 60;
+        return SkeletonAnimation;
+    }(dou.EventDispatcher));
+    dou3d.SkeletonAnimation = SkeletonAnimation;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     *
+     * @author wizardc
+     */
+    var SkeletonAnimationClip = /** @class */ (function () {
+        function SkeletonAnimationClip() {
+            this.animationName = "";
+            // 流数据解析测试
+            this.sampling = 0;
+            this.boneCount = 0;
+            this.frameDataOffset = 0;
+            this._frameCount = 0;
+            this._timeLength = 0;
+            this.poseArray = [];
+        }
+        Object.defineProperty(SkeletonAnimationClip.prototype, "currentSkeletonPose", {
+            get: function () {
+                return this._skeletonPose;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimationClip.prototype, "frameCount", {
+            get: function () {
+                if (this.poseArray.length > 0) {
+                    return this.poseArray.length;
+                }
+                return this._frameCount;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimationClip.prototype, "timeLength", {
+            /**
+             * 时间长度
+             */
+            get: function () {
+                if (this.poseArray.length > 0) {
+                    return this.poseArray[this.poseArray.length - 1].frameTime;
+                }
+                return this._timeLength;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimationClip.prototype, "jointNum", {
+            /**
+             * 骨骼数量
+             */
+            get: function () {
+                if (this.poseArray.length > 0) {
+                    return this.poseArray[0].joints.length;
+                }
+                return this.boneCount;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        SkeletonAnimationClip.prototype.findJointIndex = function (name) {
+            if (!this._skeletonPose) {
+                if (this.poseArray.length <= 0) {
+                    return -1;
+                }
+                return this.poseArray[0].findJointIndex(name);
+            }
+            return this._skeletonPose.findJointIndex(name);
+        };
+        SkeletonAnimationClip.prototype.addSkeletonPose = function (skeletonPose) {
+            this.poseArray.push(skeletonPose);
+        };
+        SkeletonAnimationClip.prototype.buildInitialSkeleton = function (boneNameArray, parentBoneNameArray, frameCount) {
+            if (this._skeletonPose) {
+                return;
+            }
+            this._frameCount = frameCount;
+            this._skeletonPose = new dou3d.SkeletonPose();
+            for (var j = 0; j < this.boneCount; j++) {
+                var jointPose = new dou3d.Joint(boneNameArray[j]);
+                jointPose.parent = parentBoneNameArray[j];
+                jointPose.parentIndex = this._skeletonPose.findJointIndex(jointPose.parent);
+                this._skeletonPose.joints.push(jointPose);
+            }
+            this.sourceData.position = this.frameDataOffset + (40 * this.boneCount + 4) * (this.frameCount - 1);
+            this._timeLength = this.sourceData.readInt() / 60 / 80 * 1000;
+        };
+        SkeletonAnimationClip.prototype.getSkeletonPose = function (index) {
+            if (this.poseArray.length > 0) {
+                return this.poseArray[index];
+            }
+            if (index < 0 || index >= this.frameCount * 2) {
+                return null;
+            }
+            index = Math.floor(index / 2);
+            return this.readSkeletonPose(index, this._skeletonPose);
+        };
+        SkeletonAnimationClip.prototype.readSkeletonPose = function (index, skeletonPose) {
+            // 每帧数据需要 40 * 骨骼数 + 4字节
+            this.sourceData.position = this.frameDataOffset + (40 * this.boneCount + 4) * index;
+            skeletonPose.frameTime = this.sourceData.readInt() / 60 / 80 * 1000;
+            for (var j = 0; j < this.boneCount; j++) {
+                //读取旋转四元数分量
+                var orientation_1 = dou.recyclable(dou3d.Quaternion);
+                orientation_1.x = this.sourceData.readFloat();
+                orientation_1.y = this.sourceData.readFloat();
+                orientation_1.z = this.sourceData.readFloat();
+                orientation_1.w = this.sourceData.readFloat();
+                //读取缩放分量
+                var scale = dou.recyclable(dou3d.Vector3);
+                scale.x = this.sourceData.readFloat();
+                scale.y = this.sourceData.readFloat();
+                scale.z = this.sourceData.readFloat();
+                //读取平移分量
+                var translation = dou.recyclable(dou3d.Vector3);
+                translation.x = this.sourceData.readFloat();
+                translation.y = this.sourceData.readFloat();
+                translation.z = this.sourceData.readFloat();
+                skeletonPose.joints[j].worldMatrixValid = false;
+                skeletonPose.joints[j].buildLocalMatrix(scale, orientation_1, translation);
+                orientation_1.recycle();
+                scale.recycle();
+                translation.recycle();
+            }
+            skeletonPose.calculateJointWorldMatrix();
+            return skeletonPose;
+        };
+        SkeletonAnimationClip.prototype.clone = function () {
+            var skeletonAnimationClip = new SkeletonAnimationClip();
+            skeletonAnimationClip.animationName = this.animationName;
+            skeletonAnimationClip.poseArray = this.poseArray;
+            skeletonAnimationClip.sampling = this.sampling;
+            skeletonAnimationClip.boneCount = this.boneCount;
+            skeletonAnimationClip._frameCount = this._frameCount;
+            skeletonAnimationClip.frameDataOffset = this.frameDataOffset;
+            skeletonAnimationClip.sourceData = this.sourceData;
+            skeletonAnimationClip._timeLength = this._timeLength;
+            skeletonAnimationClip._skeletonPose = this._skeletonPose;
+            if (this._skeletonPose) {
+                skeletonAnimationClip._skeletonPose = this._skeletonPose.clone();
+            }
+            return skeletonAnimationClip;
+        };
+        return SkeletonAnimationClip;
+    }());
+    dou3d.SkeletonAnimationClip = SkeletonAnimationClip;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     *
+     * @author wizardc
+     */
+    var SkeletonAnimationState = /** @class */ (function () {
+        function SkeletonAnimationState(name) {
+            /**
+             * State 名称
+             */
+            this.name = "";
+            /**
+             * 融合权重值
+             */
+            this.weight = 1.0;
+            this._timeLength = 0;
+            this._timePosition = 0;
+            this._skeletonAnimation = null;
+            this._skeletonAnimationClip = null;
+            this.name = name;
+        }
+        Object.defineProperty(SkeletonAnimationState.prototype, "skeletonAnimation", {
+            /**
+             * 骨骼动画控制器
+             */
+            get: function () {
+                return this._skeletonAnimation;
+            },
+            /**
+             * 骨骼动画控制器
+             */
+            set: function (skeletonAnimation) {
+                this._skeletonAnimation = skeletonAnimation;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimationState.prototype, "skeletonAnimationClip", {
+            /**
+             * 骨骼动画剪辑
+             */
+            get: function () {
+                return this._skeletonAnimationClip;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimationState.prototype, "timeLength", {
+            /**
+             * 动画时间长度
+             */
+            get: function () {
+                return this._timeLength;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 添加 SkeletonAnimationClip 对象
+         */
+        SkeletonAnimationState.prototype.addAnimationClip = function (animationClip) {
+            if (animationClip.sourceData) {
+                this._skeletonAnimationClip = animationClip;
+                this._timeLength = this._skeletonAnimationClip.timeLength;
+            }
+            else {
+                if (!this._skeletonAnimationClip) {
+                    this._skeletonAnimationClip = new dou3d.SkeletonAnimationClip();
+                }
+                else {
+                    this._skeletonAnimationClip.poseArray = [];
+                }
+                if (animationClip.poseArray.length < 2) {
+                    this._skeletonAnimationClip.poseArray = animationClip.poseArray;
+                }
+                else {
+                    var skeletonPoseA = animationClip.poseArray[0];
+                    var skeletonPoseB = animationClip.poseArray[1];
+                    var nCount = Math.round((skeletonPoseB.frameTime - skeletonPoseA.frameTime) / dou3d.SkeletonAnimation.fps);
+                    if (nCount <= 1) {
+                        this._skeletonAnimationClip.poseArray = animationClip.poseArray;
+                    }
+                    else {
+                        for (var i = 1; i < animationClip.poseArray.length; ++i) {
+                            skeletonPoseA = animationClip.poseArray[i - 1];
+                            skeletonPoseB = animationClip.poseArray[i];
+                            for (var j = 0; j < nCount; j++) {
+                                var skeletonPose = new dou3d.SkeletonPose();
+                                skeletonPose.lerp(skeletonPoseA, skeletonPoseB, j / nCount);
+                                this._skeletonAnimationClip.poseArray.push(skeletonPose);
+                            }
+                        }
+                        this._skeletonAnimationClip.poseArray.push(animationClip.poseArray[animationClip.poseArray.length - 1].clone());
+                    }
+                }
+                this._timeLength = this._skeletonAnimationClip.poseArray[this._skeletonAnimationClip.poseArray.length - 1].frameTime;
+            }
+        };
+        Object.defineProperty(SkeletonAnimationState.prototype, "timePosition", {
+            /**
+             * 时间位置
+             */
+            get: function () {
+                return this._timePosition;
+            },
+            /**
+             * 时间位置
+             */
+            set: function (value) {
+                if (value == this._timePosition) {
+                    return;
+                }
+                this._timePosition = value;
+                if (this._skeletonAnimation.isLoop) {
+                    this._timePosition = value % this._timeLength;
+                    if (this._timePosition < 0) {
+                        this._timePosition += this._timeLength;
+                    }
+                }
+                else {
+                    if (this._timePosition < 0) {
+                        this._timePosition = 0;
+                        if (this.name == this._skeletonAnimation.currentAnimName) {
+                            this._skeletonAnimation.stop();
+                            this._skeletonAnimation.dispatch(dou.Event.COMPLETE);
+                        }
+                    }
+                    else if (this._timePosition > this._timeLength) {
+                        this._timePosition = this._timeLength;
+                        if (this.name == this._skeletonAnimation.currentAnimName) {
+                            this._skeletonAnimation.stop();
+                            this._skeletonAnimation.dispatch(dou.Event.COMPLETE);
+                        }
+                    }
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimationState.prototype, "currentSkeletonPose", {
+            /**
+             * 获取当前帧的SkeletonPose
+             */
+            get: function () {
+                return this._skeletonAnimationClip.getSkeletonPose(this.currentFrameIndex);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimationState.prototype, "previousSkeletonPose", {
+            /**
+             * 获取上一帧的SkeletonPose
+             */
+            get: function () {
+                var index = this.currentFrameIndex;
+                if (this._skeletonAnimation.speed > 0) {
+                    index--;
+                    if (index < 0) {
+                        index = this.frameNum - index;
+                    }
+                }
+                else {
+                    index = (index + 1) % this.frameNum;
+                }
+                return this._skeletonAnimationClip.getSkeletonPose(index);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimationState.prototype, "currentFrameIndex", {
+            /**
+             * 获取当前帧索引
+             */
+            get: function () {
+                return Math.floor(this._timePosition / dou3d.SkeletonAnimation.fps);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(SkeletonAnimationState.prototype, "frameNum", {
+            /**
+             * 获取帧数量
+             */
+            get: function () {
+                if (!this._skeletonAnimationClip) {
+                    return 0;
+                }
+                return this._skeletonAnimationClip.frameCount;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 获取SkeletonPose
+         */
+        SkeletonAnimationState.prototype.getSkeletonPose = function (index) {
+            return this._skeletonAnimationClip.getSkeletonPose(index);
+        };
+        /**
+         * 克隆SkeletonAnimationState对象
+         */
+        SkeletonAnimationState.prototype.clone = function () {
+            var skeletonAnimationState = new SkeletonAnimationState(this.name);
+            skeletonAnimationState._timeLength = this._timeLength;
+            skeletonAnimationState._skeletonAnimation = this._skeletonAnimation;
+            skeletonAnimationState._skeletonAnimationClip = this._skeletonAnimationClip;
+            return skeletonAnimationState;
+        };
+        return SkeletonAnimationState;
+    }());
+    dou3d.SkeletonAnimationState = SkeletonAnimationState;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 单帧骨架动画数据，若干个SkeletonPose组合成SkeletonAnimationClip， 做为骨骼骨架序列数据
+     * @author wizardc
+     */
+    var SkeletonPose = /** @class */ (function () {
+        function SkeletonPose() {
+            this.joints = [];
+        }
+        /**
+         * 骨架插值计算
+         */
+        SkeletonPose.prototype.lerp = function (skeletonPoseA, skeletonPoseB, t) {
+            if (skeletonPoseA.joints.length != skeletonPoseB.joints.length) {
+                throw Error("Bone number does not match!");
+            }
+            if (this.joints.length < skeletonPoseA.joints.length) {
+                for (var i = this.joints.length; i <= skeletonPoseA.joints.length; ++i) {
+                    this.joints.push(new dou3d.Joint(""));
+                }
+            }
+            this.frameTime = (skeletonPoseB.frameTime - skeletonPoseA.frameTime) * t + skeletonPoseA.frameTime;
+            for (var i = 0; i < skeletonPoseA.joints.length; ++i) {
+                var jointA = skeletonPoseA.joints[i];
+                var jointB = skeletonPoseB.joints[i];
+                var joint = this.joints[i];
+                joint.name = jointA.name;
+                joint.parent = jointA.parent;
+                joint.parentIndex = jointA.parentIndex;
+                dou3d.Vector3.lerp(jointA.scale, jointB.scale, t, joint.scale);
+                dou3d.Quaternion.slerp(jointA.orientation, jointB.orientation, t, joint.orientation);
+                dou3d.Vector3.slerp(jointA.translation, jointB.translation, t, joint.translation);
+                joint.buildLocalMatrix(joint.scale, joint.orientation, joint.translation);
+                joint.worldMatrixValid = jointA.worldMatrixValid;
+                if (joint.worldMatrixValid) {
+                    var translationA = dou.recyclable(dou3d.Vector3);
+                    var rotationA = dou.recyclable(dou3d.Quaternion);
+                    var scaleA = dou.recyclable(dou3d.Vector3);
+                    jointA.worldMatrix.decompose(translationA, rotationA, scaleA);
+                    var translationB = dou.recyclable(dou3d.Vector3);
+                    var rotationB = dou.recyclable(dou3d.Quaternion);
+                    var scaleB = dou.recyclable(dou3d.Vector3);
+                    jointB.worldMatrix.decompose(translationB, rotationB, scaleB);
+                    var pos = dou.recyclable(dou3d.Vector3);
+                    dou3d.Vector3.slerp(translationA, translationB, t, pos);
+                    var rotation = dou.recyclable(dou3d.Quaternion);
+                    dou3d.Quaternion.slerp(rotationA, rotationB, t, rotation);
+                    var scale = dou.recyclable(dou3d.Vector3);
+                    dou3d.Vector3.lerp(scaleA, scaleB, t, scale);
+                    joint.worldMatrix.compose(pos, rotation, scale);
+                    translationA.recycle();
+                    rotationA.recycle();
+                    scaleA.recycle();
+                    translationB.recycle();
+                    rotationB.recycle();
+                    scaleB.recycle();
+                    pos.recycle();
+                    rotation.recycle();
+                    scale.recycle();
+                }
+            }
+            return this;
+        };
+        /**
+         * 计算当前骨架内所有骨骼的世界矩阵
+         */
+        SkeletonPose.prototype.calculateJointWorldMatrix = function () {
+            for (var i = 0; i < this.joints.length; ++i) {
+                this.calculateAbsoluteMatrix(i);
+            }
+        };
+        SkeletonPose.prototype.calculateAbsoluteMatrix = function (jointIndex) {
+            var joint = this.joints[jointIndex];
+            if (joint.parentIndex >= 0) {
+                this.calculateAbsoluteMatrix(joint.parentIndex);
+            }
+            if (!joint.worldMatrixValid) {
+                joint.worldMatrix.copy(joint.localMatrix);
+                if (joint.parentIndex >= 0) {
+                    joint.worldMatrix.multiply(this.joints[joint.parentIndex].worldMatrix);
+                }
+                joint.worldMatrixValid = true;
+            }
+        };
+        /**
+         * 更新GPU所需的骨骼缓存数据
+         */
+        SkeletonPose.prototype.updateGPUCacheData = function (skeleton, skeletonMatrixData, offset) {
+            for (var i = 0; i < skeleton.joints.length; ++i) {
+                for (var j = 0; j < this.joints.length; ++j) {
+                    if (skeleton.joints[i].name != this.joints[j].name) {
+                        continue;
+                    }
+                    var matrix = dou.recyclable(dou3d.Matrix4);
+                    matrix.copy(skeleton.joints[i].inverseMatrix);
+                    matrix.multiply(this.joints[j].worldMatrix);
+                    var translation = dou.recyclable(dou3d.Vector3);
+                    var rotation = dou.recyclable(dou3d.Quaternion);
+                    var scale = dou.recyclable(dou3d.Vector3);
+                    matrix.decompose(translation, rotation, scale);
+                    skeletonMatrixData[i * 8 + 0] = rotation.x;
+                    skeletonMatrixData[i * 8 + 1] = rotation.y;
+                    skeletonMatrixData[i * 8 + 2] = rotation.z;
+                    skeletonMatrixData[i * 8 + 3] = rotation.w;
+                    skeletonMatrixData[i * 8 + 4] = translation.x - offset.x;
+                    skeletonMatrixData[i * 8 + 5] = translation.y - offset.y;
+                    skeletonMatrixData[i * 8 + 6] = translation.z - offset.z;
+                    skeletonMatrixData[i * 8 + 7] = 1;
+                    matrix.recycle();
+                    translation.recycle();
+                    rotation.recycle();
+                    scale.recycle();
+                    break;
+                }
+            }
+            return skeletonMatrixData;
+        };
+        /**
+         * 通过名称查找指定骨骼
+         */
+        SkeletonPose.prototype.findJoint = function (name) {
+            for (var i = 0; i < this.joints.length; i++) {
+                if (this.joints[i].name == name) {
+                    return this.joints[i];
+                }
+            }
+            return null;
+        };
+        /**
+         * 通过名称查找骨骼索引编号
+         */
+        SkeletonPose.prototype.findJointIndex = function (name) {
+            for (var i = 0; i < this.joints.length; i++) {
+                if (this.joints[i].name == name) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+        /**
+         * 重置骨骼世界矩阵
+         */
+        SkeletonPose.prototype.resetWorldMatrix = function () {
+            for (var i = 0; i < this.joints.length; i++) {
+                this.joints[i].worldMatrixValid = false;
+            }
+        };
+        SkeletonPose.prototype.clone = function () {
+            var skeletonPose = new SkeletonPose();
+            skeletonPose.frameTime = this.frameTime;
+            for (var i = 0; i < this.joints.length; i++) {
+                skeletonPose.joints.push(this.joints[i].clone());
+            }
+            return skeletonPose;
+        };
+        return SkeletonPose;
+    }());
+    dou3d.SkeletonPose = SkeletonPose;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -6444,6 +7531,27 @@ var dou3d;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Geometry.prototype, "skeleton", {
+            get: function () {
+                return this._skeleton;
+            },
+            /**
+             * 当前模型的骨骼
+             */
+            set: function (skeleton) {
+                if (!skeleton) {
+                    return;
+                }
+                this._skeleton = skeleton;
+                this.skeletonGPUData = new Float32Array(skeleton.jointNum * 8);
+                for (var i = 0; i < skeleton.jointNum; ++i) {
+                    this.skeletonGPUData[i * 8 + 3] = 1;
+                    this.skeletonGPUData[i * 8 + 7] = 1;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
         /**
          * 由顶点索引根据格式拿到顶点数据
          * @param index 顶点索引
@@ -7438,6 +8546,259 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
+     * 几何体创建器
+     * @author wizardc
+     */
+    var GeometryCreator = /** @class */ (function () {
+        function GeometryCreator() {
+            /**
+             * 顶点属性长度
+             */
+            this.vertexAttLength = 17;
+            /**
+             * 顶点长度
+             */
+            this.vertLen = 0;
+            /**
+             * 面数
+             */
+            this.faces = 0;
+            /**
+             * 索引数据
+             */
+            this.source_indexData = [];
+            /**
+             * 顶点数据
+             */
+            this.source_vertexData = [];
+            /**
+             * 顶点色数据
+             */
+            this.source_vertexColorData = [];
+            /**
+             * 顶点法线
+             */
+            this.source_normalData = [];
+            /**
+             * 顶点切线数据
+             */
+            this.source_tangtData = [];
+            /**
+             * 顶点uv数据
+             */
+            this.source_uvData = [];
+            /**
+             * 顶点uv2数据
+             */
+            this.source_uv2Data = [];
+            /**
+             * 蒙皮数据
+             */
+            this.source_skinData = [];
+            /**
+             * 顶点索引
+             */
+            this.vertexIndex = 0;
+            /**
+             * 索引数据数组
+             */
+            this.indices = [];
+            /**
+             * 顶点数据数组(x、y、z)三个number为一个顶点数据
+             */
+            this.vertices = [];
+            /**
+             * 法线数据数组(x、y、z)三个number为一个法线数据
+             */
+            this.normals = [];
+            /**
+             * 切线数据数组(x、y、z)三个number为一个切线数据
+             */
+            this.tangts = [];
+            /**
+             * 顶点颜色数据数组
+             */
+            this.verticesColor = [];
+            /**
+             * 第一套UV数据数组
+             */
+            this.uvs = [];
+            /**
+             * 第二套UV数据数组
+             */
+            this.uv2s = [];
+            /**
+             * 蒙皮数据数组
+             */
+            this.skinMesh = [];
+            /**
+             * 面法线数据数组
+             */
+            this.faceNormals = [];
+            /**
+             * 面权重数据数组
+             */
+            this.faceWeights = [];
+            /**
+             * 顶点索引数据
+             */
+            this.vertexIndices = [];
+            /**
+             * uv索引数据
+             */
+            this.uvIndices = [];
+            /**
+             * uv2索引数据
+             */
+            this.uv2Indices = [];
+            /**
+             * 法线索引数据
+             */
+            this.normalIndices = [];
+            /**
+             * 顶点色索引数据
+             */
+            this.colorIndices = [];
+            /**
+             * 索引数据数组
+             */
+            this.indexIds = [];
+            this.matCount = 0;
+            this.material = {};
+        }
+        /**
+         * 构建几何体
+         */
+        GeometryCreator.buildGeomtry = function (source, vertexFormat) {
+            var target = new dou3d.Geometry();
+            target.vertexFormat = vertexFormat;
+            target.vertexCount = source.faces * 3;
+            target.indexCount = source.faces * 3;
+            target.faceCount = source.faces;
+            target.skeleton = source.skeleton;
+            var vertex = new dou3d.Vector3();
+            var normal = new dou3d.Vector3(1.0, 1.0, 1.0);
+            var color = new dou3d.Vector4(1.0, 1.0, 1.0, 1.0);
+            var uv_0 = { u: 1, v: 0 };
+            var uv_1 = { u: 1, v: 0 };
+            var index = 0;
+            var vertexIndex = 0;
+            var offset = 0;
+            for (var faceIndex = 0; faceIndex < source.faces; faceIndex++) {
+                target.indexArray[faceIndex * 3 + 0] = faceIndex * 3 + 0;
+                target.indexArray[faceIndex * 3 + 1] = faceIndex * 3 + 2;
+                target.indexArray[faceIndex * 3 + 2] = faceIndex * 3 + 1;
+                for (var i = 0; i < 3; i++) {
+                    vertexIndex = faceIndex * 3 + i;
+                    vertexIndex *= target.vertexAttLength;
+                    offset = 0;
+                    index = source.vertexIndices[faceIndex * 3 + i] * dou3d.Geometry.positionSize;
+                    if (vertexFormat & 1 /* VF_POSITION */) {
+                        vertex.x = source.source_vertexData[index + 0];
+                        vertex.y = source.source_vertexData[index + 1];
+                        vertex.z = source.source_vertexData[index + 2];
+                        target.vertexArray[vertexIndex + offset + 0] = vertex.x;
+                        target.vertexArray[vertexIndex + offset + 1] = vertex.y;
+                        target.vertexArray[vertexIndex + offset + 2] = vertex.z;
+                        offset += dou3d.Geometry.positionSize;
+                    }
+                    if (vertexFormat & 2 /* VF_NORMAL */) {
+                        if (source.normalIndices && source.source_normalData && source.source_normalData.length > 0) {
+                            index = source.normalIndices[faceIndex * 3 + i] * dou3d.Geometry.normalSize;
+                            normal.x = source.source_normalData[index + 0];
+                            normal.y = source.source_normalData[index + 1];
+                            normal.z = source.source_normalData[index + 2];
+                        }
+                        target.vertexArray[vertexIndex + offset + 0] = normal.x;
+                        target.vertexArray[vertexIndex + offset + 1] = normal.y;
+                        target.vertexArray[vertexIndex + offset + 2] = normal.z;
+                        offset += dou3d.Geometry.normalSize;
+                    }
+                    if (vertexFormat & 4 /* VF_TANGENT */) {
+                        target.vertexArray[vertexIndex + offset + 0] = 0;
+                        target.vertexArray[vertexIndex + offset + 1] = 0;
+                        target.vertexArray[vertexIndex + offset + 2] = 0;
+                        offset += dou3d.Geometry.tangentSize;
+                    }
+                    if (vertexFormat & 8 /* VF_COLOR */) {
+                        if (source.colorIndices && source.source_vertexColorData && source.source_vertexColorData.length > 0) {
+                            index = source.colorIndices[faceIndex * 3 + i] * dou3d.Geometry.colorSize;
+                            color.x = source.source_vertexColorData[index + 0];
+                            color.y = source.source_vertexColorData[index + 1];
+                            color.z = source.source_vertexColorData[index + 2];
+                            color.w = source.source_vertexColorData[index + 3];
+                        }
+                        target.vertexArray[vertexIndex + offset + 0] = color.x;
+                        target.vertexArray[vertexIndex + offset + 1] = color.y;
+                        target.vertexArray[vertexIndex + offset + 2] = color.z;
+                        target.vertexArray[vertexIndex + offset + 3] = color.w;
+                        offset += dou3d.Geometry.colorSize;
+                    }
+                    if (vertexFormat & 16 /* VF_UV0 */) {
+                        if (source.uvIndices && source.source_uvData && source.source_uvData.length > 0) {
+                            index = source.uvIndices[faceIndex * 3 + i] * dou3d.Geometry.uvSize;
+                            uv_0.u = source.source_uvData[index + 0];
+                            uv_0.v = source.source_uvData[index + 1];
+                        }
+                        target.vertexArray[vertexIndex + offset + 0] = uv_0.u;
+                        target.vertexArray[vertexIndex + offset + 1] = uv_0.v;
+                        offset += dou3d.Geometry.uvSize;
+                    }
+                    if (vertexFormat & 32 /* VF_UV1 */) {
+                        if (source.uv2Indices && source.source_uv2Data && source.source_uv2Data.length > 0) {
+                            index = source.uv2Indices[faceIndex * 3 + i] * dou3d.Geometry.uv2Size;
+                            uv_1.u = source.source_uv2Data[index + 0];
+                            uv_1.v = source.source_uv2Data[index + 1];
+                        }
+                        target.vertexArray[vertexIndex + offset + 0] = uv_1.u;
+                        target.vertexArray[vertexIndex + offset + 1] = uv_1.v;
+                        offset += dou3d.Geometry.uv2Size;
+                    }
+                    if (vertexFormat & 64 /* VF_SKIN */) {
+                        if (source.source_skinData && source.source_skinData.length > 0) {
+                            index = source.vertexIndices[faceIndex * 3 + i] * dou3d.Geometry.skinSize;
+                            target.vertexArray[vertexIndex + offset + 0] = source.source_skinData[index + 0];
+                            target.vertexArray[vertexIndex + offset + 1] = source.source_skinData[index + 2];
+                            target.vertexArray[vertexIndex + offset + 2] = source.source_skinData[index + 4];
+                            target.vertexArray[vertexIndex + offset + 3] = source.source_skinData[index + 6];
+                            target.vertexArray[vertexIndex + offset + 4] = source.source_skinData[index + 1];
+                            target.vertexArray[vertexIndex + offset + 5] = source.source_skinData[index + 3];
+                            target.vertexArray[vertexIndex + offset + 6] = source.source_skinData[index + 5];
+                            target.vertexArray[vertexIndex + offset + 7] = source.source_skinData[index + 7];
+                        }
+                        else {
+                            target.vertexArray[vertexIndex + offset + 0] = 0;
+                            target.vertexArray[vertexIndex + offset + 1] = 0;
+                            target.vertexArray[vertexIndex + offset + 2] = 0;
+                            target.vertexArray[vertexIndex + offset + 3] = 0;
+                            target.vertexArray[vertexIndex + offset + 4] = 0;
+                            target.vertexArray[vertexIndex + offset + 5] = 0;
+                            target.vertexArray[vertexIndex + offset + 6] = 0;
+                            target.vertexArray[vertexIndex + offset + 7] = 0;
+                        }
+                    }
+                }
+            }
+            for (var i = 0; i < source.matCount; ++i) {
+                var subGeometry = new dou3d.SubGeometry();
+                subGeometry.matID = i;
+                subGeometry.geometry = target;
+                subGeometry.start = source.material[i].start * 3 * Uint16Array.BYTES_PER_ELEMENT;
+                subGeometry.count = source.material[i].count * 3;
+                subGeometry.textureDiffuse = source.material[i].textureDiffuse;
+                subGeometry.textureNormal = source.material[i].textureNormal;
+                subGeometry.textureSpecular = source.material[i].textureSpecular;
+                target.subGeometrys.push(subGeometry);
+            }
+            return target;
+        };
+        return GeometryCreator;
+    }());
+    dou3d.GeometryCreator = GeometryCreator;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
      * 灯光基类
      * @author wizardc
      */
@@ -7929,6 +9290,549 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
+     * 自定义文件类型模型加载器
+     * @author wizardc
+     */
+    var ESMAnalyzer = /** @class */ (function () {
+        function ESMAnalyzer() {
+        }
+        ESMAnalyzer.prototype.load = function (url, callback, thisObj) {
+            var _this = this;
+            var request = new dou.HttpRequest();
+            request.responseType = dou.HttpResponseType.arraybuffer;
+            request.on(dou.Event.COMPLETE, function (event) {
+                callback.call(thisObj, url, _this.createGeometry(request.response));
+            }, this);
+            request.on(dou.IOErrorEvent.IO_ERROR, function (event) {
+                callback.call(thisObj, url);
+            }, this);
+            request.open(url, dou.HttpMethod.GET);
+            request.send();
+        };
+        ESMAnalyzer.prototype.createGeometry = function (data) {
+            var bytes = new dou.ByteArray(data);
+            bytes.position = 3;
+            var version = bytes.readUnsignedInt();
+            var geomtryCreator = new dou3d.GeometryCreator();
+            switch (version) {
+                case 1:
+                    this.parseVersion_1(bytes, geomtryCreator);
+                    break;
+                case 2:
+                    this.parseVersion_2(bytes, geomtryCreator);
+                    break;
+                case 3:
+                    this.parseVersion_3(bytes, geomtryCreator);
+                    break;
+                default:
+                    console.error("ESM version error : " + version);
+                    return null;
+            }
+            var geomtry;
+            var vertexFormat = 0;
+            if (geomtryCreator.source_skinData.length > 0) {
+                vertexFormat = 1 /* VF_POSITION */ | 2 /* VF_NORMAL */ | 4 /* VF_TANGENT */ | 8 /* VF_COLOR */ | 16 /* VF_UV0 */ | 64 /* VF_SKIN */;
+                geomtry = dou3d.GeometryCreator.buildGeomtry(geomtryCreator, vertexFormat);
+            }
+            else {
+                vertexFormat = 1 /* VF_POSITION */ | 2 /* VF_NORMAL */ | 4 /* VF_TANGENT */ | 8 /* VF_COLOR */ | 16 /* VF_UV0 */ | 32 /* VF_UV1 */;
+                geomtry = dou3d.GeometryCreator.buildGeomtry(geomtryCreator, vertexFormat);
+            }
+            return geomtry;
+        };
+        ESMAnalyzer.prototype.parseVersion_1 = function (bytes, geomtry) {
+            var description = bytes.readInt();
+            geomtry.matCount = bytes.readInt();
+            for (var i = 0; i < geomtry.matCount; ++i) {
+                geomtry.material[i] = {};
+                geomtry.material[i].matID = bytes.readInt();
+                geomtry.material[i].start = bytes.readInt();
+                geomtry.material[i].count = bytes.readInt();
+                geomtry.material[i].textureDiffuse = bytes.readUTF();
+                geomtry.material[i].textureNormal = bytes.readUTF();
+                geomtry.material[i].textureSpecular = bytes.readUTF();
+            }
+            if (description & 1 /* VF_POSITION */) {
+                var vertexCount = bytes.readInt();
+                for (var i = 0; i < vertexCount; i++) {
+                    geomtry.source_vertexData.push(bytes.readFloat());
+                    geomtry.source_vertexData.push(bytes.readFloat());
+                    geomtry.source_vertexData.push(bytes.readFloat());
+                }
+            }
+            if (description & 2 /* VF_NORMAL */) {
+                var vertexNormalCount = bytes.readInt();
+                for (var i = 0; i < vertexNormalCount; i++) {
+                    geomtry.source_normalData.push(bytes.readFloat());
+                    geomtry.source_normalData.push(bytes.readFloat());
+                    geomtry.source_normalData.push(bytes.readFloat());
+                }
+            }
+            if (description & 8 /* VF_COLOR */) {
+                var vertexColorCount = bytes.readInt();
+                for (var i = 0; i < vertexColorCount; i++) {
+                    geomtry.source_vertexColorData.push(bytes.readFloat());
+                    geomtry.source_vertexColorData.push(bytes.readFloat());
+                    geomtry.source_vertexColorData.push(bytes.readFloat());
+                    geomtry.source_vertexColorData.push(bytes.readFloat());
+                }
+            }
+            if (description & 16 /* VF_UV0 */) {
+                var uvCount = bytes.readInt();
+                for (var i = 0; i < uvCount; i++) {
+                    geomtry.source_uvData.push(bytes.readFloat());
+                    geomtry.source_uvData.push(bytes.readFloat());
+                }
+            }
+            if (description & 32 /* VF_UV1 */) {
+                var uvCount = bytes.readInt();
+                for (var i = 0; i < uvCount; i++) {
+                    geomtry.source_uv2Data.push(bytes.readFloat());
+                    geomtry.source_uv2Data.push(bytes.readFloat());
+                }
+            }
+            geomtry.faces = bytes.readInt();
+            for (var i = 0; i < geomtry.faces; i++) {
+                geomtry.vertexIndices.push(bytes.readUnsignedInt());
+                geomtry.vertexIndices.push(bytes.readUnsignedInt());
+                geomtry.vertexIndices.push(bytes.readUnsignedInt());
+                if (description & 2 /* VF_NORMAL */) {
+                    geomtry.normalIndices.push(bytes.readUnsignedInt());
+                    geomtry.normalIndices.push(bytes.readUnsignedInt());
+                    geomtry.normalIndices.push(bytes.readUnsignedInt());
+                }
+                if (description & 8 /* VF_COLOR */) {
+                    geomtry.colorIndices.push(bytes.readUnsignedInt());
+                    geomtry.colorIndices.push(bytes.readUnsignedInt());
+                    geomtry.colorIndices.push(bytes.readUnsignedInt());
+                }
+                if (description & 16 /* VF_UV0 */) {
+                    geomtry.uvIndices.push(bytes.readUnsignedInt());
+                    geomtry.uvIndices.push(bytes.readUnsignedInt());
+                    geomtry.uvIndices.push(bytes.readUnsignedInt());
+                }
+                if (description & 32 /* VF_UV1 */) {
+                    geomtry.uv2Indices.push(bytes.readUnsignedInt());
+                    geomtry.uv2Indices.push(bytes.readUnsignedInt());
+                    geomtry.uv2Indices.push(bytes.readUnsignedInt());
+                }
+            }
+            var nBoneCount = bytes.readUnsignedByte();
+            if (nBoneCount > 0) {
+                geomtry.skeleton = new dou3d.Skeleton();
+            }
+            var rotation = new dou3d.Vector3();
+            var scaling = new dou3d.Vector3();
+            var translation = new dou3d.Vector3();
+            for (var i = 0; i < nBoneCount; ++i) {
+                var joint = new dou3d.Joint(null);
+                bytes.readInt();
+                joint.parentIndex = bytes.readInt();
+                joint.name = bytes.readUTF();
+                rotation.x = bytes.readFloat() * dou3d.MathUtil.RAD_DEG;
+                rotation.y = bytes.readFloat() * dou3d.MathUtil.RAD_DEG;
+                rotation.z = bytes.readFloat() * dou3d.MathUtil.RAD_DEG;
+                scaling.x = bytes.readFloat();
+                scaling.y = bytes.readFloat();
+                scaling.z = bytes.readFloat();
+                translation.x = bytes.readFloat();
+                translation.y = bytes.readFloat();
+                translation.z = bytes.readFloat();
+                joint.buildInverseMatrix(scaling, rotation, translation);
+                geomtry.skeleton.joints.push(joint);
+            }
+            var nVertsCount = bytes.readInt();
+            for (var i = 0; i < nVertsCount; i++) {
+                var nCount = bytes.readUnsignedByte();
+                for (var j = 0; j < nCount; j++) {
+                    geomtry.source_skinData.push(bytes.readUnsignedByte());
+                    geomtry.source_skinData.push(bytes.readFloat());
+                }
+                for (var j = nCount; j < 4; j++) {
+                    geomtry.source_skinData.push(0);
+                    geomtry.source_skinData.push(0);
+                }
+            }
+        };
+        ESMAnalyzer.prototype.parseVersion_2 = function (bytes, geomtry) {
+            var description = bytes.readInt();
+            geomtry.matCount = bytes.readInt();
+            for (var i = 0; i < geomtry.matCount; ++i) {
+                geomtry.material[i] = {};
+                geomtry.material[i].matID = bytes.readInt();
+                geomtry.material[i].start = bytes.readInt();
+                geomtry.material[i].count = bytes.readInt();
+                geomtry.material[i].textureDiffuse = bytes.readUTF();
+                geomtry.material[i].textureNormal = bytes.readUTF();
+                geomtry.material[i].textureSpecular = bytes.readUTF();
+            }
+            if (description & 1 /* VF_POSITION */) {
+                var vertexCount = bytes.readInt();
+                for (var i = 0; i < vertexCount; i++) {
+                    geomtry.source_vertexData.push(bytes.readFloat());
+                    geomtry.source_vertexData.push(bytes.readFloat());
+                    geomtry.source_vertexData.push(bytes.readFloat());
+                }
+            }
+            if (description & 2 /* VF_NORMAL */) {
+                var vertexNormalCount = bytes.readInt();
+                for (var i = 0; i < vertexNormalCount; i++) {
+                    geomtry.source_normalData.push(bytes.readFloat());
+                    geomtry.source_normalData.push(bytes.readFloat());
+                    geomtry.source_normalData.push(bytes.readFloat());
+                }
+            }
+            if (description & 8 /* VF_COLOR */) {
+                var vertexColorCount = bytes.readInt();
+                for (var i = 0; i < vertexColorCount; i++) {
+                    geomtry.source_vertexColorData.push(bytes.readUnsignedByte() / 255);
+                    geomtry.source_vertexColorData.push(bytes.readUnsignedByte() / 255);
+                    geomtry.source_vertexColorData.push(bytes.readUnsignedByte() / 255);
+                    geomtry.source_vertexColorData.push(bytes.readUnsignedByte() / 255);
+                }
+            }
+            if (description & 16 /* VF_UV0 */) {
+                var uvCount = bytes.readInt();
+                for (var i = 0; i < uvCount; i++) {
+                    geomtry.source_uvData.push(bytes.readFloat());
+                    geomtry.source_uvData.push(bytes.readFloat());
+                }
+            }
+            if (description & 32 /* VF_UV1 */) {
+                var uvCount = bytes.readInt();
+                for (var i = 0; i < uvCount; i++) {
+                    geomtry.source_uv2Data.push(bytes.readFloat());
+                    geomtry.source_uv2Data.push(bytes.readFloat());
+                }
+            }
+            geomtry.faces = bytes.readInt();
+            for (var i = 0; i < geomtry.faces; i++) {
+                geomtry.vertexIndices.push(bytes.readUnsignedShort());
+                geomtry.vertexIndices.push(bytes.readUnsignedShort());
+                geomtry.vertexIndices.push(bytes.readUnsignedShort());
+                if (description & 2 /* VF_NORMAL */) {
+                    geomtry.normalIndices.push(bytes.readUnsignedShort());
+                    geomtry.normalIndices.push(bytes.readUnsignedShort());
+                    geomtry.normalIndices.push(bytes.readUnsignedShort());
+                }
+                if (description & 8 /* VF_COLOR */) {
+                    geomtry.colorIndices.push(bytes.readUnsignedShort());
+                    geomtry.colorIndices.push(bytes.readUnsignedShort());
+                    geomtry.colorIndices.push(bytes.readUnsignedShort());
+                }
+                if (description & 16 /* VF_UV0 */) {
+                    geomtry.uvIndices.push(bytes.readUnsignedShort());
+                    geomtry.uvIndices.push(bytes.readUnsignedShort());
+                    geomtry.uvIndices.push(bytes.readUnsignedShort());
+                }
+                if (description & 32 /* VF_UV1 */) {
+                    geomtry.uv2Indices.push(bytes.readUnsignedShort());
+                    geomtry.uv2Indices.push(bytes.readUnsignedShort());
+                    geomtry.uv2Indices.push(bytes.readUnsignedShort());
+                }
+            }
+            var nBoneCount = bytes.readUnsignedByte();
+            if (nBoneCount > 0) {
+                geomtry.skeleton = new dou3d.Skeleton();
+            }
+            var rotation = new dou3d.Vector3();
+            var scaling = new dou3d.Vector3();
+            var translation = new dou3d.Vector3();
+            for (var i = 0; i < nBoneCount; ++i) {
+                var joint = new dou3d.Joint(null);
+                bytes.readInt();
+                joint.parentIndex = bytes.readInt();
+                joint.name = bytes.readUTF();
+                rotation.x = bytes.readFloat() * dou3d.MathUtil.RAD_DEG;
+                rotation.y = bytes.readFloat() * dou3d.MathUtil.RAD_DEG;
+                rotation.z = bytes.readFloat() * dou3d.MathUtil.RAD_DEG;
+                scaling.x = bytes.readFloat();
+                scaling.y = bytes.readFloat();
+                scaling.z = bytes.readFloat();
+                translation.x = bytes.readFloat();
+                translation.y = bytes.readFloat();
+                translation.z = bytes.readFloat();
+                joint.buildInverseMatrix(scaling, rotation, translation);
+                geomtry.skeleton.joints.push(joint);
+            }
+            var nVertsCount = bytes.readInt();
+            for (var i = 0; i < nVertsCount; i++) {
+                var nCount = bytes.readUnsignedByte();
+                for (var j = 0; j < nCount; j++) {
+                    geomtry.source_skinData.push(bytes.readUnsignedByte());
+                    geomtry.source_skinData.push(bytes.readFloat());
+                }
+                for (var j = nCount; j < 4; j++) {
+                    geomtry.source_skinData.push(0);
+                    geomtry.source_skinData.push(0);
+                }
+            }
+        };
+        ESMAnalyzer.prototype.parseVersion_3 = function (bytes, geomtry) {
+            var description = bytes.readInt();
+            geomtry.matCount = bytes.readInt();
+            for (var i = 0; i < geomtry.matCount; ++i) {
+                geomtry.material[i] = {};
+                geomtry.material[i].matID = bytes.readInt();
+                geomtry.material[i].start = bytes.readInt();
+                geomtry.material[i].count = bytes.readInt();
+                geomtry.material[i].textureDiffuse = bytes.readUTF();
+                geomtry.material[i].textureNormal = bytes.readUTF();
+                geomtry.material[i].textureSpecular = bytes.readUTF();
+            }
+            if (description & 1 /* VF_POSITION */) {
+                var vertexCount = bytes.readInt();
+                for (var i = 0; i < vertexCount; i++) {
+                    geomtry.source_vertexData.push(bytes.readFloat());
+                    geomtry.source_vertexData.push(bytes.readFloat());
+                    geomtry.source_vertexData.push(bytes.readFloat());
+                }
+            }
+            if (description & 2 /* VF_NORMAL */) {
+                var vertexNormalCount = bytes.readInt();
+                for (var i = 0; i < vertexNormalCount; i++) {
+                    geomtry.source_normalData.push(bytes.readFloat());
+                    geomtry.source_normalData.push(bytes.readFloat());
+                    geomtry.source_normalData.push(bytes.readFloat());
+                }
+            }
+            if (description & 8 /* VF_COLOR */) {
+                var vertexColorCount = bytes.readInt();
+                for (var i = 0; i < vertexColorCount; i++) {
+                    geomtry.source_vertexColorData.push(bytes.readUnsignedByte() / 255);
+                    geomtry.source_vertexColorData.push(bytes.readUnsignedByte() / 255);
+                    geomtry.source_vertexColorData.push(bytes.readUnsignedByte() / 255);
+                    geomtry.source_vertexColorData.push(bytes.readUnsignedByte() / 255);
+                }
+            }
+            if (description & 16 /* VF_UV0 */) {
+                var uvCount = bytes.readInt();
+                for (var i = 0; i < uvCount; i++) {
+                    geomtry.source_uvData.push(bytes.readFloat());
+                    geomtry.source_uvData.push(bytes.readFloat());
+                }
+            }
+            if (description & 32 /* VF_UV1 */) {
+                var uvCount = bytes.readInt();
+                for (var i = 0; i < uvCount; i++) {
+                    geomtry.source_uv2Data.push(bytes.readFloat());
+                    geomtry.source_uv2Data.push(bytes.readFloat());
+                }
+            }
+            geomtry.faces = bytes.readInt();
+            for (var i = 0; i < geomtry.faces; i++) {
+                geomtry.vertexIndices.push(bytes.readUnsignedShort());
+                geomtry.vertexIndices.push(bytes.readUnsignedShort());
+                geomtry.vertexIndices.push(bytes.readUnsignedShort());
+                if (description & 2 /* VF_NORMAL */) {
+                    geomtry.normalIndices.push(bytes.readUnsignedShort());
+                    geomtry.normalIndices.push(bytes.readUnsignedShort());
+                    geomtry.normalIndices.push(bytes.readUnsignedShort());
+                }
+                if (description & 8 /* VF_COLOR */) {
+                    geomtry.colorIndices.push(bytes.readUnsignedShort());
+                    geomtry.colorIndices.push(bytes.readUnsignedShort());
+                    geomtry.colorIndices.push(bytes.readUnsignedShort());
+                }
+                if (description & 16 /* VF_UV0 */) {
+                    geomtry.uvIndices.push(bytes.readUnsignedShort());
+                    geomtry.uvIndices.push(bytes.readUnsignedShort());
+                    geomtry.uvIndices.push(bytes.readUnsignedShort());
+                }
+                if (description & 32 /* VF_UV1 */) {
+                    geomtry.uv2Indices.push(bytes.readUnsignedShort());
+                    geomtry.uv2Indices.push(bytes.readUnsignedShort());
+                    geomtry.uv2Indices.push(bytes.readUnsignedShort());
+                }
+            }
+            var nBoneCount = bytes.readUnsignedByte();
+            if (nBoneCount > 0) {
+                geomtry.skeleton = new dou3d.Skeleton();
+            }
+            var orientation = new dou3d.Quaternion();
+            var scaling = new dou3d.Vector3();
+            var translation = new dou3d.Vector3();
+            for (var i = 0; i < nBoneCount; ++i) {
+                var joint = new dou3d.Joint(null);
+                bytes.readInt();
+                joint.parentIndex = bytes.readInt();
+                joint.name = bytes.readUTF();
+                orientation.x = bytes.readFloat();
+                orientation.y = bytes.readFloat();
+                orientation.z = bytes.readFloat();
+                orientation.w = bytes.readFloat();
+                scaling.x = bytes.readFloat();
+                scaling.y = bytes.readFloat();
+                scaling.z = bytes.readFloat();
+                translation.x = bytes.readFloat();
+                translation.y = bytes.readFloat();
+                translation.z = bytes.readFloat();
+                joint.buildInverseMatrix(scaling, orientation, translation);
+                geomtry.skeleton.joints.push(joint);
+            }
+            var nVertsCount = bytes.readInt();
+            for (var i = 0; i < nVertsCount; i++) {
+                var nCount = bytes.readUnsignedByte();
+                for (var j = 0; j < nCount; j++) {
+                    geomtry.source_skinData.push(bytes.readUnsignedByte());
+                    geomtry.source_skinData.push(bytes.readFloat());
+                }
+                for (var j = nCount; j < 4; j++) {
+                    geomtry.source_skinData.push(0);
+                    geomtry.source_skinData.push(0);
+                }
+            }
+        };
+        ESMAnalyzer.prototype.release = function (data) {
+            return true;
+        };
+        return ESMAnalyzer;
+    }());
+    dou3d.ESMAnalyzer = ESMAnalyzer;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 自定义文件类型骨骼动画加载器
+     * @author wizardc
+     */
+    var EAMAnalyzer = /** @class */ (function () {
+        function EAMAnalyzer() {
+        }
+        EAMAnalyzer.prototype.load = function (url, callback, thisObj) {
+            var _this = this;
+            var request = new dou.HttpRequest();
+            request.responseType = dou.HttpResponseType.arraybuffer;
+            request.on(dou.Event.COMPLETE, function (event) {
+                callback.call(thisObj, url, _this.createClip(request.response));
+            }, this);
+            request.on(dou.IOErrorEvent.IO_ERROR, function (event) {
+                callback.call(thisObj, url);
+            }, this);
+            request.open(url, dou.HttpMethod.GET);
+            request.send();
+        };
+        EAMAnalyzer.prototype.createClip = function (data) {
+            var bytes = new dou.ByteArray(data);
+            bytes.position = 3;
+            var version = bytes.readUnsignedInt();
+            var clip;
+            switch (version) {
+                case 1:
+                    clip = this.parseVersion_1(bytes);
+                    break;
+                case 2:
+                    clip = this.parseVersion_2(bytes);
+                    break;
+                default:
+                    console.error("EAM version error : " + version);
+                    return null;
+            }
+            return clip;
+        };
+        EAMAnalyzer.prototype.parseVersion_1 = function (bytes) {
+            var boneCount = bytes.readUnsignedByte();
+            var sampling = bytes.readUnsignedByte();
+            if (boneCount <= 0) {
+                return null;
+            }
+            var skeletonAnimationClip = new dou3d.SkeletonAnimationClip();
+            var boneNameArray = [];
+            var parentBoneNameArray = [];
+            for (var i = 0; i < boneCount; i++) {
+                boneNameArray.push(bytes.readUTF());
+                parentBoneNameArray.push(bytes.readUTF());
+            }
+            var frameCount = bytes.readInt();
+            var nCount = bytes.readInt();
+            var orientation = new dou3d.Quaternion();
+            var scale = new dou3d.Vector3();
+            var translation = new dou3d.Vector3();
+            for (var i = 0; i < nCount; i++) {
+                var skeletonPose = new dou3d.SkeletonPose();
+                skeletonPose.frameTime = bytes.readInt() / 60 / 80 * 1000;
+                for (var j = 0; j < boneCount; j++) {
+                    var jointPose = new dou3d.Joint(boneNameArray[j]);
+                    jointPose.parent = parentBoneNameArray[j];
+                    jointPose.parentIndex = skeletonPose.findJointIndex(jointPose.parent);
+                    orientation.fromEuler(bytes.readFloat() * dou3d.MathUtil.RAD_DEG, bytes.readFloat() * dou3d.MathUtil.RAD_DEG, bytes.readFloat() * dou3d.MathUtil.RAD_DEG);
+                    scale.x = bytes.readFloat();
+                    scale.y = bytes.readFloat();
+                    scale.z = bytes.readFloat();
+                    translation.x = bytes.readFloat();
+                    translation.y = bytes.readFloat();
+                    translation.z = bytes.readFloat();
+                    jointPose.buildLocalMatrix(scale, orientation, translation);
+                    skeletonPose.joints.push(jointPose);
+                }
+                skeletonPose.calculateJointWorldMatrix();
+                skeletonAnimationClip.addSkeletonPose(skeletonPose);
+            }
+            return skeletonAnimationClip;
+        };
+        EAMAnalyzer.prototype.parseVersion_2 = function (bytes) {
+            // 读取骨骼数
+            var boneCount = bytes.readUnsignedByte();
+            // 读取采样率
+            var sampling = bytes.readUnsignedByte();
+            if (boneCount <= 0) {
+                return null;
+            }
+            var skeletonAnimationClip = new dou3d.SkeletonAnimationClip();
+            var boneNameArray = [];
+            var parentBoneNameArray = [];
+            // 读取骨骼名称
+            for (var i = 0; i < boneCount; i++) {
+                boneNameArray.push(bytes.readUTF());
+                parentBoneNameArray.push(bytes.readUTF());
+            }
+            // 读取帧数
+            var frameCount = bytes.readInt();
+            // 读取数量
+            var nCount = bytes.readInt();
+            // 流数据
+            var orientation = new dou3d.Quaternion();
+            var scale = new dou3d.Vector3();
+            var translation = new dou3d.Vector3();
+            for (var i = 0; i < nCount; i++) {
+                var skeletonPose = new dou3d.SkeletonPose();
+                // 读取该帧时刻
+                skeletonPose.frameTime = bytes.readInt() / 60 / 80 * 1000;
+                for (var j = 0; j < boneCount; j++) {
+                    var jointPose = new dou3d.Joint(boneNameArray[j]);
+                    jointPose.parent = parentBoneNameArray[j];
+                    jointPose.parentIndex = skeletonPose.findJointIndex(jointPose.parent);
+                    // 读取旋转四元数分量
+                    orientation.x = bytes.readFloat();
+                    orientation.y = bytes.readFloat();
+                    orientation.z = bytes.readFloat();
+                    orientation.w = bytes.readFloat();
+                    // 读取缩放分量
+                    scale.x = bytes.readFloat();
+                    scale.y = bytes.readFloat();
+                    scale.z = bytes.readFloat();
+                    // 读取平移分量
+                    translation.x = bytes.readFloat();
+                    translation.y = bytes.readFloat();
+                    translation.z = bytes.readFloat();
+                    jointPose.buildLocalMatrix(scale, orientation, translation);
+                    skeletonPose.joints.push(jointPose);
+                }
+                skeletonPose.calculateJointWorldMatrix();
+                skeletonAnimationClip.addSkeletonPose(skeletonPose);
+            }
+            return skeletonAnimationClip;
+        };
+        EAMAnalyzer.prototype.release = function (data) {
+            return true;
+        };
+        return EAMAnalyzer;
+    }());
+    dou3d.EAMAnalyzer = EAMAnalyzer;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
      * 渲染方法基类
      * @author wizardc
      */
@@ -8119,11 +10023,20 @@ var dou3d;
         /**
          * 初始化所有的渲染方法
          */
-        MaterialPass.prototype.initUseMethod = function () {
+        MaterialPass.prototype.initUseMethod = function (animation) {
             this._passChange = false;
             this._passUsage = new dou3d.PassUsage();
             this._vs_shader_methods = {};
             this._fs_shader_methods = {};
+            // 动画
+            if (animation) {
+                // 添加骨骼动画处理着色器
+                if (animation instanceof dou3d.SkeletonAnimation) {
+                    this._passUsage.maxBone = animation.jointNum * 2;
+                    this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex] = [];
+                    this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex].push("skeleton_vs");
+                }
+            }
             // 根据属性设定加入需要的渲染方法
             if (this._materialData.acceptShadow) {
                 // 添加接受阴影的 Shader
@@ -8304,9 +10217,9 @@ var dou3d;
                 }
             }
         };
-        MaterialPass.prototype.upload = function (time, delay, context3DProxy, modeltransform, camera3D) {
+        MaterialPass.prototype.upload = function (time, delay, context3DProxy, modeltransform, camera3D, animation) {
             this._passChange = false;
-            this.initUseMethod();
+            this.initUseMethod(animation);
             this._passUsage.vertexShader.shader = this._passUsage.vertexShader.getShader(this._passUsage);
             this._passUsage.fragmentShader.shader = this._passUsage.fragmentShader.getShader(this._passUsage);
             this._passUsage.program3D = dou3d.ShaderPool.getProgram(this._passUsage.vertexShader.shader.id, this._passUsage.fragmentShader.shader.id);
@@ -8369,7 +10282,7 @@ var dou3d;
             }
             // 通道改变之后需要重新提交
             if (this._passChange) {
-                this.upload(time, delay, context3DProxy, modelTransform, camera3D);
+                this.upload(time, delay, context3DProxy, modelTransform, camera3D, render.animation);
             }
             context3DProxy.setProgram(this._passUsage.program3D);
             subGeometry.activeState(this._passUsage, context3DProxy);
@@ -8465,6 +10378,9 @@ var dou3d;
             }
             if (this._passUsage.uniform_orthProectMatrix) {
                 context3DProxy.uniformMatrix4fv(this._passUsage.uniform_orthProectMatrix.uniformIndex, false, camera3D.orthProjectionMatrix.rawData);
+            }
+            if (render.animation) {
+                render.animation.activeState(time, delay, this._passUsage, subGeometry, context3DProxy, modelTransform, camera3D);
             }
             if (this.methodList) {
                 for (var i = 0; i < this.methodList.length; i++) {
@@ -10532,6 +12448,7 @@ var dou3d;
         ShaderLib.shadowMapping_vs = "uniform mat4 uniform_ShadowMatrix;\nuniform mat4 uniform_ModelMatrix;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvarying_ShadowCoord=uniform_ShadowMatrix*uniform_ModelMatrix*vec4(e_position,1.0);\n}";
         ShaderLib.shadowPass_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\ndiffuseColor=varying_color;\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=texture2D(diffuseTexture,varying_uv0);\nif(diffuseColor.w<=0.3){\ndiscard;\n}\ngl_FragColor=vec4(varying_pos.zzz,1.0);\n}";
         ShaderLib.shadowPass_vs = "attribute vec3 attribute_position;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\nvarying_pos=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\ngl_Position=varying_pos;\n}";
+        ShaderLib.skeleton_vs = "attribute vec4 attribute_boneIndex;\nattribute vec4 attribute_boneWeight;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvec4 e_boneIndex=vec4(0.0,0.0,0.0,0.0);\nvec4 e_boneWeight=vec4(0.0,0.0,0.0,0.0);\nconst int bonesNumber=0;\nuniform vec4 uniform_PoseMatrix[bonesNumber];\nvarying vec4 varying_mvPose;\nmat4 buildMat4(int index){\nvec4 quat=uniform_PoseMatrix[index*2+0];\nvec4 translation=uniform_PoseMatrix[index*2+1];\nfloat xy2=2.0*quat.x*quat.y;\nfloat xz2=2.0*quat.x*quat.z;\nfloat xw2=2.0*quat.x*quat.w;\nfloat yz2=2.0*quat.y*quat.z;\nfloat yw2=2.0*quat.y*quat.w;\nfloat zw2=2.0*quat.z*quat.w;\nfloat xx=quat.x*quat.x;\nfloat yy=quat.y*quat.y;\nfloat zz=quat.z*quat.z;\nfloat ww=quat.w*quat.w;\nmat4 matrix=mat4(\nxx-yy-zz+ww,xy2+zw2,xz2-yw2,0,\nxy2-zw2,-xx+yy-zz+ww,yz2+xw2,0,\nxz2+yw2,yz2-xw2,-xx-yy+zz+ww,0,\ntranslation.x,translation.y,translation.z,1\n);\nreturn matrix;\n}\nvoid main(){\ne_boneIndex=attribute_boneIndex;\ne_boneWeight=attribute_boneWeight;\nvec4 temp_position=vec4(attribute_position,1.0);\nvec4 temp_normal=vec4(attribute_normal,0.0);\nmat4 m0=buildMat4(int(e_boneIndex.x));\nmat4 m1=buildMat4(int(e_boneIndex.y));\nmat4 m2=buildMat4(int(e_boneIndex.z));\nmat4 m3=buildMat4(int(e_boneIndex.w));\noutPosition=m0*temp_position*e_boneWeight.x;\noutPosition+=m1*temp_position*e_boneWeight.y;\noutPosition+=m2*temp_position*e_boneWeight.z;\noutPosition+=m3*temp_position*e_boneWeight.w;\ne_position=outPosition.xyz;\nvec4 temp_n;\ntemp_n=m0*temp_normal*e_boneWeight.x;\ntemp_n+=m1*temp_normal*e_boneWeight.y;\ntemp_n+=m2*temp_normal*e_boneWeight.z;\ntemp_n+=m3*temp_normal*e_boneWeight.w;\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_mvPose=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition.xyzw=varying_mvPose.xyzw;\nvarying_color=attribute_color;\n}";
         ShaderLib.spotLight_fs = "";
         ShaderLib.varyingViewDir_vs = "varying vec3 varying_ViewDir;\nuniform vec3 uniform_eyepos;\nvoid main(){\nvarying_ViewDir=uniform_eyepos.xyz-e_position;\n}";
     })(ShaderLib = dou3d.ShaderLib || (dou3d.ShaderLib = {}));

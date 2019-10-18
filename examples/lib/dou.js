@@ -618,6 +618,7 @@ var dou;
                     this._loadingMap[item.url] = true;
                     var analyzer = this._analyzerMap[item.type];
                     analyzer.load(this._resourceRoot + item.url, function (url, data) {
+                        _this._nowLoadingThread--;
                         delete _this._loadingMap[url];
                         var items = _this._keyMap[url];
                         if (items && items.length > 0) {
@@ -671,7 +672,7 @@ var dou;
             };
             for (var _i = 0, items_2 = items; _i < items_2.length; _i++) {
                 var item = items_2[_i];
-                this.load(item.url, itemCallback, this, item.url, item.priority, item.cache);
+                this.load(item.url, itemCallback, this, item.type, item.priority, item.cache);
             }
         };
         LoadManager.prototype.loadGroupAsync = function (items) {
@@ -784,7 +785,7 @@ var dou;
         });
         Object.defineProperty(HttpRequest.prototype, "response", {
             get: function () {
-                if (!this._xhr) {
+                if (this._xhr) {
                     return this._xhr.response;
                 }
                 return null;

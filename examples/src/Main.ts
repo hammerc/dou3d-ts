@@ -7,6 +7,7 @@ function loadAllJS(): void {
     this.loadJS("bin/examples/TextureTest.js");
     this.loadJS("bin/examples/LightTest.js");
     this.loadJS("bin/examples/ShadowTest.js");
+    this.loadJS("bin/examples/AnimationTest.js");
 }
 
 class Main {
@@ -16,6 +17,8 @@ class Main {
         dou.loader.registerAnalyzer(ResourceType.json, new dou.JsonAnalyzer());
         dou.loader.registerAnalyzer(ResourceType.binary, new dou.BytesAnalyzer());
         dou.loader.registerAnalyzer(ResourceType.texture, new dou3d.TextureAnalyzer());
+        dou.loader.registerAnalyzer(ResourceType.esm, new dou3d.ESMAnalyzer());
+        dou.loader.registerAnalyzer(ResourceType.eam, new dou3d.EAMAnalyzer());
 
         let engine = new dou3d.Engine();
         let viewRect = engine.viewRect;
@@ -29,6 +32,7 @@ class Main {
         // new examples.CubeTest(view3D);
         // new examples.TextureTest(view3D);
         // new examples.LightTest(view3D);
-        new examples.ShadowTest(view3D);
+        // new examples.ShadowTest(view3D);
+        new examples.AnimationTest(view3D);
     }
 }

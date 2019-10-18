@@ -873,6 +873,10 @@ declare namespace dou3d {
          */
         type: string;
         /**
+         * 动画对象, 控制骨骼动画
+         */
+        animation: IAnimation;
+        /**
          * 渲染排序的参数，数值越大，先渲染
          */
         order: number;
@@ -927,7 +931,7 @@ declare namespace dou3d {
      * @author wizardc
      */
     class Mesh extends RenderBase {
-        constructor(geometry: Geometry, material?: MaterialBase);
+        constructor(geometry: Geometry, material?: MaterialBase, animation?: IAnimation);
         protected buildBoundBox(): Bound;
         clone(): Mesh;
     }
@@ -1103,6 +1107,429 @@ declare namespace dou3d {
         readonly entityCollect: EntityCollect;
         update(time: number, delay: number): void;
         private updateObject3D;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 动画接口
+     * @author wizardc
+     */
+    interface IAnimation {
+        /**
+         * 总时间
+         */
+        animTime: number;
+        /**
+         * 帧间隔时间
+         */
+        delay: number;
+        /**
+         * 动画播放速度
+         */
+        speed: number;
+        /**
+         * 动画列表
+         */
+        animStateNames: string[];
+        /**
+         * 动画节点
+         */
+        animStates: IAnimationState[];
+        /**
+         * 更新
+         */
+        update(time: number, delay: number, geometry: Geometry): void;
+        /**
+         * GPU传值
+         */
+        activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modelTransform: Matrix4, camera3D: Camera3D): void;
+        /**
+         * 播放动画
+         * @param animName 动画名称
+         * @param speed 播放速度
+         * @param reset 是否重置
+         * @param prewarm 是否预热
+         */
+        play(animName?: string, speed?: number, reset?: boolean, prewarm?: boolean): void;
+        /**
+         * 是否正在播放
+         */
+        isPlay(): boolean;
+        /**
+         * 停止动画播放
+         */
+        stop(): void;
+        addAnimState(animState: IAnimationState): void;
+        removeAnimState(animState: IAnimationState): void;
+        clone(): IAnimation;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 动画状态机
+     * @author wizardc
+     */
+    interface IAnimationState {
+        /**
+         * 动画名字
+         */
+        name: string;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 骨骼关节
+     * * 属于骨架类的组成部分
+     * @author wizardc
+     */
+    class Joint {
+        /**
+         * 骨骼名称
+         */
+        name: string;
+        /**
+         * 父骨骼名称
+         */
+        parent: string;
+        /**
+         * 父骨骼索引编号
+         */
+        parentIndex: number;
+        /**
+         * 骨骼缩放量
+         */
+        scale: Vector3;
+        /**
+         * 骨骼旋转量
+         */
+        orientation: Quaternion;
+        /**
+         * 骨骼平移量
+         */
+        translation: Vector3;
+        /**
+         * 骨骼本地矩阵
+         */
+        localMatrix: Matrix4;
+        /**
+         * 骨骼逆矩阵
+         */
+        inverseMatrix: Matrix4;
+        /**
+         * 骨骼世界矩阵
+         */
+        worldMatrix: Matrix4;
+        /**
+         * 骨骼世界矩阵是否有效
+         */
+        worldMatrixValid: boolean;
+        constructor(name: string);
+        /**
+         * 构建骨骼本地矩阵
+         */
+        buildLocalMatrix(scale: Vector3, rotation: Vector3 | Quaternion, translation: Vector3): void;
+        /**
+         * 构建骨骼逆矩阵
+         */
+        buildInverseMatrix(scale: Vector3, rotation: Vector3 | Quaternion, translation: Vector3): void;
+        clone(): Joint;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 骨架类
+     * * 其中包含若干个 Joint (骨骼关节) 对象
+     * @author wizardc
+     */
+    class Skeleton {
+        /**
+         * 骨架包含的骨骼
+         */
+        joints: Joint[];
+        constructor();
+        /**
+         * 骨骼数量
+         */
+        readonly jointNum: number;
+        /**
+         * 通过名称查找指定骨骼
+         */
+        findJoint(name: string): Joint;
+        /**
+         * 通过名称查找骨骼索引编号
+         */
+        findJointIndex(name: string): number;
+        clone(): Skeleton;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 骨骼动画控制类
+     * @author wizardc
+     */
+    class SkeletonAnimation extends dou.EventDispatcher implements IAnimation {
+        /**
+         * 动画速率
+         */
+        static fps: number;
+        /**
+         * 播放速度
+         */
+        speed: number;
+        isLoop: boolean;
+        delay: number;
+        private _currentAnimName;
+        private _isPlay;
+        private _animTime;
+        private _animStateNames;
+        private _animStates;
+        private _blendSpeed;
+        private _blendSkeleton;
+        private _blendList;
+        private _bindList;
+        private _changeFrameTime;
+        private _oldFrameIndex;
+        private _movePosIndex;
+        private _movePosObject3D;
+        private _movePosition;
+        private _resetMovePos;
+        private _currentSkeletonPose;
+        private _oldTime;
+        constructor();
+        /**
+         * 骨架骨骼数量
+         */
+        readonly jointNum: number;
+        /**
+         * 动画名列表
+         */
+        readonly animStateNames: string[];
+        /**
+         * 动画状态对象列表
+         */
+        readonly animStates: SkeletonAnimationState[];
+        /**
+         * 动画时间
+         */
+        animTime: number;
+        /**
+         * 动画时间长度
+         */
+        readonly timeLength: number;
+        /**
+         * 动画帧索引
+         */
+        frameIndex: number;
+        /**
+         * 融合速度(默认300毫秒)
+         */
+        blendSpeed: number;
+        /**
+         * 当前播放的动画名称
+         */
+        readonly currentAnimName: string;
+        /**
+         * 当前动画是否正在播放
+         */
+        isPlay(): boolean;
+        /**
+         * 添加骨骼动画剪辑对象
+         */
+        addSkeletonAnimationClip(animationClip: SkeletonAnimationClip): void;
+        /**
+         * 添加骨骼动画状态对象
+         */
+        addAnimState(animState: SkeletonAnimationState): void;
+        /**
+         * 移除骨骼动画状态对象
+         */
+        removeAnimState(animState: SkeletonAnimationState): void;
+        /**
+         * 播放骨骼动画
+         * @param animName 动画名称
+         * @param speed 播放速度
+         * @param reset 是否重置
+         * @param prewarm 是否预热
+         */
+        play(animName?: string, speed?: number, reset?: boolean, prewarm?: boolean): void;
+        /**
+         * 暂停骨骼动画播放（停留在当前帧）
+         */
+        pause(): void;
+        /**
+         * 停止骨骼动画播放（停留在第一帧）
+         */
+        stop(): void;
+        /**
+         * 更新骨骼动画
+         * @param time 总时间
+         * @param delay 延迟时间
+         * @param geometry 该值无效
+         */
+        update(time: number, delay: number, geometry: Geometry): void;
+        activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+        /**
+         * 绑定3D对象到骨骼
+         * @param jointName 骨骼名称
+         * @param obj3d 3D对象
+         * @returns boolean 是否成功
+         */
+        bindToJointPose(jointName: string, object3D: Object3D): boolean;
+        setMovePosJointName(jointName: string, target: Object3D): boolean;
+        private updateBindList;
+        private updateMovePos;
+        clone(): SkeletonAnimation;
+    }
+}
+declare namespace dou3d {
+    /**
+     *
+     * @author wizardc
+     */
+    class SkeletonAnimationClip {
+        /**
+         * 每帧的骨架动画
+         */
+        poseArray: SkeletonPose[];
+        animationName: string;
+        sampling: number;
+        boneCount: number;
+        frameDataOffset: number;
+        sourceData: dou.ByteArray;
+        private _frameCount;
+        private _timeLength;
+        private _skeletonPose;
+        constructor();
+        readonly currentSkeletonPose: SkeletonPose;
+        readonly frameCount: number;
+        /**
+         * 时间长度
+         */
+        readonly timeLength: number;
+        /**
+         * 骨骼数量
+         */
+        readonly jointNum: number;
+        findJointIndex(name: string): number;
+        addSkeletonPose(skeletonPose: SkeletonPose): void;
+        buildInitialSkeleton(boneNameArray: string[], parentBoneNameArray: string[], frameCount: number): void;
+        getSkeletonPose(index: number): SkeletonPose;
+        private readSkeletonPose;
+        clone(): SkeletonAnimationClip;
+    }
+}
+declare namespace dou3d {
+    /**
+     *
+     * @author wizardc
+     */
+    class SkeletonAnimationState implements IAnimationState {
+        /**
+         * State 名称
+         */
+        name: string;
+        /**
+         * 融合权重值
+         */
+        weight: number;
+        private _timeLength;
+        private _timePosition;
+        private _skeletonAnimation;
+        private _skeletonAnimationClip;
+        constructor(name: string);
+        /**
+         * 骨骼动画控制器
+         */
+        /**
+        * 骨骼动画控制器
+        */
+        skeletonAnimation: SkeletonAnimation;
+        /**
+         * 骨骼动画剪辑
+         */
+        readonly skeletonAnimationClip: SkeletonAnimationClip;
+        /**
+         * 动画时间长度
+         */
+        readonly timeLength: number;
+        /**
+         * 添加 SkeletonAnimationClip 对象
+         */
+        addAnimationClip(animationClip: SkeletonAnimationClip): void;
+        /**
+         * 时间位置
+         */
+        /**
+        * 时间位置
+        */
+        timePosition: number;
+        /**
+         * 获取当前帧的SkeletonPose
+         */
+        readonly currentSkeletonPose: SkeletonPose;
+        /**
+         * 获取上一帧的SkeletonPose
+         */
+        readonly previousSkeletonPose: SkeletonPose;
+        /**
+         * 获取当前帧索引
+         */
+        readonly currentFrameIndex: number;
+        /**
+         * 获取帧数量
+         */
+        readonly frameNum: number;
+        /**
+         * 获取SkeletonPose
+         */
+        getSkeletonPose(index: number): SkeletonPose;
+        /**
+         * 克隆SkeletonAnimationState对象
+         */
+        clone(): SkeletonAnimationState;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 单帧骨架动画数据，若干个SkeletonPose组合成SkeletonAnimationClip， 做为骨骼骨架序列数据
+     * @author wizardc
+     */
+    class SkeletonPose {
+        /**
+         * 骨架包含的骨骼
+         */
+        joints: Joint[];
+        /**
+         * 当前骨架的帧时间
+         */
+        frameTime: number;
+        constructor();
+        /**
+         * 骨架插值计算
+         */
+        lerp(skeletonPoseA: SkeletonPose, skeletonPoseB: SkeletonPose, t: number): SkeletonPose;
+        /**
+         * 计算当前骨架内所有骨骼的世界矩阵
+         */
+        calculateJointWorldMatrix(): void;
+        private calculateAbsoluteMatrix;
+        /**
+         * 更新GPU所需的骨骼缓存数据
+         */
+        updateGPUCacheData(skeleton: Skeleton, skeletonMatrixData: Float32Array, offset: Vector3): Float32Array;
+        /**
+         * 通过名称查找指定骨骼
+         */
+        findJoint(name: string): Joint;
+        /**
+         * 通过名称查找骨骼索引编号
+         */
+        findJointIndex(name: string): number;
+        /**
+         * 重置骨骼世界矩阵
+         */
+        resetWorldMatrix(): void;
+        clone(): SkeletonPose;
     }
 }
 declare namespace dou3d {
@@ -2621,6 +3048,11 @@ declare namespace dou3d {
          * 三角形面数
          */
         _faceCount: number;
+        private _skeleton;
+        /**
+         * 骨骼动画会上传到 GPU 的数据
+         */
+        skeletonGPUData: Float32Array;
         bufferDiry: boolean;
         /**
          * 设置顶点的数量
@@ -2646,6 +3078,10 @@ declare namespace dou3d {
          * @example this.vertexFormat = VertexFormat.VF_POSITION | VertexFormat.VF_NORMAL | VertexFormat.VF_COLOR |  VertexFormat.VF_UV0 | VertexFormat.VF_UV1; //定义了一个完整的数据结构
          */
         vertexFormat: number;
+        /**
+         * 当前模型的骨骼
+         */
+        skeleton: Skeleton;
         /**
          * 由顶点索引根据格式拿到顶点数据
          * @param index 顶点索引
@@ -2794,6 +3230,141 @@ declare namespace dou3d {
         readonly segmentsH: number;
         readonly radius: number;
         private buildSphere;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 几何体创建器
+     * @author wizardc
+     */
+    class GeometryCreator {
+        /**
+         * 构建几何体
+         */
+        static buildGeomtry(source: GeometryCreator, vertexFormat: number): Geometry;
+        /**
+         * 顶点属性长度
+         */
+        vertexAttLength: number;
+        /**
+         * 数据长度
+         */
+        length: number;
+        /**
+         * 顶点长度
+         */
+        vertLen: number;
+        /**
+         * 面数
+         */
+        faces: number;
+        /**
+         * 索引数据
+         */
+        source_indexData: number[];
+        /**
+         * 顶点数据
+         */
+        source_vertexData: number[];
+        /**
+         * 顶点色数据
+         */
+        source_vertexColorData: number[];
+        /**
+         * 顶点法线
+         */
+        source_normalData: number[];
+        /**
+         * 顶点切线数据
+         */
+        source_tangtData: number[];
+        /**
+         * 顶点uv数据
+         */
+        source_uvData: number[];
+        /**
+         * 顶点uv2数据
+         */
+        source_uv2Data: number[];
+        /**
+         * 蒙皮数据
+         */
+        source_skinData: number[];
+        /**
+         * 顶点索引
+         */
+        vertexIndex: number;
+        /**
+         * 索引数据数组
+         */
+        indices: number[];
+        /**
+         * 顶点数据数组(x、y、z)三个number为一个顶点数据
+         */
+        vertices: number[];
+        /**
+         * 法线数据数组(x、y、z)三个number为一个法线数据
+         */
+        normals: number[];
+        /**
+         * 切线数据数组(x、y、z)三个number为一个切线数据
+         */
+        tangts: number[];
+        /**
+         * 顶点颜色数据数组
+         */
+        verticesColor: number[];
+        /**
+         * 第一套UV数据数组
+         */
+        uvs: number[];
+        /**
+         * 第二套UV数据数组
+         */
+        uv2s: number[];
+        /**
+         * 蒙皮数据数组
+         */
+        skinMesh: number[];
+        /**
+         * 面法线数据数组
+         */
+        faceNormals: number[];
+        /**
+         * 面权重数据数组
+         */
+        faceWeights: number[];
+        /**
+         * 顶点索引数据
+         */
+        vertexIndices: number[];
+        /**
+         * uv索引数据
+         */
+        uvIndices: number[];
+        /**
+         * uv2索引数据
+         */
+        uv2Indices: number[];
+        /**
+         * 法线索引数据
+         */
+        normalIndices: number[];
+        /**
+         * 顶点色索引数据
+         */
+        colorIndices: number[];
+        /**
+         * 索引数据数组
+         */
+        indexIds: any[];
+        skeleton: Skeleton;
+        /**
+         * 顶点数据数组
+         */
+        vertexDatas: number[];
+        matCount: number;
+        material: any;
     }
 }
 declare namespace dou3d {
@@ -2970,6 +3541,33 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
+     * 自定义文件类型模型加载器
+     * @author wizardc
+     */
+    class ESMAnalyzer implements dou.IAnalyzer {
+        load(url: string, callback: (url: string, data: any) => void, thisObj: any): void;
+        private createGeometry;
+        parseVersion_1(bytes: dou.ByteArray, geomtry: GeometryCreator): void;
+        parseVersion_2(bytes: dou.ByteArray, geomtry: GeometryCreator): void;
+        parseVersion_3(bytes: dou.ByteArray, geomtry: GeometryCreator): void;
+        release(data: ImageTexture): boolean;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 自定义文件类型骨骼动画加载器
+     * @author wizardc
+     */
+    class EAMAnalyzer implements dou.IAnalyzer {
+        load(url: string, callback: (url: string, data: any) => void, thisObj: any): void;
+        private createClip;
+        parseVersion_1(bytes: dou.ByteArray): SkeletonAnimationClip;
+        parseVersion_2(bytes: dou.ByteArray): SkeletonAnimationClip;
+        release(data: ImageTexture): boolean;
+    }
+}
+declare namespace dou3d {
+    /**
      * 渲染方法基类
      * @author wizardc
      */
@@ -3071,7 +3669,7 @@ declare namespace dou3d {
         /**
          * 初始化所有的渲染方法
          */
-        initUseMethod(): void;
+        initUseMethod(animation: IAnimation): void;
         /**
          * 添加手动添加的其它渲染方法
          */
@@ -3080,7 +3678,7 @@ declare namespace dou3d {
          * 将渲染方法的对应着色器加入到对应的 Shader 对象中以便获得最终的着色器对象
          */
         protected phaseEnd(): void;
-        upload(time: number, delay: number, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+        upload(time: number, delay: number, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D, animation: IAnimation): void;
         draw(time: number, delay: number, context3DProxy: Context3DProxy, modelTransform: Matrix4, camera3D: Camera3D, subGeometry: SubGeometry, render: RenderBase): void;
         deactiveState(passUsage: PassUsage, context3DProxy: Context3DProxy): void;
         dispose(): void;
@@ -4046,6 +4644,7 @@ declare namespace dou3d {
         const shadowMapping_vs = "uniform mat4 uniform_ShadowMatrix;\nuniform mat4 uniform_ModelMatrix;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvarying_ShadowCoord=uniform_ShadowMatrix*uniform_ModelMatrix*vec4(e_position,1.0);\n}";
         const shadowPass_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\ndiffuseColor=varying_color;\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=texture2D(diffuseTexture,varying_uv0);\nif(diffuseColor.w<=0.3){\ndiscard;\n}\ngl_FragColor=vec4(varying_pos.zzz,1.0);\n}";
         const shadowPass_vs = "attribute vec3 attribute_position;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\nvarying_pos=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\ngl_Position=varying_pos;\n}";
+        const skeleton_vs = "attribute vec4 attribute_boneIndex;\nattribute vec4 attribute_boneWeight;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvec4 e_boneIndex=vec4(0.0,0.0,0.0,0.0);\nvec4 e_boneWeight=vec4(0.0,0.0,0.0,0.0);\nconst int bonesNumber=0;\nuniform vec4 uniform_PoseMatrix[bonesNumber];\nvarying vec4 varying_mvPose;\nmat4 buildMat4(int index){\nvec4 quat=uniform_PoseMatrix[index*2+0];\nvec4 translation=uniform_PoseMatrix[index*2+1];\nfloat xy2=2.0*quat.x*quat.y;\nfloat xz2=2.0*quat.x*quat.z;\nfloat xw2=2.0*quat.x*quat.w;\nfloat yz2=2.0*quat.y*quat.z;\nfloat yw2=2.0*quat.y*quat.w;\nfloat zw2=2.0*quat.z*quat.w;\nfloat xx=quat.x*quat.x;\nfloat yy=quat.y*quat.y;\nfloat zz=quat.z*quat.z;\nfloat ww=quat.w*quat.w;\nmat4 matrix=mat4(\nxx-yy-zz+ww,xy2+zw2,xz2-yw2,0,\nxy2-zw2,-xx+yy-zz+ww,yz2+xw2,0,\nxz2+yw2,yz2-xw2,-xx-yy+zz+ww,0,\ntranslation.x,translation.y,translation.z,1\n);\nreturn matrix;\n}\nvoid main(){\ne_boneIndex=attribute_boneIndex;\ne_boneWeight=attribute_boneWeight;\nvec4 temp_position=vec4(attribute_position,1.0);\nvec4 temp_normal=vec4(attribute_normal,0.0);\nmat4 m0=buildMat4(int(e_boneIndex.x));\nmat4 m1=buildMat4(int(e_boneIndex.y));\nmat4 m2=buildMat4(int(e_boneIndex.z));\nmat4 m3=buildMat4(int(e_boneIndex.w));\noutPosition=m0*temp_position*e_boneWeight.x;\noutPosition+=m1*temp_position*e_boneWeight.y;\noutPosition+=m2*temp_position*e_boneWeight.z;\noutPosition+=m3*temp_position*e_boneWeight.w;\ne_position=outPosition.xyz;\nvec4 temp_n;\ntemp_n=m0*temp_normal*e_boneWeight.x;\ntemp_n+=m1*temp_normal*e_boneWeight.y;\ntemp_n+=m2*temp_normal*e_boneWeight.z;\ntemp_n+=m3*temp_normal*e_boneWeight.w;\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_mvPose=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition.xyzw=varying_mvPose.xyzw;\nvarying_color=attribute_color;\n}";
         const spotLight_fs = "";
         const varyingViewDir_vs = "varying vec3 varying_ViewDir;\nuniform vec3 uniform_eyepos;\nvoid main(){\nvarying_ViewDir=uniform_eyepos.xyz-e_position;\n}";
     }

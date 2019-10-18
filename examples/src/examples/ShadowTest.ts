@@ -4,7 +4,7 @@ namespace examples {
             view3D.backColor = 0xff666666;
 
             view3D.camera3D.lookAt(new dou3d.Vector3(0, 0, -1000), new dou3d.Vector3(0, 0, 0));
-            
+
             let shadowCamera = dou3d.ShadowCast.instance.shadowCamera;
             shadowCamera.lookAt(new dou3d.Vector3(0, 0, -1000), new dou3d.Vector3(0, 0, 0));
             let directLight = dou3d.ShadowCast.instance.directLight;
