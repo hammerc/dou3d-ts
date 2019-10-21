@@ -40,6 +40,38 @@ namespace examples {
             }
 
             (<dou3d.SkeletonAnimation>mesh.animation).play("idle_1");
+
+            document.addEventListener("keydown", (e: KeyboardEvent) => {
+                switch (e.keyCode) {
+                    case 97:
+                        (<dou3d.SkeletonAnimation>mesh.animation).play("idle_1");
+                        break;
+                    case 98:
+                        (<dou3d.SkeletonAnimation>mesh.animation).play("run_1");
+                        break;
+                    case 99:
+                        (<dou3d.SkeletonAnimation>mesh.animation).play("death_1");
+                        break;
+                    case 100:
+                        (<dou3d.SkeletonAnimation>mesh.animation).play("attack_1");
+                        break;
+                    case 101:
+                        (<dou3d.SkeletonAnimation>mesh.animation).play("attack_2");
+                        break;
+                    case 102:
+                        (<dou3d.SkeletonAnimation>mesh.animation).play("skill_1");
+                        break;
+                    case 103:
+                        (<dou3d.SkeletonAnimation>mesh.animation).play("skill_2");
+                        break;
+                    case 104:
+                        (<dou3d.SkeletonAnimation>mesh.animation).play("skill_3");
+                        break;
+                    case 105:
+                        (<dou3d.SkeletonAnimation>mesh.animation).play("skill_4");
+                        break;
+                }
+            });
         }
     }
 }
