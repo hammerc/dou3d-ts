@@ -61,7 +61,7 @@ namespace dou3d {
                     let jointPose = new Joint(boneNameArray[j]);
                     jointPose.parent = parentBoneNameArray[j];
                     jointPose.parentIndex = skeletonPose.findJointIndex(jointPose.parent);
-                    orientation.fromEuler(bytes.readFloat() * MathUtil.RAD_DEG, bytes.readFloat() * MathUtil.RAD_DEG, bytes.readFloat() * MathUtil.RAD_DEG);
+                    orientation.fromEuler(bytes.readFloat(), bytes.readFloat(), bytes.readFloat(), EulerOrder.ZYX);
                     scale.x = bytes.readFloat();
                     scale.y = bytes.readFloat();
                     scale.z = bytes.readFloat();

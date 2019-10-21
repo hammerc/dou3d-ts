@@ -2523,6 +2523,10 @@ declare namespace dou3d {
          */
         multiply(matrixA: Matrix4, matrixB?: Matrix4): this;
         /**
+         * 将该矩阵乘以一个矩阵来之后前置一个矩阵或将两个矩阵相乘来前置一个矩阵的结果写入该矩阵
+         */
+        append(matrixA: Matrix4, matrixB?: Matrix4): this;
+        /**
          * 转换指定点
          */
         transformVector(vector: IVector3, result?: IVector4): IVector4;

@@ -363,6 +363,44 @@ namespace dou3d {
         }
 
         /**
+         * 将该矩阵乘以一个矩阵来之后前置一个矩阵或将两个矩阵相乘来前置一个矩阵的结果写入该矩阵
+         */
+        public append(matrixA: Matrix4, matrixB?: Matrix4): this {
+            if (!matrixB) {
+                matrixB = matrixA;
+                matrixA = this;
+            }
+            let { rawData } = this;
+            let rawDataA = matrixA.rawData;
+            let rawDataB = matrixB.rawData;
+            let a11 = rawDataA[0], a21 = rawDataA[4], a31 = rawDataA[8], a41 = rawDataA[12];
+            let a12 = rawDataA[1], a22 = rawDataA[5], a32 = rawDataA[9], a42 = rawDataA[13];
+            let a13 = rawDataA[2], a23 = rawDataA[6], a33 = rawDataA[10], a43 = rawDataA[14];
+            let a14 = rawDataA[3], a24 = rawDataA[7], a34 = rawDataA[11], a44 = rawDataA[15];
+            let b11 = rawDataB[0], b21 = rawDataB[4], b31 = rawDataB[8], b41 = rawDataB[12];
+            let b12 = rawDataB[1], b22 = rawDataB[5], b32 = rawDataB[9], b42 = rawDataB[13];
+            let b13 = rawDataB[2], b23 = rawDataB[6], b33 = rawDataB[10], b43 = rawDataB[14];
+            let b14 = rawDataB[3], b24 = rawDataB[7], b34 = rawDataB[11], b44 = rawDataB[15];
+            rawData[0] = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
+            rawData[1] = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
+            rawData[2] = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
+            rawData[3] = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
+            rawData[4] = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
+            rawData[5] = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
+            rawData[6] = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
+            rawData[7] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
+            rawData[8] = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
+            rawData[9] = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
+            rawData[10] = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
+            rawData[11] = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
+            rawData[12] = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
+            rawData[13] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
+            rawData[14] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
+            rawData[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
+            return this;
+        }
+
+        /**
          * 转换指定点
          */
         public transformVector(vector: IVector3, result?: IVector4): IVector4 {

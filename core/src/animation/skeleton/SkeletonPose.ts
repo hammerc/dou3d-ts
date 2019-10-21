@@ -90,7 +90,7 @@ namespace dou3d {
             if (!joint.worldMatrixValid) {
                 joint.worldMatrix.copy(joint.localMatrix);
                 if (joint.parentIndex >= 0) {
-                    joint.worldMatrix.multiply(this.joints[joint.parentIndex].worldMatrix);
+                    joint.worldMatrix.append(this.joints[joint.parentIndex].worldMatrix);
                 }
                 joint.worldMatrixValid = true;
             }
@@ -107,7 +107,7 @@ namespace dou3d {
                     }
                     let matrix = dou.recyclable(Matrix4);
                     matrix.copy(skeleton.joints[i].inverseMatrix);
-                    matrix.multiply(this.joints[j].worldMatrix);
+                    matrix.append(this.joints[j].worldMatrix);
                     let translation = dou.recyclable(Vector3);
                     let rotation = dou.recyclable(Quaternion);
                     let scale = dou.recyclable(Vector3);

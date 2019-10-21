@@ -73,7 +73,7 @@ namespace dou3d {
             this.scale.copy(scale);
             this.translation.copy(translation);
             if (rotation instanceof Vector3) {
-                this.orientation.fromEuler(rotation.x, rotation.y, rotation.z);
+                this.orientation.fromEuler(rotation.x * MathUtil.DEG_RAD, rotation.y * MathUtil.DEG_RAD, rotation.z * MathUtil.DEG_RAD, EulerOrder.ZYX);
             }
             else {
                 this.orientation.copy(rotation);
@@ -89,7 +89,7 @@ namespace dou3d {
             this.inverseMatrix = this.inverseMatrix || new Matrix4();
             if (rotation instanceof Vector3) {
                 let quaternion = dou.recyclable(Quaternion);
-                quaternion.fromEuler(rotation.x, rotation.y, rotation.z);
+                quaternion.fromEuler(rotation.x * MathUtil.DEG_RAD, rotation.y * MathUtil.DEG_RAD, rotation.z * MathUtil.DEG_RAD, EulerOrder.ZYX);
                 this.inverseMatrix.compose(translation, quaternion, scale);
                 quaternion.recycle();
             }
