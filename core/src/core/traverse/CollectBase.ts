@@ -5,13 +5,11 @@ namespace dou3d {
      */
     export class CollectBase {
         protected _renderList: RenderBase[];
-        protected _mousePickList: RenderBase[];
 
         protected _scene: Scene3D;
 
         public constructor() {
             this._renderList = [];
-            this._mousePickList = [];
         }
 
         /**
@@ -19,13 +17,6 @@ namespace dou3d {
          */
         public get renderList(): RenderBase[] {
             return this._renderList;
-        }
-
-        /**
-         * 拾取列表
-         */
-        public get mousePickList(): RenderBase[] {
-            return this._mousePickList;
         }
 
         /**
@@ -56,7 +47,6 @@ namespace dou3d {
         public update(camera: Camera3D): void {
             camera.globalMatrix;
             this._renderList.length = 0;
-            this._mousePickList.length = 0;
         }
     }
 }

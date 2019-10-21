@@ -769,7 +769,6 @@ declare namespace dou3d {
         protected _parent: ObjectContainer3D;
         protected _bound: Bound;
         protected _enableCulling: boolean;
-        protected _enablePick: boolean;
         protected _name: string;
         protected _layer: Layer;
         constructor();
@@ -807,11 +806,6 @@ declare namespace dou3d {
          * * 设定这个物件是否具有视锥体裁剪功能, 为否的话将不参加场景渲染剔除, 无论是否在显示范围内都会进行相关的渲染逻辑运算
          */
         enableCulling: boolean;
-        /**
-         * 拣选检测
-         * * 指定这个物件是否具有鼠标交互能力
-         */
-        enablePick: boolean;
         name: string;
         /**
          * 渲染的层
@@ -979,17 +973,12 @@ declare namespace dou3d {
      */
     class CollectBase {
         protected _renderList: RenderBase[];
-        protected _mousePickList: RenderBase[];
         protected _scene: Scene3D;
         constructor();
         /**
          * 可渲染对象列表
          */
         readonly renderList: RenderBase[];
-        /**
-         * 拾取列表
-         */
-        readonly mousePickList: RenderBase[];
         /**
          * 场景对象
          */
@@ -1888,14 +1877,7 @@ declare namespace dou3d {
         diffusePass = 0,
         colorPass = 1,
         normalPass = 2,
-        shadowPass = 3,
-        lightPass = 4,
-        matCapPass = 5,
-        depthPass_8 = 6,
-        depthPass_32 = 7,
-        CubePass = 8,
-        Gbuffer = 9,
-        PickPass = 10
+        shadowPass = 3
     }
 }
 declare namespace dou3d {
@@ -3825,38 +3807,10 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
-     * 位置渲染通道
-     * @author wizardc
-     */
-    class PositionPass extends MaterialPass {
-        constructor(materialData: MaterialData);
-        initUseMethod(): void;
-    }
-}
-declare namespace dou3d {
-    /**
      * 法线渲染通道
      * @author wizardc
      */
     class NormalPass extends MaterialPass {
-        constructor(materialData: MaterialData);
-        initUseMethod(): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     *
-     * @author wizardc
-     */
-    class GbufferPass extends MaterialPass {
-    }
-}
-declare namespace dou3d {
-    /**
-     * 拾取渲染通道
-     * @author wizardc
-     */
-    class PickPass extends MaterialPass {
         constructor(materialData: MaterialData);
         initUseMethod(): void;
     }
@@ -3970,10 +3924,6 @@ declare namespace dou3d {
          * 阴影偏移
          */
         shadowOffset: number;
-        /**
-         * 是否接受拾取
-         */
-        castPick: boolean;
         /**
          * 是否进行纹理重复采样的方式开关
          */
@@ -4211,19 +4161,6 @@ declare namespace dou3d {
         constructor(texture?: TextureBase, materialData?: MaterialData);
         protected initMatPass(): void;
         clone(): TextureMaterial;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 拾取系统
-     * @author wizardc
-     */
-    class PickSystem {
-        private static _instance;
-        static readonly instance: PickSystem;
-        enablePick: boolean;
-        private constructor();
-        update(entityCollect: EntityCollect, camera: Camera3D, time: number, delay: number, viewPort: Rectangle): void;
     }
 }
 declare namespace dou3d {
@@ -4639,11 +4576,7 @@ declare namespace dou3d {
         const materialSource_fs = "struct MaterialSource{\nvec3 diffuse;\nvec3 ambient;\nvec3 specular;\nfloat alpha;\nfloat cutAlpha;\nfloat shininess;\nfloat roughness;\nfloat albedo;\nvec4 uvRectangle;\nfloat specularScale;\nfloat normalScale;\n};\nuniform float uniform_materialSource[20];\nvarying vec2 varying_uv0;\nMaterialSource materialSource;\nvec2 uv_0;\nvoid main(){\nmaterialSource.diffuse.x=uniform_materialSource[0];\nmaterialSource.diffuse.y=uniform_materialSource[1];\nmaterialSource.diffuse.z=uniform_materialSource[2];\nmaterialSource.ambient.x=uniform_materialSource[3];\nmaterialSource.ambient.y=uniform_materialSource[4];\nmaterialSource.ambient.z=uniform_materialSource[5];\nmaterialSource.specular.x=uniform_materialSource[6];\nmaterialSource.specular.y=uniform_materialSource[7];\nmaterialSource.specular.z=uniform_materialSource[8];\nmaterialSource.alpha=uniform_materialSource[9];\nmaterialSource.cutAlpha=uniform_materialSource[10];\nmaterialSource.shininess=uniform_materialSource[11];\nmaterialSource.specularScale=uniform_materialSource[12];\nmaterialSource.albedo=uniform_materialSource[13];\nmaterialSource.uvRectangle.x=uniform_materialSource[14];\nmaterialSource.uvRectangle.y=uniform_materialSource[15];\nmaterialSource.uvRectangle.z=uniform_materialSource[16];\nmaterialSource.uvRectangle.w=uniform_materialSource[17];\nmaterialSource.specularScale=uniform_materialSource[18];\nmaterialSource.normalScale=uniform_materialSource[19];\nuv_0=varying_uv0.xy*materialSource.uvRectangle.zw+materialSource.uvRectangle.xy;\n}";
         const normalMap_fs = "uniform sampler2D normalTexture;\nvarying vec2 varying_uv0;\nvarying vec4 varying_mvPose;\nmat3 TBN;\nmat3 cotangentFrame(vec3 N,vec3 p,vec2 uv){\nvec3 dp1=dFdx(p);\nvec3 dp2=dFdy(p);\nvec2 duv1=dFdx(uv);\nvec2 duv2=dFdy(uv);\nvec3 dp2perp=cross(dp2,N);\nvec3 dp1perp=cross(N,dp1);\nvec3 T=dp2perp*duv1.x+dp1perp*duv2.x;\nvec3 B=dp2perp*duv1.y+dp1perp*duv2.y;\nfloat invmax=1.0/sqrt(max(dot(T,T),dot(B,B)));\nreturn mat3(T*invmax,B*invmax,N);\n}\nvec3 tbn(vec3 map,vec3 N,vec3 V,vec2 texcoord){\nmat3 TBN=cotangentFrame(N,-V,texcoord);\nreturn normalize(TBN*map);\n}\nvoid main(){\nvec3 normalTex=texture2D(normalTexture,uv_0).xyz*2.0-1.0;\nnormalTex.y*=-1.0;\nnormal.xyz=tbn(normalTex.xyz,normal.xyz,varying_mvPose.xyz,uv_0);\n}";
         const normalPassEnd_fs = "void main(){\ngl_FragColor=vec4(normal,1.0);\n}";
-        const pickPass_fs = "uniform vec4 uniform_ObjectId;\nvoid main(){\ngl_FragColor=uniform_ObjectId;\n}";
-        const pickPass_vs = "attribute vec3 attribute_position;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvoid main(){\ngl_Position=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\n}";
         const pointLight_fs = "const int max_pointLight=0;\nuniform float uniform_pointLightSource[12*max_pointLight];\nvarying vec4 varying_mvPose;\nstruct PointLight{\nvec3 position;\nvec3 diffuse;\nvec3 ambient;\nfloat intensity;\nfloat radius;\nfloat cutoff;\n};\nvoid calculatePointLight(MaterialSource materialSource){\nvec3 N=normal;\nvec3 viewDir=normalize(varying_mvPose.xyz/varying_mvPose.w);\nfor(int i=0;i<max_pointLight;i++){\nPointLight pointLight;\npointLight.position=vec3(uniform_pointLightSource[i*12],uniform_pointLightSource[i*12+1],uniform_pointLightSource[i*12+2]);\npointLight.diffuse=vec3(uniform_pointLightSource[i*12+3],uniform_pointLightSource[i*12+4],uniform_pointLightSource[i*12+5]);\npointLight.ambient=vec3(uniform_pointLightSource[i*12+6],uniform_pointLightSource[i*12+7],uniform_pointLightSource[i*12+8]);\npointLight.intensity=uniform_pointLightSource[i*12+9];\npointLight.radius=uniform_pointLightSource[i*12+10];\npointLight.cutoff=uniform_pointLightSource[i*12+11];\nvec3 lightCentre=(mat4(uniform_ViewMatrix)*vec4(pointLight.position.xyz,1.0)).xyz;\nfloat r=pointLight.radius*0.5;\nvec3 ldir=varying_mvPose.xyz-lightCentre;\nfloat distance=length(ldir);\nfloat d=max(distance-r,0.0);\nvec3 L=ldir/distance;\nfloat denom=d/r+1.0;\nfloat attenuation=1.0/(denom*denom);\nfloat cutoff=pointLight.cutoff;\nattenuation=(attenuation-cutoff)/(1.0-cutoff);\nattenuation=max(attenuation*pointLight.intensity,0.0);\nlight.xyzw+=LightingBlinnPhong(normalize(ldir),pointLight.diffuse,pointLight.ambient,N,viewDir,attenuation);\n};\n}\nvoid main(){\ncalculatePointLight(materialSource);\n}";
-        const positionEndPass_fs = "varying vec4 varying_position;\nvoid main(){\ngl_FragColor=vec4(varying_position.xyz,1.0);\n}";
-        const positionEndPass_vs = "varying vec4 varying_position;\nvoid main(){\ngl_Position=uniform_ProjectionMatrix*outPosition;\nvarying_position=gl_Position.xyzw;\n}";
         const shadowMapping_fs = "uniform sampler2D shadowMapTexture;\nuniform vec4 uniform_ShadowColor;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvec3 shadowColor=vec3(1.0,1.0,1.0);\nfloat offset=uniform_ShadowColor.w;\nvec2 sample=varying_ShadowCoord.xy/varying_ShadowCoord.w*0.5+0.5;\nif(sample.x>=0.0 && sample.x<=1.0 && sample.y>=0.0 && sample.y<=1.0){\nvec4 sampleDepth=texture2D(shadowMapTexture,sample).xyzw;\nfloat depth=varying_ShadowCoord.z;\nif(sampleDepth.z !=0.0){\nif(sampleDepth.z<depth-offset){\nshadowColor=uniform_ShadowColor.xyz;\n}\n}\n}\ndiffuseColor.xyz=diffuseColor.xyz*shadowColor;\n}";
         const shadowMapping_vs = "uniform mat4 uniform_ShadowMatrix;\nuniform mat4 uniform_ModelMatrix;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvarying_ShadowCoord=uniform_ShadowMatrix*uniform_ModelMatrix*vec4(e_position,1.0);\n}";
         const shadowPass_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\ndiffuseColor=varying_color;\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=texture2D(diffuseTexture,varying_uv0);\nif(diffuseColor.w<=0.3){\ndiscard;\n}\ngl_FragColor=vec4(varying_pos.zzz,1.0);\n}";

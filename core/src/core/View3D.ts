@@ -151,10 +151,6 @@ namespace dou3d {
 
             this._entityCollect.update(this._camera);
 
-            if (PickSystem.instance.enablePick) {
-                PickSystem.instance.update(this._entityCollect, this._camera, time, delay, this._viewPort);
-            }
-
             if (ShadowCast.instance.enableShadow) {
                 ShadowCast.instance.update(this._entityCollect, this._camera, time, delay, this._viewPort);
             }

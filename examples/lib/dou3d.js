@@ -1403,7 +1403,6 @@ var dou3d;
             var _this = _super.call(this) || this;
             _this._visible = true;
             _this._enableCulling = true;
-            _this._enablePick = false;
             _this._layer = 0 /* normal */;
             _this._globalMatrix = new dou3d.Matrix4();
             _this._position = new dou3d.Vector3();
@@ -1789,20 +1788,6 @@ var dou3d;
              */
             set: function (value) {
                 this._enableCulling = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Object3D.prototype, "enablePick", {
-            get: function () {
-                return this._enablePick;
-            },
-            /**
-             * 拣选检测
-             * * 指定这个物件是否具有鼠标交互能力
-             */
-            set: function (value) {
-                this._enablePick = value;
             },
             enumerable: true,
             configurable: true
@@ -2323,7 +2308,6 @@ var dou3d;
     var CollectBase = /** @class */ (function () {
         function CollectBase() {
             this._renderList = [];
-            this._mousePickList = [];
         }
         Object.defineProperty(CollectBase.prototype, "renderList", {
             /**
@@ -2331,16 +2315,6 @@ var dou3d;
              */
             get: function () {
                 return this._renderList;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(CollectBase.prototype, "mousePickList", {
-            /**
-             * 拾取列表
-             */
-            get: function () {
-                return this._mousePickList;
             },
             enumerable: true,
             configurable: true
@@ -2375,7 +2349,6 @@ var dou3d;
         CollectBase.prototype.update = function (camera) {
             camera.globalMatrix;
             this._renderList.length = 0;
-            this._mousePickList.length = 0;
         };
         return CollectBase;
     }());
@@ -2454,9 +2427,6 @@ var dou3d;
                         }
                     }
                 }
-            }
-            if (renderItem.enablePick) {
-                this._mousePickList.push(renderItem);
             }
         };
         /**
@@ -2694,9 +2664,6 @@ var dou3d;
             dou3d.Engine.context3DProxy.viewPort(this._viewPort.x, this._viewPort.y, this._viewPort.w, this._viewPort.h);
             dou3d.Engine.context3DProxy.setScissorRectangle(this._viewPort.x, this._viewPort.y, this._viewPort.w, this._viewPort.h);
             this._entityCollect.update(this._camera);
-            if (dou3d.PickSystem.instance.enablePick) {
-                dou3d.PickSystem.instance.update(this._entityCollect, this._camera, time, delay, this._viewPort);
-            }
             if (dou3d.ShadowCast.instance.enableShadow) {
                 dou3d.ShadowCast.instance.update(this._entityCollect, this._camera, time, delay, this._viewPort);
             }
@@ -10511,18 +10478,9 @@ var dou3d;
                 case 3 /* shadowPass */:
                     materialData.shaderPhaseTypes[3 /* shadowPass */] = [];
                     return [new dou3d.ShadowPass(materialData)];
-                case 6 /* depthPass_8 */:
-                    materialData.shaderPhaseTypes[6 /* depthPass_8 */] = [];
-                    return [new dou3d.PositionPass(materialData)];
                 case 2 /* normalPass */:
                     materialData.shaderPhaseTypes[2 /* normalPass */] = [];
                     return [new dou3d.NormalPass(materialData)];
-                case 9 /* Gbuffer */:
-                    materialData.shaderPhaseTypes[9 /* Gbuffer */] = [];
-                    return [new dou3d.GbufferPass(materialData)];
-                case 10 /* PickPass */:
-                    materialData.shaderPhaseTypes[10 /* PickPass */] = [];
-                    return [new dou3d.PickPass(materialData)];
             }
             return null;
         }
@@ -10604,34 +10562,6 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
-     * 位置渲染通道
-     * @author wizardc
-     */
-    var PositionPass = /** @class */ (function (_super) {
-        __extends(PositionPass, _super);
-        function PositionPass(materialData) {
-            var _this = _super.call(this, materialData) || this;
-            _this._passID = 8 /* CubePass */;
-            return _this;
-        }
-        PositionPass.prototype.initUseMethod = function () {
-            this._passChange = false;
-            this._passUsage = new dou3d.PassUsage();
-            this._passUsage.vertexShader.shaderType = 0 /* vertex */;
-            this._passUsage.fragmentShader.shaderType = 1 /* fragment */;
-            this._vs_shader_methods[dou3d.ShaderPhaseType.end_vertex] = this._vs_shader_methods[dou3d.ShaderPhaseType.end_vertex] || [];
-            this._vs_shader_methods[dou3d.ShaderPhaseType.end_vertex].push("positionEndPass_vs");
-            this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment] = this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment] || [];
-            this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment].push("positionEndPass_fs");
-            this.phaseEnd();
-        };
-        return PositionPass;
-    }(dou3d.MaterialPass));
-    dou3d.PositionPass = PositionPass;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
      * 法线渲染通道
      * @author wizardc
      */
@@ -10639,7 +10569,7 @@ var dou3d;
         __extends(NormalPass, _super);
         function NormalPass(materialData) {
             var _this = _super.call(this, materialData) || this;
-            _this._passID = 8 /* CubePass */;
+            _this._passID = 2 /* normalPass */;
             return _this;
         }
         NormalPass.prototype.initUseMethod = function () {
@@ -10658,46 +10588,6 @@ var dou3d;
         return NormalPass;
     }(dou3d.MaterialPass));
     dou3d.NormalPass = NormalPass;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     *
-     * @author wizardc
-     */
-    var GbufferPass = /** @class */ (function (_super) {
-        __extends(GbufferPass, _super);
-        function GbufferPass() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return GbufferPass;
-    }(dou3d.MaterialPass));
-    dou3d.GbufferPass = GbufferPass;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 拾取渲染通道
-     * @author wizardc
-     */
-    var PickPass = /** @class */ (function (_super) {
-        __extends(PickPass, _super);
-        function PickPass(materialData) {
-            var _this = _super.call(this, materialData) || this;
-            _this._passID = 10 /* PickPass */;
-            return _this;
-        }
-        PickPass.prototype.initUseMethod = function () {
-            this._passChange = false;
-            this._passUsage = new dou3d.PassUsage();
-            this._vs_shader_methods = {};
-            this._fs_shader_methods = {};
-            this.addMethodShaders(this._passUsage.vertexShader, ["pickPass_vs"]);
-            this.addMethodShaders(this._passUsage.fragmentShader, ["pickPass_fs"]);
-        };
-        return PickPass;
-    }(dou3d.MaterialPass));
-    dou3d.PickPass = PickPass;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -10825,9 +10715,6 @@ var dou3d;
                         this._materialData.shaderPhaseTypes[0 /* diffusePass */].push(dou3d.ShaderPhaseType.normal_fragment);
                         this.passInvalid(0 /* diffusePass */);
                     }
-                    if (this._materialData.shaderPhaseTypes[5 /* matCapPass */] && this._materialData.shaderPhaseTypes[5 /* matCapPass */].indexOf(dou3d.ShaderPhaseType.normal_fragment) == -1) {
-                        this._materialData.shaderPhaseTypes[5 /* matCapPass */].push(dou3d.ShaderPhaseType.normal_fragment);
-                    }
                 }
             },
             enumerable: true,
@@ -10847,9 +10734,6 @@ var dou3d;
                     if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.matCap_fragment) == -1) {
                         this._materialData.shaderPhaseTypes[0 /* diffusePass */].push(dou3d.ShaderPhaseType.matCap_fragment);
                         this.passInvalid(0 /* diffusePass */);
-                    }
-                    if (this._materialData.shaderPhaseTypes[5 /* matCapPass */] && this._materialData.shaderPhaseTypes[5 /* matCapPass */].indexOf(dou3d.ShaderPhaseType.matCap_fragment) == -1) {
-                        this._materialData.shaderPhaseTypes[5 /* matCapPass */].push(dou3d.ShaderPhaseType.matCap_fragment);
                     }
                 }
             },
@@ -11115,27 +10999,6 @@ var dou3d;
              */
             set: function (offset) {
                 this._materialData.shadowColor[3] = offset;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(MaterialBase.prototype, "castPick", {
-            get: function () {
-                return !!this._passes[10 /* PickPass */];
-            },
-            /**
-             * 是否接受拾取
-             */
-            set: function (value) {
-                if (value) {
-                    this.addPass(10 /* PickPass */);
-                }
-                else {
-                    if (this._passes[10 /* PickPass */]) {
-                        this.disposePass(10 /* PickPass */);
-                        this._passes[10 /* PickPass */] = null;
-                    }
-                }
             },
             enumerable: true,
             configurable: true
@@ -11524,29 +11387,6 @@ var dou3d;
         return TextureMaterial;
     }(dou3d.MaterialBase));
     dou3d.TextureMaterial = TextureMaterial;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 拾取系统
-     * @author wizardc
-     */
-    var PickSystem = /** @class */ (function () {
-        function PickSystem() {
-            this.enablePick = false;
-        }
-        Object.defineProperty(PickSystem, "instance", {
-            get: function () {
-                return PickSystem._instance || (PickSystem._instance = new PickSystem());
-            },
-            enumerable: true,
-            configurable: true
-        });
-        PickSystem.prototype.update = function (entityCollect, camera, time, delay, viewPort) {
-        };
-        return PickSystem;
-    }());
-    dou3d.PickSystem = PickSystem;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -12476,11 +12316,7 @@ var dou3d;
         ShaderLib.materialSource_fs = "struct MaterialSource{\nvec3 diffuse;\nvec3 ambient;\nvec3 specular;\nfloat alpha;\nfloat cutAlpha;\nfloat shininess;\nfloat roughness;\nfloat albedo;\nvec4 uvRectangle;\nfloat specularScale;\nfloat normalScale;\n};\nuniform float uniform_materialSource[20];\nvarying vec2 varying_uv0;\nMaterialSource materialSource;\nvec2 uv_0;\nvoid main(){\nmaterialSource.diffuse.x=uniform_materialSource[0];\nmaterialSource.diffuse.y=uniform_materialSource[1];\nmaterialSource.diffuse.z=uniform_materialSource[2];\nmaterialSource.ambient.x=uniform_materialSource[3];\nmaterialSource.ambient.y=uniform_materialSource[4];\nmaterialSource.ambient.z=uniform_materialSource[5];\nmaterialSource.specular.x=uniform_materialSource[6];\nmaterialSource.specular.y=uniform_materialSource[7];\nmaterialSource.specular.z=uniform_materialSource[8];\nmaterialSource.alpha=uniform_materialSource[9];\nmaterialSource.cutAlpha=uniform_materialSource[10];\nmaterialSource.shininess=uniform_materialSource[11];\nmaterialSource.specularScale=uniform_materialSource[12];\nmaterialSource.albedo=uniform_materialSource[13];\nmaterialSource.uvRectangle.x=uniform_materialSource[14];\nmaterialSource.uvRectangle.y=uniform_materialSource[15];\nmaterialSource.uvRectangle.z=uniform_materialSource[16];\nmaterialSource.uvRectangle.w=uniform_materialSource[17];\nmaterialSource.specularScale=uniform_materialSource[18];\nmaterialSource.normalScale=uniform_materialSource[19];\nuv_0=varying_uv0.xy*materialSource.uvRectangle.zw+materialSource.uvRectangle.xy;\n}";
         ShaderLib.normalMap_fs = "uniform sampler2D normalTexture;\nvarying vec2 varying_uv0;\nvarying vec4 varying_mvPose;\nmat3 TBN;\nmat3 cotangentFrame(vec3 N,vec3 p,vec2 uv){\nvec3 dp1=dFdx(p);\nvec3 dp2=dFdy(p);\nvec2 duv1=dFdx(uv);\nvec2 duv2=dFdy(uv);\nvec3 dp2perp=cross(dp2,N);\nvec3 dp1perp=cross(N,dp1);\nvec3 T=dp2perp*duv1.x+dp1perp*duv2.x;\nvec3 B=dp2perp*duv1.y+dp1perp*duv2.y;\nfloat invmax=1.0/sqrt(max(dot(T,T),dot(B,B)));\nreturn mat3(T*invmax,B*invmax,N);\n}\nvec3 tbn(vec3 map,vec3 N,vec3 V,vec2 texcoord){\nmat3 TBN=cotangentFrame(N,-V,texcoord);\nreturn normalize(TBN*map);\n}\nvoid main(){\nvec3 normalTex=texture2D(normalTexture,uv_0).xyz*2.0-1.0;\nnormalTex.y*=-1.0;\nnormal.xyz=tbn(normalTex.xyz,normal.xyz,varying_mvPose.xyz,uv_0);\n}";
         ShaderLib.normalPassEnd_fs = "void main(){\ngl_FragColor=vec4(normal,1.0);\n}";
-        ShaderLib.pickPass_fs = "uniform vec4 uniform_ObjectId;\nvoid main(){\ngl_FragColor=uniform_ObjectId;\n}";
-        ShaderLib.pickPass_vs = "attribute vec3 attribute_position;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvoid main(){\ngl_Position=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\n}";
         ShaderLib.pointLight_fs = "const int max_pointLight=0;\nuniform float uniform_pointLightSource[12*max_pointLight];\nvarying vec4 varying_mvPose;\nstruct PointLight{\nvec3 position;\nvec3 diffuse;\nvec3 ambient;\nfloat intensity;\nfloat radius;\nfloat cutoff;\n};\nvoid calculatePointLight(MaterialSource materialSource){\nvec3 N=normal;\nvec3 viewDir=normalize(varying_mvPose.xyz/varying_mvPose.w);\nfor(int i=0;i<max_pointLight;i++){\nPointLight pointLight;\npointLight.position=vec3(uniform_pointLightSource[i*12],uniform_pointLightSource[i*12+1],uniform_pointLightSource[i*12+2]);\npointLight.diffuse=vec3(uniform_pointLightSource[i*12+3],uniform_pointLightSource[i*12+4],uniform_pointLightSource[i*12+5]);\npointLight.ambient=vec3(uniform_pointLightSource[i*12+6],uniform_pointLightSource[i*12+7],uniform_pointLightSource[i*12+8]);\npointLight.intensity=uniform_pointLightSource[i*12+9];\npointLight.radius=uniform_pointLightSource[i*12+10];\npointLight.cutoff=uniform_pointLightSource[i*12+11];\nvec3 lightCentre=(mat4(uniform_ViewMatrix)*vec4(pointLight.position.xyz,1.0)).xyz;\nfloat r=pointLight.radius*0.5;\nvec3 ldir=varying_mvPose.xyz-lightCentre;\nfloat distance=length(ldir);\nfloat d=max(distance-r,0.0);\nvec3 L=ldir/distance;\nfloat denom=d/r+1.0;\nfloat attenuation=1.0/(denom*denom);\nfloat cutoff=pointLight.cutoff;\nattenuation=(attenuation-cutoff)/(1.0-cutoff);\nattenuation=max(attenuation*pointLight.intensity,0.0);\nlight.xyzw+=LightingBlinnPhong(normalize(ldir),pointLight.diffuse,pointLight.ambient,N,viewDir,attenuation);\n};\n}\nvoid main(){\ncalculatePointLight(materialSource);\n}";
-        ShaderLib.positionEndPass_fs = "varying vec4 varying_position;\nvoid main(){\ngl_FragColor=vec4(varying_position.xyz,1.0);\n}";
-        ShaderLib.positionEndPass_vs = "varying vec4 varying_position;\nvoid main(){\ngl_Position=uniform_ProjectionMatrix*outPosition;\nvarying_position=gl_Position.xyzw;\n}";
         ShaderLib.shadowMapping_fs = "uniform sampler2D shadowMapTexture;\nuniform vec4 uniform_ShadowColor;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvec3 shadowColor=vec3(1.0,1.0,1.0);\nfloat offset=uniform_ShadowColor.w;\nvec2 sample=varying_ShadowCoord.xy/varying_ShadowCoord.w*0.5+0.5;\nif(sample.x>=0.0 && sample.x<=1.0 && sample.y>=0.0 && sample.y<=1.0){\nvec4 sampleDepth=texture2D(shadowMapTexture,sample).xyzw;\nfloat depth=varying_ShadowCoord.z;\nif(sampleDepth.z !=0.0){\nif(sampleDepth.z<depth-offset){\nshadowColor=uniform_ShadowColor.xyz;\n}\n}\n}\ndiffuseColor.xyz=diffuseColor.xyz*shadowColor;\n}";
         ShaderLib.shadowMapping_vs = "uniform mat4 uniform_ShadowMatrix;\nuniform mat4 uniform_ModelMatrix;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvarying_ShadowCoord=uniform_ShadowMatrix*uniform_ModelMatrix*vec4(e_position,1.0);\n}";
         ShaderLib.shadowPass_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\ndiffuseColor=varying_color;\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=texture2D(diffuseTexture,varying_uv0);\nif(diffuseColor.w<=0.3){\ndiscard;\n}\ngl_FragColor=vec4(varying_pos.zzz,1.0);\n}";

@@ -105,9 +105,6 @@ namespace dou3d {
                     this._materialData.shaderPhaseTypes[PassType.diffusePass].push(ShaderPhaseType.normal_fragment);
                     this.passInvalid(PassType.diffusePass);
                 }
-                if (this._materialData.shaderPhaseTypes[PassType.matCapPass] && this._materialData.shaderPhaseTypes[PassType.matCapPass].indexOf(ShaderPhaseType.normal_fragment) == -1) {
-                    this._materialData.shaderPhaseTypes[PassType.matCapPass].push(ShaderPhaseType.normal_fragment);
-                }
             }
         }
         public get normalTexture(): TextureBase {
@@ -124,9 +121,6 @@ namespace dou3d {
                 if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && this._materialData.shaderPhaseTypes[PassType.diffusePass].indexOf(ShaderPhaseType.matCap_fragment) == -1) {
                     this._materialData.shaderPhaseTypes[PassType.diffusePass].push(ShaderPhaseType.matCap_fragment);
                     this.passInvalid(PassType.diffusePass);
-                }
-                if (this._materialData.shaderPhaseTypes[PassType.matCapPass] && this._materialData.shaderPhaseTypes[PassType.matCapPass].indexOf(ShaderPhaseType.matCap_fragment) == -1) {
-                    this._materialData.shaderPhaseTypes[PassType.matCapPass].push(ShaderPhaseType.matCap_fragment);
                 }
             }
         }
@@ -347,24 +341,6 @@ namespace dou3d {
         }
         public get shadowOffset(): number {
             return this._materialData.shadowColor[3];
-        }
-
-        /**
-         * 是否接受拾取
-         */
-        public set castPick(value: boolean) {
-            if (value) {
-                this.addPass(PassType.PickPass);
-            }
-            else {
-                if (this._passes[PassType.PickPass]) {
-                    this.disposePass(PassType.PickPass);
-                    this._passes[PassType.PickPass] = null;
-                }
-            }
-        }
-        public get castPick(): boolean {
-            return !!this._passes[PassType.PickPass];
         }
 
         /**

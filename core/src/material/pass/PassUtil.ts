@@ -17,18 +17,9 @@ namespace dou3d {
                 case PassType.shadowPass:
                     materialData.shaderPhaseTypes[PassType.shadowPass] = [];
                     return [new ShadowPass(materialData)];
-                case PassType.depthPass_8:
-                    materialData.shaderPhaseTypes[PassType.depthPass_8] = [];
-                    return [new PositionPass(materialData)];
                 case PassType.normalPass:
                     materialData.shaderPhaseTypes[PassType.normalPass] = [];
                     return [new NormalPass(materialData)];
-                case PassType.Gbuffer:
-                    materialData.shaderPhaseTypes[PassType.Gbuffer] = [];
-                    return [new GbufferPass(materialData)];
-                case PassType.PickPass:
-                    materialData.shaderPhaseTypes[PassType.PickPass] = [];
-                    return [new PickPass(materialData)];
             }
             return null;
         }

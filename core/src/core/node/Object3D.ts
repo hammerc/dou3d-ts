@@ -26,7 +26,6 @@ namespace dou3d {
         protected _bound: Bound;
 
         protected _enableCulling: boolean = true;
-        protected _enablePick: boolean = false;
 
         protected _name: string;
 
@@ -345,17 +344,6 @@ namespace dou3d {
         }
         public get enableCulling(): boolean {
             return this._enableCulling;
-        }
-
-        /**
-         * 拣选检测
-         * * 指定这个物件是否具有鼠标交互能力
-         */
-        public set enablePick(value: boolean) {
-            this._enablePick = value;
-        }
-        public get enablePick(): boolean {
-            return this._enablePick;
         }
 
         public set name(value: string) {

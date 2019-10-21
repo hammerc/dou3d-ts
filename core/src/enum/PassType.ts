@@ -7,13 +7,6 @@ namespace dou3d {
         diffusePass,
         colorPass,
         normalPass,
-        shadowPass,
-        lightPass,
-        matCapPass,
-        depthPass_8,
-        depthPass_32,
-        CubePass,
-        Gbuffer,
-        PickPass
+        shadowPass
     }
 }

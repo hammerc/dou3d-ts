@@ -69,9 +69,6 @@ namespace dou3d {
                     }
                 }
             }
-            if (renderItem.enablePick) {
-                this._mousePickList.push(renderItem);
-            }
         }
 
         /**

@@ -6,7 +6,7 @@ namespace dou3d {
     export class NormalPass extends MaterialPass {
         public constructor(materialData: MaterialData) {
             super(materialData);
-            this._passID = PassType.CubePass;
+            this._passID = PassType.normalPass;
         }
 
         public initUseMethod(): void {
