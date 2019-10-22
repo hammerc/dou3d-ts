@@ -4392,6 +4392,9 @@ var dou3d;
         };
         Event3D.ENTER_FRAME = "enterFrame";
         Event3D.RESIZE = "resize";
+        Event3D.TOUCH_BEGIN = "touchBegin";
+        Event3D.TOUCH_MOVE = "touchMove";
+        Event3D.TOUCH_END = "touchEnd";
         return Event3D;
     }(dou.Event));
     dou3d.Event3D = Event3D;
@@ -13506,6 +13509,27 @@ var dou3d;
                 return;
             }
             dou3d.Context3DProxy.gl = gl;
+            window.addEventListener("mousedown", function (event) {
+                _this.onTouchEvent("mousedown", event);
+            });
+            window.addEventListener("mousemove", function (event) {
+                _this.onTouchEvent("mousemove", event);
+            });
+            window.addEventListener("mouseup", function (event) {
+                _this.onTouchEvent("mouseup", event);
+            });
+            window.addEventListener("touchstart", function (event) {
+                _this.onTouchEvent("touchstart", event);
+            });
+            window.addEventListener("touchmove", function (event) {
+                _this.onTouchEvent("touchmove", event);
+            });
+            window.addEventListener("touchend", function (event) {
+                _this.onTouchEvent("touchend", event);
+            });
+            window.addEventListener("touchcancel", function (event) {
+                _this.onTouchEvent("touchcancel", event);
+            });
             window.addEventListener("resize", function () {
                 setTimeout(function () {
                     for (var _i = 0, _a = _this._view3Ds; _i < _a.length; _i++) {
@@ -13580,6 +13604,48 @@ var dou3d;
                 dou3d.ticker.update();
                 requestAnimationFrame(onTick);
             }
+        };
+        Engine.prototype.onTouchEvent = function (type, event) {
+            var eventType;
+            var rect = this._canvas.getBoundingClientRect();
+            var pos = dou.recyclable(dou3d.Vector2);
+            if (event instanceof MouseEvent) {
+                switch (type) {
+                    case "mousedown":
+                        eventType = dou3d.Event3D.TOUCH_BEGIN;
+                        break;
+                    case "mousemove":
+                        eventType = dou3d.Event3D.TOUCH_MOVE;
+                        break;
+                    case "mouseup":
+                        eventType = dou3d.Event3D.TOUCH_END;
+                        break;
+                }
+                pos.set(event.clientX - rect.left, event.clientY - rect.top);
+            }
+            else {
+                switch (type) {
+                    case "touchstart":
+                        eventType = dou3d.Event3D.TOUCH_BEGIN;
+                        break;
+                    case "touchmove":
+                        eventType = dou3d.Event3D.TOUCH_MOVE;
+                        break;
+                    case "touchend":
+                    case "touchcancel":
+                        eventType = dou3d.Event3D.TOUCH_END;
+                        break;
+                }
+                if (event.touches.length > 0) {
+                    var touch = event.touches[0];
+                    pos.set(touch.clientX - rect.left, touch.clientY - rect.top);
+                }
+            }
+            for (var _i = 0, _a = this._view3Ds; _i < _a.length; _i++) {
+                var view3D = _a[_i];
+                dou3d.Event3D.dispatch(view3D, eventType, pos);
+            }
+            pos.recycle();
         };
         return Engine;
     }());

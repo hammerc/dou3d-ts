@@ -40,6 +40,28 @@ namespace dou3d {
             }
             Context3DProxy.gl = gl;
 
+            window.addEventListener("mousedown", (event: MouseEvent) => {
+                this.onTouchEvent("mousedown", event);
+            });
+            window.addEventListener("mousemove", (event: MouseEvent) => {
+                this.onTouchEvent("mousemove", event);
+            });
+            window.addEventListener("mouseup", (event: MouseEvent) => {
+                this.onTouchEvent("mouseup", event);
+            });
+            window.addEventListener("touchstart", (event: TouchEvent) => {
+                this.onTouchEvent("touchstart", event);
+            });
+            window.addEventListener("touchmove", (event: TouchEvent) => {
+                this.onTouchEvent("touchmove", event);
+            });
+            window.addEventListener("touchend", (event: TouchEvent) => {
+                this.onTouchEvent("touchend", event);
+            });
+            window.addEventListener("touchcancel", (event: TouchEvent) => {
+                this.onTouchEvent("touchcancel", event);
+            });
+
             window.addEventListener("resize", () => {
                 setTimeout(() => {
                     for (let view3D of this._view3Ds) {
@@ -113,6 +135,48 @@ namespace dou3d {
                 ticker.update();
                 requestAnimationFrame(onTick);
             }
+        }
+
+        private onTouchEvent(type: string, event: MouseEvent | TouchEvent): void {
+            let eventType: string;
+            let rect = this._canvas.getBoundingClientRect();
+            let pos = dou.recyclable(Vector2);
+            if (event instanceof MouseEvent) {
+                switch (type) {
+                    case "mousedown":
+                        eventType = Event3D.TOUCH_BEGIN;
+                        break;
+                    case "mousemove":
+                        eventType = Event3D.TOUCH_MOVE;
+                        break;
+                    case "mouseup":
+                        eventType = Event3D.TOUCH_END;
+                        break;
+                }
+                pos.set(event.clientX - rect.left, event.clientY - rect.top);
+            }
+            else {
+                switch (type) {
+                    case "touchstart":
+                        eventType = Event3D.TOUCH_BEGIN;
+                        break;
+                    case "touchmove":
+                        eventType = Event3D.TOUCH_MOVE;
+                        break;
+                    case "touchend":
+                    case "touchcancel":
+                        eventType = Event3D.TOUCH_END;
+                        break;
+                }
+                if (event.touches.length > 0) {
+                    let touch = event.touches[0];
+                    pos.set(touch.clientX - rect.left, touch.clientY - rect.top);
+                }
+            }
+            for (let view3D of this._view3Ds) {
+                Event3D.dispatch(view3D, eventType, pos);
+            }
+            pos.recycle();
         }
     }
 }

@@ -11,7 +11,7 @@ function loadAllJS(): void {
 }
 
 class Main {
-    public constructor() {
+    public constructor(urlParams: { [key: string]: string }) {
         // 加载类型注册
         dou.loader.registerAnalyzer(ResourceType.text, new dou.TextAnalyzer());
         dou.loader.registerAnalyzer(ResourceType.json, new dou.JsonAnalyzer());
@@ -29,10 +29,22 @@ class Main {
         });
         engine.addView3D(view3D);
 
-        // new examples.CubeTest(view3D);
-        // new examples.TextureTest(view3D);
-        // new examples.LightTest(view3D);
-        // new examples.ShadowTest(view3D);
-        new examples.AnimationTest(view3D);
+        switch (urlParams.demo) {
+            case "cube":
+                new examples.CubeTest(view3D);
+                break;
+            case "texture":
+                new examples.TextureTest(view3D);
+                break;
+            case "light":
+                new examples.LightTest(view3D);
+                break;
+            case "shadow":
+                new examples.ShadowTest(view3D);
+                break;
+            case "animation":
+                new examples.AnimationTest(view3D);
+                break;
+        }
     }
 }

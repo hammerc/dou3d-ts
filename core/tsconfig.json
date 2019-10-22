@@ -165,18 +165,13 @@
     "src/material/pass/ColorPass.ts",
     "src/material/pass/DiffusePass.ts",
     "src/material/pass/ShadowPass.ts",
-    "src/material/pass/PositionPass.ts",
     "src/material/pass/NormalPass.ts",
-    "src/material/pass/GbufferPass.ts",
-    "src/material/pass/PickPass.ts",
 
     "src/material/MaterialBase.ts",
     "src/material/MaterialData.ts",
     "src/material/MethodData.ts",
     "src/material/ColorMaterial.ts",
     "src/material/TextureMaterial.ts",
-
-    "src/pick/PickSystem.ts",
 
     "src/render/RendererBase.ts",
     "src/render/MultiRenderer.ts",

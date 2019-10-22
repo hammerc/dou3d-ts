@@ -41,7 +41,19 @@
 
 <body>
     <script type="text/javascript">
-        new Main();
+        var urlParams = (function () {
+            var url = window.location.search;
+            var obj = {};
+            if (url.indexOf("?") != -1) {
+                var strs = url.substr(1).split("&");
+                for (var i = 0; i < strs.length; i++) {
+                    var param = strs[i].split("=");
+                    obj[param[0]] = param[1];
+                }
+            }
+            return obj;
+        })();
+        new Main(urlParams);
     </script>
 </body>
 

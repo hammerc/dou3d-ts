@@ -5,7 +5,12 @@ namespace dou3d {
      */
     export class Event3D extends dou.Event {
         public static ENTER_FRAME: string = "enterFrame";
+
         public static RESIZE: string = "resize";
+
+        public static TOUCH_BEGIN: string = "touchBegin";
+        public static TOUCH_MOVE: string = "touchMove";
+        public static TOUCH_END: string = "touchEnd";
 
         public static dispatch(target: dou.IEventDispatcher, type: string, data?: any, cancelable?: boolean): boolean {
             let event = dou.recyclable(Event3D);

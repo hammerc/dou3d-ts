@@ -1918,6 +1918,9 @@ declare namespace dou3d {
     class Event3D extends dou.Event {
         static ENTER_FRAME: string;
         static RESIZE: string;
+        static TOUCH_BEGIN: string;
+        static TOUCH_MOVE: string;
+        static TOUCH_END: string;
         static dispatch(target: dou.IEventDispatcher, type: string, data?: any, cancelable?: boolean): boolean;
         initEvent(type: string, data?: any, cancelable?: boolean): void;
         onRecycle(): void;
@@ -4912,5 +4915,6 @@ declare namespace dou3d {
          */
         removeView3D(view3D: View3D): void;
         private startTicker;
+        private onTouchEvent;
     }
 }
