@@ -12,14 +12,14 @@
 
 ## 引擎示例
 
-* [纯色立方体](./examples/index.html?demo=cube)
+* [纯色立方体](https://hammerc.github.io/dou3d-ts/examples/index.html?demo=cube)
 
-* [贴图](./examples/index.html?demo=texture)
+* [贴图](https://hammerc.github.io/dou3d-ts/examples/index.html?demo=texture)
 
-* [光照](./examples/index.html?demo=light)
+* [光照](https://hammerc.github.io/dou3d-ts/examples/index.html?demo=light)
 
-* [阴影](./examples/index.html?demo=shadow)
+* [阴影](https://hammerc.github.io/dou3d-ts/examples/index.html?demo=shadow)
 
-* [骨骼动画](./examples/index.html?demo=animation)
+* [骨骼动画](https://hammerc.github.io/dou3d-ts/examples/index.html?demo=animation)
 
     *注：小键盘数字键可以切换动画播放*
