@@ -28,8 +28,9 @@ namespace dou3d {
         protected _enableCulling: boolean = true;
 
         protected _name: string;
-
         protected _layer: Layer = Layer.normal;
+
+        protected _controller: ControllerBase;
 
         public constructor() {
             super();
@@ -249,6 +250,7 @@ namespace dou3d {
                 this._position.copy(vector);
                 quaternion.recycle();
                 vector.recycle();
+                this.invalidTransform();
             }
             else {
                 this._position.copy(value);
@@ -263,6 +265,7 @@ namespace dou3d {
             quaternion.fromEuler(value.x, value.y, value.z);
             this._globalOrientation.copy(quaternion);
             quaternion.recycle();
+            this.invalidTransform();
         }
         public get globalRotation(): Vector3 {
             return this._globalRotation;
@@ -274,6 +277,7 @@ namespace dou3d {
                 vector.divide(value, this._parent._globalScale);
                 this._scale.copy(vector);
                 vector.recycle();
+                this.invalidTransform();
             }
             else {
                 this._scale.copy(value);
@@ -290,6 +294,7 @@ namespace dou3d {
                 quaternion.multiply(quaternion, value);
                 this._orientation.copy(quaternion);
                 quaternion.recycle();
+                this.invalidTransform();
             }
             else {
                 this._orientation.copy(value);
@@ -301,6 +306,7 @@ namespace dou3d {
 
         public set globalMatrix(value: Matrix4) {
             value.decompose(this._globalPosition, this._globalOrientation, this._globalScale);
+            this.invalidTransform();
         }
         public get globalMatrix(): Matrix4 {
             this.updateGlobalTransform();
@@ -361,6 +367,13 @@ namespace dou3d {
         }
         public get layer(): Layer {
             return this._layer;
+        }
+
+        public set controller(value: ControllerBase) {
+            this._controller = value;
+        }
+        public get controller(): ControllerBase {
+            return this._controller;
         }
 
         public setParent(parent: ObjectContainer3D) {
@@ -444,12 +457,16 @@ namespace dou3d {
          * @param camera 当前渲染的摄相机
          */
         public update(time: number, delay: number, camera: Camera3D): void {
+            if (this._controller && this._controller.autoUpdate) {
+                this._controller.update(time, delay);
+            }
         }
 
         /**
          * 销毁本对象
          */
         public dispose(): void {
+            this._controller = null;
         }
     }
 }

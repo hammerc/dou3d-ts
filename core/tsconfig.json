@@ -107,6 +107,10 @@
     "src/camera/Camera3D.ts",
     "src/camera/Frustum.ts",
 
+    "src/controllers/ControllerBase.ts",
+    "src/controllers/LookAtController.ts",
+    "src/controllers/HoverController.ts",
+
     "src/enum/BlendMode.ts",
     "src/enum/CameraType.ts",
     "src/enum/InternalFormat.ts",

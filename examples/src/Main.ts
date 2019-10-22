@@ -8,6 +8,8 @@ function loadAllJS(): void {
     this.loadJS("bin/examples/LightTest.js");
     this.loadJS("bin/examples/ShadowTest.js");
     this.loadJS("bin/examples/AnimationTest.js");
+    this.loadJS("bin/examples/LookAtControllerTest.js");
+    this.loadJS("bin/examples/HoverControllerTest.js");
 }
 
 class Main {
@@ -44,6 +46,12 @@ class Main {
                 break;
             case "animation":
                 new examples.AnimationTest(view3D);
+                break;
+            case "lookAt":
+                new examples.LookAtControllerTest(view3D);
+                break;
+            case "hover":
+                new examples.HoverControllerTest(view3D);
                 break;
         }
     }

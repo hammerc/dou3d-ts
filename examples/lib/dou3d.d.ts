@@ -771,6 +771,7 @@ declare namespace dou3d {
         protected _enableCulling: boolean;
         protected _name: string;
         protected _layer: Layer;
+        protected _controller: ControllerBase;
         constructor();
         position: Readonly<Vector3>;
         x: number;
@@ -811,6 +812,7 @@ declare namespace dou3d {
          * 渲染的层
          */
         layer: Layer;
+        controller: ControllerBase;
         setParent(parent: ObjectContainer3D): void;
         invalidTransform(): void;
         invalidGlobalTransform(): void;
@@ -1663,6 +1665,98 @@ declare namespace dou3d {
          */
         inBox(box: BoundBox): boolean;
         dispose(): void;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 控制器基类
+     * @author wizardc
+     */
+    abstract class ControllerBase {
+        protected _autoUpdate: boolean;
+        protected _target: Object3D;
+        constructor(target?: Object3D);
+        autoUpdate: boolean;
+        target: Object3D;
+        abstract update(time: number, delay: number): void;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 始终朝向指定目标的控制器
+     * @author wizardc
+     */
+    class LookAtController extends ControllerBase {
+        protected _lookAtPosition: Vector3;
+        protected _lookAtObject: Object3D;
+        protected _upAxis: Vector3;
+        constructor(target?: Object3D, lookAtObject?: Object3D | Vector3);
+        lookAtPosition: Vector3;
+        lookAtObject: Object3D;
+        upAxis: Vector3;
+        update(time: number, delay: number): void;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 多参数控制的始终朝向指定目标的控制器
+     * @author wizardc
+     */
+    class HoverController extends LookAtController {
+        protected _panAngle: number;
+        protected _tiltAngle: number;
+        protected _distance: number;
+        protected _minPanAngle: number;
+        protected _maxPanAngle: number;
+        protected _minTiltAngle: number;
+        protected _maxTiltAngle: number;
+        protected _steps: number;
+        protected _yFactor: number;
+        protected _wrapPanAngle: boolean;
+        private _currentPanAngle;
+        private _currentTiltAngle;
+        constructor(target?: Object3D, lookAtObject?: Object3D | Vector3, panAngle?: number, tiltAngle?: number, distance?: number, minPanAngle?: number, maxPanAngle?: number, minTiltAngle?: number, maxTiltAngle?: number, steps?: number, yFactor?: number, wrapPanAngle?: boolean);
+        /**
+         * 水平角度
+         */
+        panAngle: number;
+        /**
+         * 倾斜角度
+         */
+        tiltAngle: number;
+        /**
+         * 距离
+         */
+        distance: number;
+        /**
+         * 最小水平角度
+         */
+        minPanAngle: number;
+        /**
+         * 最大水平角度
+         */
+        maxPanAngle: number;
+        /**
+         * 最小倾斜角度
+         */
+        minTiltAngle: number;
+        /**
+         * 最大倾斜角度
+         */
+        maxTiltAngle: number;
+        /**
+         *
+         */
+        steps: number;
+        /**
+         *
+         */
+        yFactor: number;
+        /**
+         * 当 Pan 的角度超过 360 度之后, 是否将其重新设定为360度以内
+         */
+        wrapPanAngle: boolean;
+        update(time: number, delay: number): void;
     }
 }
 declare namespace dou3d {

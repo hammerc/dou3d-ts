@@ -7,6 +7,8 @@ function loadAllJS() {
     this.loadJS("bin/examples/LightTest.js");
     this.loadJS("bin/examples/ShadowTest.js");
     this.loadJS("bin/examples/AnimationTest.js");
+    this.loadJS("bin/examples/LookAtControllerTest.js");
+    this.loadJS("bin/examples/HoverControllerTest.js");
 }
 var Main = /** @class */ (function () {
     function Main(urlParams) {
@@ -40,6 +42,12 @@ var Main = /** @class */ (function () {
                 break;
             case "animation":
                 new examples.AnimationTest(view3D);
+                break;
+            case "lookAt":
+                new examples.LookAtControllerTest(view3D);
+                break;
+            case "hover":
+                new examples.HoverControllerTest(view3D);
                 break;
         }
     }

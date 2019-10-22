@@ -1672,6 +1672,7 @@ var dou3d;
                     this._position.copy(vector);
                     quaternion.recycle();
                     vector.recycle();
+                    this.invalidTransform();
                 }
                 else {
                     this._position.copy(value);
@@ -1689,6 +1690,7 @@ var dou3d;
                 quaternion.fromEuler(value.x, value.y, value.z);
                 this._globalOrientation.copy(quaternion);
                 quaternion.recycle();
+                this.invalidTransform();
             },
             enumerable: true,
             configurable: true
@@ -1703,6 +1705,7 @@ var dou3d;
                     vector.divide(value, this._parent._globalScale);
                     this._scale.copy(vector);
                     vector.recycle();
+                    this.invalidTransform();
                 }
                 else {
                     this._scale.copy(value);
@@ -1722,6 +1725,7 @@ var dou3d;
                     quaternion.multiply(quaternion, value);
                     this._orientation.copy(quaternion);
                     quaternion.recycle();
+                    this.invalidTransform();
                 }
                 else {
                     this._orientation.copy(value);
@@ -1737,6 +1741,7 @@ var dou3d;
             },
             set: function (value) {
                 value.decompose(this._globalPosition, this._globalOrientation, this._globalScale);
+                this.invalidTransform();
             },
             enumerable: true,
             configurable: true
@@ -1815,6 +1820,16 @@ var dou3d;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Object3D.prototype, "controller", {
+            get: function () {
+                return this._controller;
+            },
+            set: function (value) {
+                this._controller = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object3D.prototype.setParent = function (parent) {
             this._parent = parent;
         };
@@ -1889,11 +1904,15 @@ var dou3d;
          * @param camera 当前渲染的摄相机
          */
         Object3D.prototype.update = function (time, delay, camera) {
+            if (this._controller && this._controller.autoUpdate) {
+                this._controller.update(time, delay);
+            }
         };
         /**
          * 销毁本对象
          */
         Object3D.prototype.dispose = function () {
+            this._controller = null;
         };
         return Object3D;
     }(dou.EventDispatcher));
@@ -3965,6 +3984,7 @@ var dou3d;
             quaternion.fromMatrix(this._viewMatrix);
             this.globalOrientation = quaternion;
             quaternion.recycle();
+            this.updateGlobalTransform();
         };
         Camera3D.prototype.onTransformUpdate = function () {
             _super.prototype.onTransformUpdate.call(this);
@@ -4323,6 +4343,394 @@ var dou3d;
         return Frustum;
     }());
     dou3d.Frustum = Frustum;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 控制器基类
+     * @author wizardc
+     */
+    var ControllerBase = /** @class */ (function () {
+        function ControllerBase(target) {
+            this._autoUpdate = true;
+            this.target = target;
+        }
+        Object.defineProperty(ControllerBase.prototype, "autoUpdate", {
+            get: function () {
+                return this._autoUpdate;
+            },
+            set: function (value) {
+                if (this._autoUpdate == value) {
+                    return;
+                }
+                this._autoUpdate = value;
+                if (this._target) {
+                    this._target.controller = this._autoUpdate ? this : null;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ControllerBase.prototype, "target", {
+            get: function () {
+                return this._target;
+            },
+            set: function (value) {
+                if (this._target == value) {
+                    return;
+                }
+                if (this._target && this._autoUpdate) {
+                    this._target.controller = null;
+                }
+                this._target = value;
+                if (this._target && this._autoUpdate) {
+                    this._target.controller = this;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return ControllerBase;
+    }());
+    dou3d.ControllerBase = ControllerBase;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 始终朝向指定目标的控制器
+     * @author wizardc
+     */
+    var LookAtController = /** @class */ (function (_super) {
+        __extends(LookAtController, _super);
+        function LookAtController(target, lookAtObject) {
+            var _this = _super.call(this, target) || this;
+            _this._upAxis = dou3d.Vector3.UP;
+            if (lookAtObject) {
+                if (lookAtObject instanceof dou3d.Object3D) {
+                    _this.lookAtObject = lookAtObject;
+                }
+                else {
+                    _this.lookAtPosition = lookAtObject;
+                }
+            }
+            return _this;
+        }
+        Object.defineProperty(LookAtController.prototype, "lookAtPosition", {
+            get: function () {
+                return this._lookAtPosition;
+            },
+            set: function (value) {
+                this._lookAtPosition = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(LookAtController.prototype, "lookAtObject", {
+            get: function () {
+                return this._lookAtObject;
+            },
+            set: function (value) {
+                this._lookAtObject = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(LookAtController.prototype, "upAxis", {
+            get: function () {
+                return this._upAxis;
+            },
+            set: function (value) {
+                this._upAxis = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        LookAtController.prototype.update = function (time, delay) {
+            if (this._target) {
+                if (this._lookAtPosition) {
+                    this._target.lookAt(this._target.globalPosition, this._lookAtPosition, this._upAxis);
+                }
+                else if (this._lookAtObject) {
+                    this._target.lookAt(this._target.globalPosition, this._lookAtObject.globalPosition, this._upAxis);
+                }
+                else {
+                    this._target.lookAt(this._target.globalPosition, dou3d.Vector3.ZERO, this._upAxis);
+                }
+            }
+        };
+        return LookAtController;
+    }(dou3d.ControllerBase));
+    dou3d.LookAtController = LookAtController;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 多参数控制的始终朝向指定目标的控制器
+     * @author wizardc
+     */
+    var HoverController = /** @class */ (function (_super) {
+        __extends(HoverController, _super);
+        function HoverController(target, lookAtObject, panAngle, tiltAngle, distance, minPanAngle, maxPanAngle, minTiltAngle, maxTiltAngle, steps, yFactor, wrapPanAngle) {
+            if (panAngle === void 0) { panAngle = 0; }
+            if (tiltAngle === void 0) { tiltAngle = 90; }
+            if (distance === void 0) { distance = 1000; }
+            if (minPanAngle === void 0) { minPanAngle = NaN; }
+            if (maxPanAngle === void 0) { maxPanAngle = NaN; }
+            if (minTiltAngle === void 0) { minTiltAngle = -90; }
+            if (maxTiltAngle === void 0) { maxTiltAngle = 90; }
+            if (steps === void 0) { steps = 8; }
+            if (yFactor === void 0) { yFactor = 2; }
+            if (wrapPanAngle === void 0) { wrapPanAngle = false; }
+            var _this = _super.call(this, target, lookAtObject) || this;
+            _this._panAngle = 0;
+            _this._tiltAngle = 90;
+            _this._distance = 1000;
+            _this._minPanAngle = -Infinity;
+            _this._maxPanAngle = Infinity;
+            _this._minTiltAngle = -90;
+            _this._maxTiltAngle = 90;
+            _this._steps = 8;
+            _this._yFactor = 2;
+            _this._wrapPanAngle = false;
+            _this.distance = distance;
+            _this.panAngle = panAngle;
+            _this.tiltAngle = tiltAngle;
+            _this.minPanAngle = minPanAngle || -Infinity;
+            _this.maxPanAngle = maxPanAngle || Infinity;
+            _this.minTiltAngle = minTiltAngle;
+            _this.maxTiltAngle = maxTiltAngle;
+            _this.steps = steps;
+            _this.yFactor = yFactor;
+            _this.wrapPanAngle = wrapPanAngle;
+            _this._currentPanAngle = _this._panAngle;
+            _this._currentTiltAngle = _this._tiltAngle;
+            return _this;
+        }
+        Object.defineProperty(HoverController.prototype, "panAngle", {
+            get: function () {
+                return this._panAngle;
+            },
+            /**
+             * 水平角度
+             */
+            set: function (value) {
+                value = dou3d.MathUtil.clamp(value, this._minPanAngle, this._maxPanAngle);
+                if (this._panAngle == value) {
+                    return;
+                }
+                this._panAngle = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HoverController.prototype, "tiltAngle", {
+            get: function () {
+                return this._tiltAngle;
+            },
+            /**
+             * 倾斜角度
+             */
+            set: function (value) {
+                value = dou3d.MathUtil.clamp(value, this._minTiltAngle, this._maxTiltAngle);
+                if (this._tiltAngle == value) {
+                    return;
+                }
+                this._tiltAngle = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HoverController.prototype, "distance", {
+            get: function () {
+                return this._distance;
+            },
+            /**
+             * 距离
+             */
+            set: function (value) {
+                if (this._distance == value) {
+                    return;
+                }
+                this._distance = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HoverController.prototype, "minPanAngle", {
+            get: function () {
+                return this._minPanAngle;
+            },
+            /**
+             * 最小水平角度
+             */
+            set: function (value) {
+                if (this._minPanAngle == value) {
+                    return;
+                }
+                this._minPanAngle = value;
+                this.panAngle = dou3d.MathUtil.clamp(value, this._minPanAngle, this._maxPanAngle);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HoverController.prototype, "maxPanAngle", {
+            get: function () {
+                return this._maxPanAngle;
+            },
+            /**
+             * 最大水平角度
+             */
+            set: function (value) {
+                if (this._maxPanAngle == value) {
+                    return;
+                }
+                this._maxPanAngle = value;
+                this.panAngle = dou3d.MathUtil.clamp(value, this._minPanAngle, this._maxPanAngle);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HoverController.prototype, "minTiltAngle", {
+            get: function () {
+                return this._minTiltAngle;
+            },
+            /**
+             * 最小倾斜角度
+             */
+            set: function (value) {
+                if (this._minTiltAngle == value) {
+                    return;
+                }
+                this._minTiltAngle = value;
+                this.tiltAngle = dou3d.MathUtil.clamp(value, this._minTiltAngle, this._maxTiltAngle);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HoverController.prototype, "maxTiltAngle", {
+            get: function () {
+                return this._maxTiltAngle;
+            },
+            /**
+             * 最大倾斜角度
+             */
+            set: function (value) {
+                if (this._maxTiltAngle == value) {
+                    return;
+                }
+                this._maxTiltAngle = value;
+                this.tiltAngle = dou3d.MathUtil.clamp(value, this._minTiltAngle, this._maxTiltAngle);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HoverController.prototype, "steps", {
+            get: function () {
+                return this._steps;
+            },
+            /**
+             *
+             */
+            set: function (value) {
+                if (this._steps == value) {
+                    return;
+                }
+                this._steps = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HoverController.prototype, "yFactor", {
+            get: function () {
+                return this._yFactor;
+            },
+            /**
+             *
+             */
+            set: function (value) {
+                if (this._yFactor == value) {
+                    return;
+                }
+                this._yFactor = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HoverController.prototype, "wrapPanAngle", {
+            get: function () {
+                return this._wrapPanAngle;
+            },
+            /**
+             * 当 Pan 的角度超过 360 度之后, 是否将其重新设定为360度以内
+             */
+            set: function (value) {
+                if (this._wrapPanAngle == value) {
+                    return;
+                }
+                this._wrapPanAngle = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        HoverController.prototype.update = function (time, delay) {
+            if (this._tiltAngle != this._currentTiltAngle || this._panAngle != this._currentPanAngle) {
+                if (this._wrapPanAngle) {
+                    if (this._panAngle < 0) {
+                        this._currentPanAngle += this._panAngle % 360 + 360 - this._panAngle;
+                        this._panAngle = this._panAngle % 360 + 360;
+                    }
+                    else {
+                        this._currentPanAngle += this._panAngle % 360 - this._panAngle;
+                        this._panAngle = this._panAngle % 360;
+                    }
+                    while (this._panAngle - this._currentPanAngle < -180) {
+                        this._currentPanAngle -= 360;
+                    }
+                    while (this._panAngle - this._currentPanAngle > 180) {
+                        this._currentPanAngle += 360;
+                    }
+                }
+                if (this._steps > 0) {
+                    this._currentTiltAngle += (this._tiltAngle - this._currentTiltAngle) / (this._steps + 1);
+                    this._currentPanAngle += (this._panAngle - this._currentPanAngle) / (this._steps + 1);
+                }
+                else {
+                    this._currentPanAngle = this._panAngle;
+                    this._currentTiltAngle = this._tiltAngle;
+                }
+                if ((Math.abs(this._tiltAngle - this._currentTiltAngle) < 0.01) && (Math.abs(this._panAngle - this._currentPanAngle) < 0.01)) {
+                    this._currentTiltAngle = this._tiltAngle;
+                    this._currentPanAngle = this._panAngle;
+                }
+            }
+            if (!this._target) {
+                return;
+            }
+            var pos = dou.recyclable(dou3d.Vector3);
+            if (this._lookAtPosition) {
+                pos.x = this._lookAtPosition.x;
+                pos.y = this._lookAtPosition.y;
+                pos.z = this._lookAtPosition.z;
+            }
+            else if (this._lookAtObject) {
+                pos.x = this._lookAtObject.globalPosition.x;
+                pos.y = this._lookAtObject.globalPosition.y;
+                pos.z = this._lookAtObject.globalPosition.z;
+            }
+            else {
+                pos.x = 0;
+                pos.y = 0;
+                pos.z = 0;
+            }
+            this._target.x = pos.x + this._distance * Math.sin(this._currentPanAngle * dou3d.MathUtil.DEG_RAD) * Math.cos(this._currentTiltAngle * dou3d.MathUtil.DEG_RAD);
+            this._target.z = pos.z + this._distance * Math.cos(this._currentPanAngle * dou3d.MathUtil.DEG_RAD) * Math.cos(this._currentTiltAngle * dou3d.MathUtil.DEG_RAD);
+            this._target.y = pos.y + this._distance * Math.sin(this._currentTiltAngle * dou3d.MathUtil.DEG_RAD) * this._yFactor;
+            this._target.globalMatrix;
+            _super.prototype.update.call(this, time, delay);
+        };
+        return HoverController;
+    }(dou3d.LookAtController));
+    dou3d.HoverController = HoverController;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {

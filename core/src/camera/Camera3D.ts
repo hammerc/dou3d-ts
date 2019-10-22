@@ -182,6 +182,7 @@ namespace dou3d {
             quaternion.fromMatrix(this._viewMatrix);
             this.globalOrientation = quaternion;
             quaternion.recycle();
+            this.updateGlobalTransform();
         }
 
         protected onTransformUpdate(): void {
