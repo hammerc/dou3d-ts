@@ -816,6 +816,10 @@ declare namespace dou3d {
         setParent(parent: ObjectContainer3D): void;
         invalidTransform(): void;
         invalidGlobalTransform(): void;
+        /**
+         * 立即刷新当前的变换矩阵
+         */
+        validateTransformNow(): void;
         protected updateGlobalTransform(): void;
         protected markTransform(): void;
         protected onTransformUpdate(): void;
@@ -827,6 +831,14 @@ declare namespace dou3d {
          * 朝向指定的目标
          */
         lookAtTarget(target: Object3D): void;
+        /**
+         * 将对象的本地坐标转换为全局坐标
+         */
+        localToGlobal(local: IVector3, result?: IVector4): IVector4;
+        /**
+         * 将全局坐标转换为对象的本地坐标
+         */
+        globalToLocal(local: IVector3, result?: IVector4): IVector4;
         /**
          * 更新
          * @param time 当前时间
@@ -1745,11 +1757,13 @@ declare namespace dou3d {
          */
         maxTiltAngle: number;
         /**
-         *
+         * 每帧缓动的距离的除数
+         * * 为 0 表示不进行缓动, 数字越大缓动速度越慢
          */
         steps: number;
         /**
-         *
+         * y 轴和 x 轴的距离比值
+         * * 为 1 时表示为圆形, 其它表示为椭圆形
          */
         yFactor: number;
         /**
@@ -2011,6 +2025,7 @@ declare namespace dou3d {
      */
     class Event3D extends dou.Event {
         static ENTER_FRAME: string;
+        static EXIT_FRAME: string;
         static RESIZE: string;
         static TOUCH_BEGIN: string;
         static TOUCH_MOVE: string;

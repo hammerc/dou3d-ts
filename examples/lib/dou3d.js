@@ -1659,6 +1659,7 @@ var dou3d;
         });
         Object.defineProperty(Object3D.prototype, "globalPosition", {
             get: function () {
+                this.validateTransformNow();
                 return this._globalPosition;
             },
             set: function (value) {
@@ -1683,6 +1684,7 @@ var dou3d;
         });
         Object.defineProperty(Object3D.prototype, "globalRotation", {
             get: function () {
+                this.validateTransformNow();
                 return this._globalRotation;
             },
             set: function (value) {
@@ -1697,6 +1699,7 @@ var dou3d;
         });
         Object.defineProperty(Object3D.prototype, "globalScale", {
             get: function () {
+                this.validateTransformNow();
                 return this._globalScale;
             },
             set: function (value) {
@@ -1716,6 +1719,7 @@ var dou3d;
         });
         Object.defineProperty(Object3D.prototype, "globalOrientation", {
             get: function () {
+                this.validateTransformNow();
                 return this._globalOrientation;
             },
             set: function (value) {
@@ -1736,7 +1740,7 @@ var dou3d;
         });
         Object.defineProperty(Object3D.prototype, "globalMatrix", {
             get: function () {
-                this.updateGlobalTransform();
+                this.validateTransformNow();
                 return this._globalMatrix;
             },
             set: function (value) {
@@ -1839,6 +1843,12 @@ var dou3d;
         Object3D.prototype.invalidGlobalTransform = function () {
             this._globalTransformChanged = true;
         };
+        /**
+         * 立即刷新当前的变换矩阵
+         */
+        Object3D.prototype.validateTransformNow = function () {
+            this.updateGlobalTransform();
+        };
         Object3D.prototype.updateGlobalTransform = function () {
             if (!this._globalTransformChanged) {
                 return;
@@ -1896,6 +1906,40 @@ var dou3d;
             vector.recycle();
             matrix.recycle();
             quaternion.recycle();
+        };
+        /**
+         * 将对象的本地坐标转换为全局坐标
+         */
+        Object3D.prototype.localToGlobal = function (local, result) {
+            result = result || dou.recyclable(dou3d.Vector4);
+            if (this._parent) {
+                this.globalMatrix.transformVector(local, result);
+            }
+            else {
+                result.x = local.x;
+                result.y = local.y;
+                result.z = local.z;
+            }
+            return result;
+        };
+        /**
+         * 将全局坐标转换为对象的本地坐标
+         */
+        Object3D.prototype.globalToLocal = function (local, result) {
+            result = result || dou.recyclable(dou3d.Vector4);
+            if (this._parent) {
+                var inverse = dou.recyclable(dou3d.Matrix4);
+                inverse.copy(this.globalMatrix);
+                inverse.inverse();
+                inverse.transformVector(local, result);
+                inverse.recycle();
+            }
+            else {
+                result.x = local.x;
+                result.y = local.y;
+                result.z = local.z;
+            }
+            return result;
         };
         /**
          * 更新
@@ -2366,7 +2410,7 @@ var dou3d;
          * 数据更新
          */
         CollectBase.prototype.update = function (camera) {
-            camera.globalMatrix;
+            camera.validateTransformNow();
             this._renderList.length = 0;
         };
         return CollectBase;
@@ -2701,6 +2745,7 @@ var dou3d;
                         this.updateObject3D(object3d.children[i], time, delay);
                     }
                 }
+                object3d.dispatch(dou3d.Event3D.EXIT_FRAME);
             }
         };
         return View3D;
@@ -3984,7 +4029,6 @@ var dou3d;
             quaternion.fromMatrix(this._viewMatrix);
             this.globalOrientation = quaternion;
             quaternion.recycle();
-            this.updateGlobalTransform();
         };
         Camera3D.prototype.onTransformUpdate = function () {
             _super.prototype.onTransformUpdate.call(this);
@@ -3997,7 +4041,7 @@ var dou3d;
              * 相机视图矩阵
              */
             get: function () {
-                this.updateGlobalTransform();
+                this.validateTransformNow();
                 return this._viewMatrix;
             },
             enumerable: true,
@@ -4018,8 +4062,8 @@ var dou3d;
          */
         Camera3D.prototype.isVisibleToCamera = function (renderItem) {
             // 刷新自己和检测对象的矩阵
-            this.updateGlobalTransform();
-            renderItem.globalMatrix;
+            this.validateTransformNow();
+            renderItem.validateTransformNow();
             if (renderItem.bound) {
                 return renderItem.bound.inBound(this._frustum);
             }
@@ -4451,7 +4495,18 @@ var dou3d;
                     this._target.lookAt(this._target.globalPosition, this._lookAtPosition, this._upAxis);
                 }
                 else if (this._lookAtObject) {
-                    this._target.lookAt(this._target.globalPosition, this._lookAtObject.globalPosition, this._upAxis);
+                    if (this._target.parent === this._lookAtObject.parent) {
+                        this._target.lookAt(this._target.position, this._lookAtObject.position, this._upAxis);
+                    }
+                    else {
+                        var vect4 = dou.recyclable(dou3d.Vector4);
+                        this._target.parent.globalToLocal(this._lookAtObject.globalPosition, vect4);
+                        var vect3 = dou.recyclable(dou3d.Vector3);
+                        vect3.set(vect4.x, vect4.y, vect4.z);
+                        this._target.lookAt(this._target.position, vect3, this._upAxis);
+                        vect4.recycle();
+                        vect3.recycle();
+                    }
                 }
                 else {
                     this._target.lookAt(this._target.globalPosition, dou3d.Vector3.ZERO, this._upAxis);
@@ -4629,7 +4684,8 @@ var dou3d;
                 return this._steps;
             },
             /**
-             *
+             * 每帧缓动的距离的除数
+             * * 为 0 表示不进行缓动, 数字越大缓动速度越慢
              */
             set: function (value) {
                 if (this._steps == value) {
@@ -4645,7 +4701,8 @@ var dou3d;
                 return this._yFactor;
             },
             /**
-             *
+             * y 轴和 x 轴的距离比值
+             * * 为 1 时表示为圆形, 其它表示为椭圆形
              */
             set: function (value) {
                 if (this._yFactor == value) {
@@ -4713,9 +4770,17 @@ var dou3d;
                 pos.z = this._lookAtPosition.z;
             }
             else if (this._lookAtObject) {
-                pos.x = this._lookAtObject.globalPosition.x;
-                pos.y = this._lookAtObject.globalPosition.y;
-                pos.z = this._lookAtObject.globalPosition.z;
+                if (this._target.parent === this._lookAtObject.parent) {
+                    pos.x = this._lookAtObject.x;
+                    pos.y = this._lookAtObject.y;
+                    pos.z = this._lookAtObject.z;
+                }
+                else {
+                    var vect4 = dou.recyclable(dou3d.Vector4);
+                    this._target.parent.globalToLocal(this._lookAtObject.globalPosition, vect4);
+                    pos.set(vect4.x, vect4.y, vect4.z);
+                    vect4.recycle();
+                }
             }
             else {
                 pos.x = 0;
@@ -4725,7 +4790,7 @@ var dou3d;
             this._target.x = pos.x + this._distance * Math.sin(this._currentPanAngle * dou3d.MathUtil.DEG_RAD) * Math.cos(this._currentTiltAngle * dou3d.MathUtil.DEG_RAD);
             this._target.z = pos.z + this._distance * Math.cos(this._currentPanAngle * dou3d.MathUtil.DEG_RAD) * Math.cos(this._currentTiltAngle * dou3d.MathUtil.DEG_RAD);
             this._target.y = pos.y + this._distance * Math.sin(this._currentTiltAngle * dou3d.MathUtil.DEG_RAD) * this._yFactor;
-            this._target.globalMatrix;
+            pos.recycle();
             _super.prototype.update.call(this, time, delay);
         };
         return HoverController;
@@ -4799,6 +4864,7 @@ var dou3d;
             _super.prototype.onRecycle.call(this);
         };
         Event3D.ENTER_FRAME = "enterFrame";
+        Event3D.EXIT_FRAME = "exitFrame";
         Event3D.RESIZE = "resize";
         Event3D.TOUCH_BEGIN = "touchBegin";
         Event3D.TOUCH_MOVE = "touchMove";
@@ -9352,7 +9418,7 @@ var dou3d;
         }
         Object.defineProperty(DirectLight.prototype, "direction", {
             get: function () {
-                this.updateGlobalTransform();
+                this.validateTransformNow();
                 return this._direction;
             },
             set: function (value) {

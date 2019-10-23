@@ -45,7 +45,7 @@ namespace dou3d {
          * 数据更新
          */
         public update(camera: Camera3D): void {
-            camera.globalMatrix;
+            camera.validateTransformNow();
             this._renderList.length = 0;
         }
     }

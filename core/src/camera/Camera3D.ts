@@ -182,7 +182,6 @@ namespace dou3d {
             quaternion.fromMatrix(this._viewMatrix);
             this.globalOrientation = quaternion;
             quaternion.recycle();
-            this.updateGlobalTransform();
         }
 
         protected onTransformUpdate(): void {
@@ -198,7 +197,7 @@ namespace dou3d {
          * 相机视图矩阵
          */
         public get viewMatrix(): Matrix4 {
-            this.updateGlobalTransform();
+            this.validateTransformNow();
             return this._viewMatrix;
         }
 
@@ -214,8 +213,8 @@ namespace dou3d {
          */
         public isVisibleToCamera(renderItem: RenderBase): boolean {
             // 刷新自己和检测对象的矩阵
-            this.updateGlobalTransform();
-            renderItem.globalMatrix;
+            this.validateTransformNow();
+            renderItem.validateTransformNow();
             if (renderItem.bound) {
                 return renderItem.bound.inBound(this._frustum);
             }

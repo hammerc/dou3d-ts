@@ -5,6 +5,7 @@ namespace dou3d {
      */
     export class Event3D extends dou.Event {
         public static ENTER_FRAME: string = "enterFrame";
+        public static EXIT_FRAME: string = "exitFrame";
 
         public static RESIZE: string = "resize";
 

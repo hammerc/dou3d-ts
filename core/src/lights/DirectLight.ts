@@ -28,7 +28,7 @@ namespace dou3d {
             quaternion.recycle();
         }
         public get direction(): Vector3 {
-            this.updateGlobalTransform();
+            this.validateTransformNow();
             return this._direction;
         }
 

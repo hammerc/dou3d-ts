@@ -47,7 +47,18 @@ namespace dou3d {
                     this._target.lookAt(this._target.globalPosition, this._lookAtPosition, this._upAxis);
                 }
                 else if (this._lookAtObject) {
-                    this._target.lookAt(this._target.globalPosition, this._lookAtObject.globalPosition, this._upAxis);
+                    if (this._target.parent === this._lookAtObject.parent) {
+                        this._target.lookAt(this._target.position, this._lookAtObject.position, this._upAxis);
+                    }
+                    else {
+                        let vect4 = dou.recyclable(Vector4);
+                        this._target.parent.globalToLocal(this._lookAtObject.globalPosition, vect4);
+                        let vect3 = dou.recyclable(Vector3);
+                        vect3.set(vect4.x, vect4.y, vect4.z);
+                        this._target.lookAt(this._target.position, vect3, this._upAxis);
+                        vect4.recycle();
+                        vect3.recycle();
+                    }
                 }
                 else {
                     this._target.lookAt(this._target.globalPosition, Vector3.ZERO, this._upAxis);

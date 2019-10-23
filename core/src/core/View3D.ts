@@ -173,6 +173,7 @@ namespace dou3d {
                         this.updateObject3D(object3d.children[i], time, delay);
                     }
                 }
+                object3d.dispatch(Event3D.EXIT_FRAME);
             }
         }
     }

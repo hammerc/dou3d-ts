@@ -257,6 +257,7 @@ namespace dou3d {
             }
         }
         public get globalPosition(): Vector3 {
+            this.validateTransformNow();
             return this._globalPosition;
         }
 
@@ -268,6 +269,7 @@ namespace dou3d {
             this.invalidTransform();
         }
         public get globalRotation(): Vector3 {
+            this.validateTransformNow();
             return this._globalRotation;
         }
 
@@ -284,6 +286,7 @@ namespace dou3d {
             }
         }
         public get globalScale(): Vector3 {
+            this.validateTransformNow();
             return this._globalScale;
         }
 
@@ -301,6 +304,7 @@ namespace dou3d {
             }
         }
         public get globalOrientation(): Quaternion {
+            this.validateTransformNow();
             return this._globalOrientation;
         }
 
@@ -309,7 +313,7 @@ namespace dou3d {
             this.invalidTransform();
         }
         public get globalMatrix(): Matrix4 {
-            this.updateGlobalTransform();
+            this.validateTransformNow();
             return this._globalMatrix;
         }
 
@@ -388,6 +392,13 @@ namespace dou3d {
             this._globalTransformChanged = true;
         }
 
+        /**
+         * 立即刷新当前的变换矩阵
+         */
+        public validateTransformNow(): void {
+            this.updateGlobalTransform();
+        }
+
         protected updateGlobalTransform(): void {
             if (!this._globalTransformChanged) {
                 return;
@@ -448,6 +459,42 @@ namespace dou3d {
             vector.recycle();
             matrix.recycle();
             quaternion.recycle();
+        }
+
+        /**
+         * 将对象的本地坐标转换为全局坐标
+         */
+        public localToGlobal(local: IVector3, result?: IVector4): IVector4 {
+            result = result || dou.recyclable(Vector4);
+            if (this._parent) {
+                this.globalMatrix.transformVector(local, result);
+            }
+            else {
+                result.x = local.x;
+                result.y = local.y;
+                result.z = local.z;
+            }
+            return result;
+        }
+
+        /**
+         * 将全局坐标转换为对象的本地坐标
+         */
+        public globalToLocal(local: IVector3, result?: IVector4): IVector4 {
+            result = result || dou.recyclable(Vector4);
+            if (this._parent) {
+                let inverse = dou.recyclable(Matrix4);
+                inverse.copy(this.globalMatrix);
+                inverse.inverse();
+                inverse.transformVector(local, result);
+                inverse.recycle();
+            }
+            else {
+                result.x = local.x;
+                result.y = local.y;
+                result.z = local.z;
+            }
+            return result;
         }
 
         /**

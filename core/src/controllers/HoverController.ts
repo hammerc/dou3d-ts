@@ -213,9 +213,17 @@ namespace dou3d {
                 pos.z = this._lookAtPosition.z;
             }
             else if (this._lookAtObject) {
-                pos.x = this._lookAtObject.globalPosition.x;
-                pos.y = this._lookAtObject.globalPosition.y;
-                pos.z = this._lookAtObject.globalPosition.z;
+                if (this._target.parent === this._lookAtObject.parent) {
+                    pos.x = this._lookAtObject.x;
+                    pos.y = this._lookAtObject.y;
+                    pos.z = this._lookAtObject.z;
+                }
+                else {
+                    let vect4 = dou.recyclable(Vector4);
+                    this._target.parent.globalToLocal(this._lookAtObject.globalPosition, vect4);
+                    pos.set(vect4.x, vect4.y, vect4.z);
+                    vect4.recycle();
+                }
             }
             else {
                 pos.x = 0;
@@ -225,7 +233,7 @@ namespace dou3d {
             this._target.x = pos.x + this._distance * Math.sin(this._currentPanAngle * MathUtil.DEG_RAD) * Math.cos(this._currentTiltAngle * MathUtil.DEG_RAD);
             this._target.z = pos.z + this._distance * Math.cos(this._currentPanAngle * MathUtil.DEG_RAD) * Math.cos(this._currentTiltAngle * MathUtil.DEG_RAD);
             this._target.y = pos.y + this._distance * Math.sin(this._currentTiltAngle * MathUtil.DEG_RAD) * this._yFactor;
-            this._target.globalMatrix;
+            pos.recycle();
             super.update(time, delay);
         }
     }
