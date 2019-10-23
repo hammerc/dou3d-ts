@@ -31,7 +31,7 @@ var examples;
                         pos_1 = null;
                     });
                 }
-            }, this, "texture" /* texture */);
+            }, this);
         }
         return HoverControllerTest;
     }());

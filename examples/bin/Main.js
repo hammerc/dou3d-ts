@@ -2,14 +2,17 @@ function loadJS(url) {
     document.writeln("<script src=\"" + url + "\"></script>");
 }
 function loadAllJS() {
-    this.loadJS("bin/examples/CubeTest.js");
-    this.loadJS("bin/examples/TextureTest.js");
-    this.loadJS("bin/examples/LightTest.js");
-    this.loadJS("bin/examples/ShadowTest.js");
-    this.loadJS("bin/examples/AnimationTest.js");
-    this.loadJS("bin/examples/LookAtControllerTest.js");
-    this.loadJS("bin/examples/HoverControllerTest.js");
-    this.loadJS("bin/examples/TransformTest.js");
+}
+function loadJSAsync(src, callback) {
+    var s = document.createElement("script");
+    s.async = false;
+    s.src = src;
+    s.addEventListener("load", function () {
+        s.parentNode.removeChild(s);
+        s.removeEventListener("load", arguments.callee, false);
+        callback();
+    }, false);
+    document.body.appendChild(s);
 }
 var Main = /** @class */ (function () {
     function Main(urlParams) {
@@ -20,6 +23,12 @@ var Main = /** @class */ (function () {
         dou.loader.registerAnalyzer("texture" /* texture */, new dou3d.TextureAnalyzer());
         dou.loader.registerAnalyzer("esm" /* esm */, new dou3d.ESMAnalyzer());
         dou.loader.registerAnalyzer("eam" /* eam */, new dou3d.EAMAnalyzer());
+        // 关联文件后缀名到指定类型, 扩展名恰好就是资源类型的情况无需指定
+        dou.loader.registerExtension("txt", "text" /* text */);
+        dou.loader.registerExtension("bin", "binary" /* binary */);
+        dou.loader.registerExtension("jpg", "texture" /* texture */);
+        dou.loader.registerExtension("jpeg", "texture" /* texture */);
+        dou.loader.registerExtension("png", "texture" /* texture */);
         var engine = new dou3d.Engine();
         var viewRect = engine.viewRect;
         var view3D = new dou3d.View3D(0, 0, viewRect.w, viewRect.h);
@@ -30,28 +39,44 @@ var Main = /** @class */ (function () {
         engine.addView3D(view3D);
         switch (urlParams.demo) {
             case "cube":
-                new examples.CubeTest(view3D);
+                loadJSAsync("bin/examples/CubeTest.js", function () {
+                    new examples.CubeTest(view3D);
+                });
                 break;
             case "texture":
-                new examples.TextureTest(view3D);
+                loadJSAsync("bin/examples/TextureTest.js", function () {
+                    new examples.TextureTest(view3D);
+                });
                 break;
             case "light":
-                new examples.LightTest(view3D);
+                loadJSAsync("bin/examples/LightTest.js", function () {
+                    new examples.LightTest(view3D);
+                });
                 break;
             case "shadow":
-                new examples.ShadowTest(view3D);
+                loadJSAsync("bin/examples/ShadowTest.js", function () {
+                    new examples.ShadowTest(view3D);
+                });
                 break;
             case "animation":
-                new examples.AnimationTest(view3D);
+                loadJSAsync("bin/examples/AnimationTest.js", function () {
+                    new examples.AnimationTest(view3D);
+                });
                 break;
             case "lookAt":
-                new examples.LookAtControllerTest(view3D);
+                loadJSAsync("bin/examples/LookAtControllerTest.js", function () {
+                    new examples.LookAtControllerTest(view3D);
+                });
                 break;
             case "hover":
-                new examples.HoverControllerTest(view3D);
+                loadJSAsync("bin/examples/HoverControllerTest.js", function () {
+                    new examples.HoverControllerTest(view3D);
+                });
                 break;
             case "transform":
-                new examples.TransformTest(view3D);
+                loadJSAsync("bin/examples/TransformTest.js", function () {
+                    new examples.TransformTest(view3D);
+                });
                 break;
         }
     }

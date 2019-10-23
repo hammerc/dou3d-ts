@@ -47,7 +47,7 @@ namespace examples {
                     cube4.material.lightGroup = lightGroup4;
                 }
 
-            }, this, ResourceType.texture);
+            }, this);
         }
 
         private createCube(texture: dou3d.ImageTexture, x: number, y: number, z: number): dou3d.Mesh {

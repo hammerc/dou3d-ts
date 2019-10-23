@@ -36,7 +36,7 @@ namespace examples {
                     plane.rotationX = -45;
                 }
 
-            }, this, ResourceType.texture);
+            }, this);
         }
     }
 }

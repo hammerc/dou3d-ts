@@ -3,14 +3,18 @@ function loadJS(url: string): void {
 }
 
 function loadAllJS(): void {
-    this.loadJS("bin/examples/CubeTest.js");
-    this.loadJS("bin/examples/TextureTest.js");
-    this.loadJS("bin/examples/LightTest.js");
-    this.loadJS("bin/examples/ShadowTest.js");
-    this.loadJS("bin/examples/AnimationTest.js");
-    this.loadJS("bin/examples/LookAtControllerTest.js");
-    this.loadJS("bin/examples/HoverControllerTest.js");
-    this.loadJS("bin/examples/TransformTest.js");
+}
+
+function loadJSAsync(src: string, callback: () => void): void {
+    let s = document.createElement("script");
+    s.async = false;
+    s.src = src;
+    s.addEventListener("load", function () {
+        s.parentNode.removeChild(s);
+        s.removeEventListener("load", <any>arguments.callee, false);
+        callback();
+    }, false);
+    document.body.appendChild(s);
 }
 
 class Main {
@@ -22,6 +26,12 @@ class Main {
         dou.loader.registerAnalyzer(ResourceType.texture, new dou3d.TextureAnalyzer());
         dou.loader.registerAnalyzer(ResourceType.esm, new dou3d.ESMAnalyzer());
         dou.loader.registerAnalyzer(ResourceType.eam, new dou3d.EAMAnalyzer());
+        // 关联文件后缀名到指定类型, 扩展名恰好就是资源类型的情况无需指定
+        dou.loader.registerExtension("txt", ResourceType.text);
+        dou.loader.registerExtension("bin", ResourceType.binary);
+        dou.loader.registerExtension("jpg", ResourceType.texture);
+        dou.loader.registerExtension("jpeg", ResourceType.texture);
+        dou.loader.registerExtension("png", ResourceType.texture);
 
         let engine = new dou3d.Engine();
         let viewRect = engine.viewRect;
@@ -34,28 +44,44 @@ class Main {
 
         switch (urlParams.demo) {
             case "cube":
-                new examples.CubeTest(view3D);
+                loadJSAsync("bin/examples/CubeTest.js", () => {
+                    new examples.CubeTest(view3D);
+                });
                 break;
             case "texture":
-                new examples.TextureTest(view3D);
+                loadJSAsync("bin/examples/TextureTest.js", () => {
+                    new examples.TextureTest(view3D);
+                });
                 break;
             case "light":
-                new examples.LightTest(view3D);
+                loadJSAsync("bin/examples/LightTest.js", () => {
+                    new examples.LightTest(view3D);
+                });
                 break;
             case "shadow":
-                new examples.ShadowTest(view3D);
+                loadJSAsync("bin/examples/ShadowTest.js", () => {
+                    new examples.ShadowTest(view3D);
+                });
                 break;
             case "animation":
-                new examples.AnimationTest(view3D);
+                loadJSAsync("bin/examples/AnimationTest.js", () => {
+                    new examples.AnimationTest(view3D);
+                });
                 break;
             case "lookAt":
-                new examples.LookAtControllerTest(view3D);
+                loadJSAsync("bin/examples/LookAtControllerTest.js", () => {
+                    new examples.LookAtControllerTest(view3D);
+                });
                 break;
             case "hover":
-                new examples.HoverControllerTest(view3D);
+                loadJSAsync("bin/examples/HoverControllerTest.js", () => {
+                    new examples.HoverControllerTest(view3D);
+                });
                 break;
             case "transform":
-                new examples.TransformTest(view3D);
+                loadJSAsync("bin/examples/TransformTest.js", () => {
+                    new examples.TransformTest(view3D);
+                });
                 break;
         }
     }

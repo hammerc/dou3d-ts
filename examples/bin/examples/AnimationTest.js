@@ -52,17 +52,17 @@ var examples;
                             view3D.backColor = 0xff666666;
                             view3D.camera3D.lookAt(new dou3d.Vector3(0, 0, -1000), new dou3d.Vector3(0, 0, 0));
                             return [4 /*yield*/, dou.loader.loadGroupAsync([
-                                    { url: "resource/anim/xiaoqiao/body_27.esm", type: "esm" /* esm */ },
-                                    { url: "resource/anim/xiaoqiao/hero_27.png", type: "texture" /* texture */ },
-                                    { url: "resource/anim/xiaoqiao/idle_1.eam", type: "eam" /* eam */ },
-                                    { url: "resource/anim/xiaoqiao/run_1.eam", type: "eam" /* eam */ },
-                                    { url: "resource/anim/xiaoqiao/death_1.eam", type: "eam" /* eam */ },
-                                    { url: "resource/anim/xiaoqiao/attack_1.eam", type: "eam" /* eam */ },
-                                    { url: "resource/anim/xiaoqiao/attack_2.eam", type: "eam" /* eam */ },
-                                    { url: "resource/anim/xiaoqiao/skill_1.eam", type: "eam" /* eam */ },
-                                    { url: "resource/anim/xiaoqiao/skill_2.eam", type: "eam" /* eam */ },
-                                    { url: "resource/anim/xiaoqiao/skill_3.eam", type: "eam" /* eam */ },
-                                    { url: "resource/anim/xiaoqiao/skill_4.eam", type: "eam" /* eam */ }
+                                    { url: "resource/anim/xiaoqiao/body_27.esm" },
+                                    { url: "resource/anim/xiaoqiao/hero_27.png" },
+                                    { url: "resource/anim/xiaoqiao/idle_1.eam" },
+                                    { url: "resource/anim/xiaoqiao/run_1.eam" },
+                                    { url: "resource/anim/xiaoqiao/death_1.eam" },
+                                    { url: "resource/anim/xiaoqiao/attack_1.eam" },
+                                    { url: "resource/anim/xiaoqiao/attack_2.eam" },
+                                    { url: "resource/anim/xiaoqiao/skill_1.eam" },
+                                    { url: "resource/anim/xiaoqiao/skill_2.eam" },
+                                    { url: "resource/anim/xiaoqiao/skill_3.eam" },
+                                    { url: "resource/anim/xiaoqiao/skill_4.eam" }
                                 ])];
                         case 1:
                             _a.sent();

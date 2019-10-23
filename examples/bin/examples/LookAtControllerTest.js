@@ -33,7 +33,7 @@ var examples;
                     });
                     new dou3d.LookAtController(view3D.camera3D, cube_1);
                 }
-            }, this, "texture" /* texture */);
+            }, this);
         }
         return LookAtControllerTest;
     }());

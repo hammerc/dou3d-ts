@@ -38,7 +38,7 @@ var examples;
                     lightGroup4.addLight(spotLight);
                     cube4.material.lightGroup = lightGroup4;
                 }
-            }, this, "texture" /* texture */);
+            }, this);
         }
         LightTest.prototype.createCube = function (texture, x, y, z) {
             var mat = new dou3d.TextureMaterial(texture);

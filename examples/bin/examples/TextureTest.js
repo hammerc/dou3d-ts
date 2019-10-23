@@ -15,7 +15,7 @@ var examples;
                         cube_1.rotationY += dou3d.MathUtil.toRadians(90 * dou3d.ticker.deltaTime * 0.001);
                     });
                 }
-            }, this, "texture" /* texture */);
+            }, this);
         }
         return TextureTest;
     }());

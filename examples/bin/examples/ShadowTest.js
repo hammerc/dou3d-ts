@@ -29,7 +29,7 @@ var examples;
                     plane.z = 300;
                     plane.rotationX = -45;
                 }
-            }, this, "texture" /* texture */);
+            }, this);
         }
         return ShadowTest;
     }());

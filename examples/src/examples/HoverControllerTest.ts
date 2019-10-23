@@ -36,7 +36,7 @@ namespace examples {
                     });
                 }
 
-            }, this, ResourceType.texture);
+            }, this);
         }
     }
 }

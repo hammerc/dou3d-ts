@@ -40,7 +40,7 @@ namespace examples {
                     new dou3d.LookAtController(view3D.camera3D, cube);
                 }
 
-            }, this, ResourceType.texture);
+            }, this);
         }
     }
 }
