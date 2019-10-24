@@ -32,6 +32,8 @@ namespace dou3d {
         public updateLogic(passedTime: number): void {
             this._deltaTime = passedTime;
 
+            dou.Tween.tick(passedTime, false);
+
             let viewRect = this._engine.viewRect;
             let view3Ds = this._engine.view3Ds;
             ContextConfig.canvasRectangle = viewRect;

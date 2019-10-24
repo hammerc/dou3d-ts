@@ -20,22 +20,27 @@ namespace examples {
 
                     cube.y = 40;
 
-                    let left = false;
-                    cube.on(dou3d.Event3D.ENTER_FRAME, () => {
-                        let dist = 50 * dou3d.ticker.deltaTime * 0.001;
-                        if (left) {
-                            cube.x -= dist;
-                            if (cube.x <= -250) {
-                                left = false;
-                            }
-                        }
-                        else {
-                            cube.x += dist;
-                            if (cube.x >= 250) {
-                                left = true;
-                            }
-                        }
-                    });
+                    // let left = false;
+                    // cube.on(dou3d.Event3D.ENTER_FRAME, () => {
+                    //     let dist = 50 * dou3d.ticker.deltaTime * 0.001;
+                    //     if (left) {
+                    //         cube.x -= dist;
+                    //         if (cube.x <= -250) {
+                    //             left = false;
+                    //         }
+                    //     }
+                    //     else {
+                    //         cube.x += dist;
+                    //         if (cube.x >= 250) {
+                    //             left = true;
+                    //         }
+                    //     }
+                    // });
+
+                    dou.Tween.get(cube, { loop: true })
+                        .to({ x: 100, z: 0 }, 1000)
+                        .to({ x: 50, z: 100 }, 1000)
+                        .to({ x: 0, z: 0 }, 1000);
 
                     new dou3d.LookAtController(view3D.camera3D, cube);
                 }

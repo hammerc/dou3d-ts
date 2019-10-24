@@ -2551,6 +2551,7 @@ var dou3d;
         });
         Ticker.prototype.updateLogic = function (passedTime) {
             this._deltaTime = passedTime;
+            dou.Tween.tick(passedTime, false);
             var viewRect = this._engine.viewRect;
             var view3Ds = this._engine.view3Ds;
             dou3d.ContextConfig.canvasRectangle = viewRect;

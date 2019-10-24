@@ -88,6 +88,7 @@ declare namespace dou {
      */
     class Event extends HashObject implements ICacheable {
         static OPEN: string;
+        static CHANGE: string;
         static COMPLETE: string;
         static MESSAGE: string;
         static CLOSE: string;
@@ -393,6 +394,172 @@ declare namespace dou {
         flush(): void;
         close(): void;
         private cleanSocket;
+    }
+}
+declare namespace dou {
+    /**
+     * 缓动函数集合
+     * @author wizardc
+     */
+    namespace Ease {
+        const quadIn: (t: number) => number;
+        const quadOut: (t: number) => number;
+        const quadInOut: (t: number) => number;
+        const cubicIn: (t: number) => number;
+        const cubicOut: (t: number) => number;
+        const cubicInOut: (t: number) => number;
+        const quartIn: (t: number) => number;
+        const quartOut: (t: number) => number;
+        const quartInOut: (t: number) => number;
+        const quintIn: (t: number) => number;
+        const quintOut: (t: number) => number;
+        const quintInOut: (t: number) => number;
+        function sineIn(t: number): number;
+        function sineOut(t: number): number;
+        function sineInOut(t: number): number;
+        const backIn: (t: number) => number;
+        const backOut: (t: number) => number;
+        const backInOut: (t: number) => number;
+        function circIn(t: number): number;
+        function circOut(t: number): number;
+        function circInOut(t: number): number;
+        function bounceIn(t: number): number;
+        function bounceOut(t: number): number;
+        function bounceInOut(t: number): number;
+        const elasticIn: (t: number) => number;
+        const elasticOut: (t: number) => number;
+        const elasticInOut: (t: number) => number;
+    }
+}
+declare namespace dou {
+    /**
+     * 缓动类
+     * @author wizardc
+     */
+    class Tween extends EventDispatcher {
+        /**
+         * 不做特殊处理
+         */
+        private static NONE;
+        /**
+         * 循环
+         */
+        private static LOOP;
+        /**
+         * 倒序
+         */
+        private static REVERSE;
+        private static _tweens;
+        /**
+         * 帧循环逻辑, 请在项目的合适地方进行循环调用
+         */
+        static tick(passedTime: number, paused?: boolean): void;
+        /**
+         * 激活一个对象, 对其添加 Tween 动画
+         * @param target 要激活 Tween 的对象
+         * @param props 参数
+         * @param override 是否移除对象之前添加的tween
+         * @returns 缓动对象
+         */
+        static get(target: any, props?: {
+            loop?: boolean;
+            onChange?: Function;
+            onChangeObj?: any;
+        }, override?: boolean): Tween;
+        /**
+         * 暂停某个对象的所有 Tween 动画
+         */
+        static pauseTweens(target: any): void;
+        /**
+         * 继续播放某个对象的所有 Tween 动画
+         */
+        static resumeTweens(target: any): void;
+        /**
+         * 删除一个对象上的全部 Tween 动画
+         */
+        static removeTweens(target: any): void;
+        /**
+         * 删除所有的 Tween 动画
+         */
+        static removeAllTweens(): void;
+        private static _register;
+        private _target;
+        private _useTicks;
+        private _ignoreGlobalPause;
+        private _loop;
+        private _curQueueProps;
+        private _initQueueProps;
+        private _steps;
+        private _paused;
+        private _duration;
+        private _prevPos;
+        private _position;
+        private _prevPosition;
+        private _stepPosition;
+        private _passive;
+        constructor(target: any, props: any);
+        private initialize;
+        /**
+         * 设置是否暂停
+         */
+        setPaused(value: boolean): Tween;
+        /**
+         * 等待指定毫秒后执行下一个动画
+         * @param duration 要等待的时间, 以毫秒为单位
+         * @param passive 等待期间属性是否会更新
+         * @returns Tween 对象本身
+         */
+        wait(duration: number, passive?: boolean): Tween;
+        /**
+         * 将指定对象的属性修改为指定值
+         * @param props 对象的属性集合
+         * @param duration 持续时间
+         * @param ease 缓动算法
+         * @returns Tween 对象本身
+         */
+        to(props: any, duration?: number, ease?: Function): Tween;
+        /**
+         * 执行回调函数
+         * @param callback 回调方法
+         * @param thisObj 回调方法 this 作用域
+         * @param params 回调方法参数
+         * @returns Tween 对象本身
+         */
+        call(callback: Function, thisObj?: any, params?: any[]): Tween;
+        /**
+         * 立即将指定对象的属性修改为指定值
+         * @param props 对象的属性集合
+         * @param target 要继续播放 Tween 的对象
+         * @returns Tween 对象本身
+         */
+        set(props: any, target?: any): Tween;
+        /**
+         * 播放
+         * @param tween 需要操作的 Tween 对象, 默认 this
+         * @returns Tween 对象本身
+         */
+        play(tween?: Tween): Tween;
+        /**
+         * 暂停
+         * @param tween 需要操作的 Tween 对象, 默认 this
+         * @returns Tween 对象本身
+         */
+        pause(tween?: Tween): Tween;
+        /**
+         * @private
+         */
+        $tick(delta: number): void;
+        /**
+         * @private
+         */
+        setPosition(value: number, actionsMode?: number): boolean;
+        private _runAction;
+        private _updateTargetProps;
+        private _cloneProps;
+        private _addStep;
+        private _appendQueueProps;
+        private _addAction;
+        private _set;
     }
 }
 declare namespace dou {

@@ -16,7 +16,7 @@ function loadJSAsync(src, callback) {
 }
 var Main = /** @class */ (function () {
     function Main(urlParams) {
-        // 加载类型注册
+        // 注册加载类型解析器
         dou.loader.registerAnalyzer("text" /* text */, new dou.TextAnalyzer());
         dou.loader.registerAnalyzer("json" /* json */, new dou.JsonAnalyzer());
         dou.loader.registerAnalyzer("binary" /* binary */, new dou.BytesAnalyzer());

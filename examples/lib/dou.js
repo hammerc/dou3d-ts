@@ -300,6 +300,7 @@ var dou;
             this._target = null;
         };
         Event.OPEN = "open";
+        Event.CHANGE = "change";
         Event.COMPLETE = "complete";
         Event.MESSAGE = "message";
         Event.CLOSE = "close";
@@ -1188,6 +1189,574 @@ var dou;
         return Socket;
     }(dou.EventDispatcher));
     dou.Socket = Socket;
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * 缓动函数集合
+     * @author wizardc
+     */
+    var Ease;
+    (function (Ease) {
+        function getPowIn(pow) {
+            return function (t) {
+                return Math.pow(t, pow);
+            };
+        }
+        function getPowOut(pow) {
+            return function (t) {
+                return 1 - Math.pow(1 - t, pow);
+            };
+        }
+        function getPowInOut(pow) {
+            return function (t) {
+                if ((t *= 2) < 1)
+                    return 0.5 * Math.pow(t, pow);
+                return 1 - 0.5 * Math.abs(Math.pow(2 - t, pow));
+            };
+        }
+        Ease.quadIn = getPowIn(2);
+        Ease.quadOut = getPowOut(2);
+        Ease.quadInOut = getPowInOut(2);
+        Ease.cubicIn = getPowIn(3);
+        Ease.cubicOut = getPowOut(3);
+        Ease.cubicInOut = getPowInOut(3);
+        Ease.quartIn = getPowIn(4);
+        Ease.quartOut = getPowOut(4);
+        Ease.quartInOut = getPowInOut(4);
+        Ease.quintIn = getPowIn(5);
+        Ease.quintOut = getPowOut(5);
+        Ease.quintInOut = getPowInOut(5);
+        function sineIn(t) {
+            return 1 - Math.cos(t * Math.PI / 2);
+        }
+        Ease.sineIn = sineIn;
+        function sineOut(t) {
+            return Math.sin(t * Math.PI / 2);
+        }
+        Ease.sineOut = sineOut;
+        function sineInOut(t) {
+            return -0.5 * (Math.cos(Math.PI * t) - 1);
+        }
+        Ease.sineInOut = sineInOut;
+        function getBackIn(amount) {
+            return function (t) {
+                return t * t * ((amount + 1) * t - amount);
+            };
+        }
+        Ease.backIn = getBackIn(1.7);
+        function getBackOut(amount) {
+            return function (t) {
+                return (--t * t * ((amount + 1) * t + amount) + 1);
+            };
+        }
+        Ease.backOut = getBackOut(1.7);
+        function getBackInOut(amount) {
+            amount *= 1.525;
+            return function (t) {
+                if ((t *= 2) < 1)
+                    return 0.5 * (t * t * ((amount + 1) * t - amount));
+                return 0.5 * ((t -= 2) * t * ((amount + 1) * t + amount) + 2);
+            };
+        }
+        Ease.backInOut = getBackInOut(1.7);
+        function circIn(t) {
+            return -(Math.sqrt(1 - t * t) - 1);
+        }
+        Ease.circIn = circIn;
+        function circOut(t) {
+            return Math.sqrt(1 - (--t) * t);
+        }
+        Ease.circOut = circOut;
+        function circInOut(t) {
+            if ((t *= 2) < 1) {
+                return -0.5 * (Math.sqrt(1 - t * t) - 1);
+            }
+            return 0.5 * (Math.sqrt(1 - (t -= 2) * t) + 1);
+        }
+        Ease.circInOut = circInOut;
+        function bounceIn(t) {
+            return 1 - bounceOut(1 - t);
+        }
+        Ease.bounceIn = bounceIn;
+        function bounceOut(t) {
+            if (t < 1 / 2.75) {
+                return (7.5625 * t * t);
+            }
+            else if (t < 2 / 2.75) {
+                return (7.5625 * (t -= 1.5 / 2.75) * t + 0.75);
+            }
+            else if (t < 2.5 / 2.75) {
+                return (7.5625 * (t -= 2.25 / 2.75) * t + 0.9375);
+            }
+            else {
+                return (7.5625 * (t -= 2.625 / 2.75) * t + 0.984375);
+            }
+        }
+        Ease.bounceOut = bounceOut;
+        function bounceInOut(t) {
+            if (t < 0.5)
+                return bounceIn(t * 2) * .5;
+            return bounceOut(t * 2 - 1) * 0.5 + 0.5;
+        }
+        Ease.bounceInOut = bounceInOut;
+        function getElasticIn(amplitude, period) {
+            var pi2 = Math.PI * 2;
+            return function (t) {
+                if (t == 0 || t == 1)
+                    return t;
+                var s = period / pi2 * Math.asin(1 / amplitude);
+                return -(amplitude * Math.pow(2, 10 * (t -= 1)) * Math.sin((t - s) * pi2 / period));
+            };
+        }
+        Ease.elasticIn = getElasticIn(1, 0.3);
+        function getElasticOut(amplitude, period) {
+            var pi2 = Math.PI * 2;
+            return function (t) {
+                if (t == 0 || t == 1)
+                    return t;
+                var s = period / pi2 * Math.asin(1 / amplitude);
+                return (amplitude * Math.pow(2, -10 * t) * Math.sin((t - s) * pi2 / period) + 1);
+            };
+        }
+        Ease.elasticOut = getElasticOut(1, 0.3);
+        function getElasticInOut(amplitude, period) {
+            var pi2 = Math.PI * 2;
+            return function (t) {
+                var s = period / pi2 * Math.asin(1 / amplitude);
+                if ((t *= 2) < 1)
+                    return -0.5 * (amplitude * Math.pow(2, 10 * (t -= 1)) * Math.sin((t - s) * pi2 / period));
+                return amplitude * Math.pow(2, -10 * (t -= 1)) * Math.sin((t - s) * pi2 / period) * 0.5 + 1;
+            };
+        }
+        Ease.elasticInOut = getElasticInOut(1, 0.3 * 1.5);
+    })(Ease = dou.Ease || (dou.Ease = {}));
+})(dou || (dou = {}));
+var dou;
+(function (dou) {
+    /**
+     * 缓动类
+     * @author wizardc
+     */
+    var Tween = /** @class */ (function (_super) {
+        __extends(Tween, _super);
+        function Tween(target, props) {
+            var _this = _super.call(this) || this;
+            _this._useTicks = false;
+            _this._ignoreGlobalPause = false;
+            _this._loop = false;
+            _this._paused = false;
+            _this._duration = 0;
+            _this._prevPos = -1;
+            _this._prevPosition = 0;
+            _this._stepPosition = 0;
+            _this._passive = false;
+            _this.initialize(target, props);
+            return _this;
+        }
+        /**
+         * 帧循环逻辑, 请在项目的合适地方进行循环调用
+         */
+        Tween.tick = function (passedTime, paused) {
+            if (paused === void 0) { paused = false; }
+            var tweens = Tween._tweens.concat();
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                var tween = tweens[i];
+                if ((paused && !tween._ignoreGlobalPause) || tween._paused) {
+                    continue;
+                }
+                tween.$tick(tween._useTicks ? 1 : passedTime);
+            }
+        };
+        /**
+         * 激活一个对象, 对其添加 Tween 动画
+         * @param target 要激活 Tween 的对象
+         * @param props 参数
+         * @param override 是否移除对象之前添加的tween
+         * @returns 缓动对象
+         */
+        Tween.get = function (target, props, override) {
+            if (override === void 0) { override = false; }
+            if (override) {
+                Tween.removeTweens(target);
+            }
+            return new Tween(target, props);
+        };
+        /**
+         * 暂停某个对象的所有 Tween 动画
+         */
+        Tween.pauseTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = Tween._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                if (tweens[i]._target == target) {
+                    tweens[i]._paused = true;
+                }
+            }
+        };
+        /**
+         * 继续播放某个对象的所有 Tween 动画
+         */
+        Tween.resumeTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = Tween._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                if (tweens[i]._target == target) {
+                    tweens[i]._paused = false;
+                }
+            }
+        };
+        /**
+         * 删除一个对象上的全部 Tween 动画
+         */
+        Tween.removeTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = Tween._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                if (tweens[i]._target == target) {
+                    tweens[i]._paused = true;
+                    tweens.splice(i, 1);
+                }
+            }
+            target.tween_count = 0;
+        };
+        /**
+         * 删除所有的 Tween 动画
+         */
+        Tween.removeAllTweens = function () {
+            var tweens = Tween._tweens;
+            for (var i = 0, l = tweens.length; i < l; i++) {
+                var tween = tweens[i];
+                tween._paused = true;
+                tween._target.tween_count = 0;
+            }
+            tweens.length = 0;
+        };
+        Tween._register = function (tween, value) {
+            var target = tween._target;
+            var tweens = Tween._tweens;
+            if (value) {
+                if (target) {
+                    target.tween_count = target.tween_count > 0 ? target.tween_count + 1 : 1;
+                }
+                tweens.push(tween);
+            }
+            else {
+                if (target) {
+                    target.tween_count--;
+                }
+                var i = tweens.length;
+                while (i--) {
+                    if (tweens[i] == tween) {
+                        tweens.splice(i, 1);
+                        return;
+                    }
+                }
+            }
+        };
+        Tween.prototype.initialize = function (target, props) {
+            this._target = target;
+            if (props) {
+                this._useTicks = props.useTicks;
+                this._ignoreGlobalPause = props.ignoreGlobalPause;
+                this._loop = props.loop;
+                props.onChange && this.on(dou.Event.CHANGE, props.onChange, props.onChangeObj);
+                if (props.override) {
+                    Tween.removeTweens(target);
+                }
+            }
+            this._curQueueProps = {};
+            this._initQueueProps = {};
+            this._steps = [];
+            if (props && props.paused) {
+                this._paused = true;
+            }
+            else {
+                Tween._register(this, true);
+            }
+            if (props && props.position) {
+                this.setPosition(props.position, Tween.NONE);
+            }
+        };
+        /**
+         * 设置是否暂停
+         */
+        Tween.prototype.setPaused = function (value) {
+            if (this._paused == value) {
+                return this;
+            }
+            this._paused = value;
+            Tween._register(this, !value);
+            return this;
+        };
+        /**
+         * 等待指定毫秒后执行下一个动画
+         * @param duration 要等待的时间, 以毫秒为单位
+         * @param passive 等待期间属性是否会更新
+         * @returns Tween 对象本身
+         */
+        Tween.prototype.wait = function (duration, passive) {
+            if (duration == null || duration <= 0) {
+                return this;
+            }
+            var o = this._cloneProps(this._curQueueProps);
+            return this._addStep({ d: duration, p0: o, p1: o, v: passive });
+        };
+        /**
+         * 将指定对象的属性修改为指定值
+         * @param props 对象的属性集合
+         * @param duration 持续时间
+         * @param ease 缓动算法
+         * @returns Tween 对象本身
+         */
+        Tween.prototype.to = function (props, duration, ease) {
+            if (isNaN(duration) || duration < 0) {
+                duration = 0;
+            }
+            this._addStep({ d: duration || 0, p0: this._cloneProps(this._curQueueProps), e: ease, p1: this._cloneProps(this._appendQueueProps(props)) });
+            return this.set(props);
+        };
+        /**
+         * 执行回调函数
+         * @param callback 回调方法
+         * @param thisObj 回调方法 this 作用域
+         * @param params 回调方法参数
+         * @returns Tween 对象本身
+         */
+        Tween.prototype.call = function (callback, thisObj, params) {
+            return this._addAction({ f: callback, p: params ? params : [], o: thisObj ? thisObj : this._target });
+        };
+        /**
+         * 立即将指定对象的属性修改为指定值
+         * @param props 对象的属性集合
+         * @param target 要继续播放 Tween 的对象
+         * @returns Tween 对象本身
+         */
+        Tween.prototype.set = function (props, target) {
+            this._appendQueueProps(props);
+            return this._addAction({ f: this._set, o: this, p: [props, target ? target : this._target] });
+        };
+        /**
+         * 播放
+         * @param tween 需要操作的 Tween 对象, 默认 this
+         * @returns Tween 对象本身
+         */
+        Tween.prototype.play = function (tween) {
+            if (!tween) {
+                tween = this;
+            }
+            return this.call(tween.setPaused, tween, [false]);
+        };
+        /**
+         * 暂停
+         * @param tween 需要操作的 Tween 对象, 默认 this
+         * @returns Tween 对象本身
+         */
+        Tween.prototype.pause = function (tween) {
+            if (!tween) {
+                tween = this;
+            }
+            return this.call(tween.setPaused, tween, [true]);
+        };
+        /**
+         * @private
+         */
+        Tween.prototype.$tick = function (delta) {
+            if (this._paused) {
+                return;
+            }
+            this.setPosition(this._prevPosition + delta);
+        };
+        /**
+         * @private
+         */
+        Tween.prototype.setPosition = function (value, actionsMode) {
+            if (actionsMode === void 0) { actionsMode = 1; }
+            if (value < 0) {
+                value = 0;
+            }
+            var t = value;
+            var end = false;
+            if (t >= this._duration) {
+                if (this._loop) {
+                    var newTime = t % this._duration;
+                    if (t > 0 && newTime === 0) {
+                        t = this._duration;
+                    }
+                    else {
+                        t = newTime;
+                    }
+                }
+                else {
+                    t = this._duration;
+                    end = true;
+                }
+            }
+            if (t == this._prevPos) {
+                return end;
+            }
+            if (end) {
+                this.setPaused(true);
+            }
+            var prevPos = this._prevPos;
+            this._position = this._prevPos = t;
+            this._prevPosition = value;
+            if (this._target) {
+                if (this._steps.length > 0) {
+                    var l = this._steps.length;
+                    var stepIndex = -1;
+                    for (var i = 0; i < l; i++) {
+                        if (this._steps[i].type == "step") {
+                            stepIndex = i;
+                            if (this._steps[i].t <= t && this._steps[i].t + this._steps[i].d >= t) {
+                                break;
+                            }
+                        }
+                    }
+                    for (var i = 0; i < l; i++) {
+                        if (this._steps[i].type == "action") {
+                            if (actionsMode != 0) {
+                                if (this._useTicks) {
+                                    this._runAction(this._steps[i], t, t);
+                                }
+                                else if (actionsMode == 1 && t < prevPos) {
+                                    if (prevPos != this._duration) {
+                                        this._runAction(this._steps[i], prevPos, this._duration);
+                                    }
+                                    this._runAction(this._steps[i], 0, t, true);
+                                }
+                                else {
+                                    this._runAction(this._steps[i], prevPos, t);
+                                }
+                            }
+                        }
+                        else if (this._steps[i].type == "step") {
+                            if (stepIndex == i) {
+                                var step = this._steps[stepIndex];
+                                this._updateTargetProps(step, Math.min((this._stepPosition = t - step.t) / step.d, 1));
+                            }
+                        }
+                    }
+                }
+            }
+            this.dispatch(dou.Event.CHANGE);
+            return end;
+        };
+        Tween.prototype._runAction = function (action, startPos, endPos, includeStart) {
+            if (includeStart === void 0) { includeStart = false; }
+            var sPos = startPos;
+            var ePos = endPos;
+            if (startPos > endPos) {
+                sPos = endPos;
+                ePos = startPos;
+            }
+            var pos = action.t;
+            if (pos == ePos || (pos > sPos && pos < ePos) || (includeStart && pos == startPos)) {
+                action.f.apply(action.o, action.p);
+            }
+        };
+        Tween.prototype._updateTargetProps = function (step, ratio) {
+            var p0, p1, v0, v1, v;
+            if (!step && ratio == 1) {
+                this._passive = false;
+                p0 = p1 = this._curQueueProps;
+            }
+            else {
+                this._passive = !!step.v;
+                if (this._passive) {
+                    return;
+                }
+                if (step.e) {
+                    ratio = step.e(ratio, 0, 1, 1);
+                }
+                p0 = step.p0;
+                p1 = step.p1;
+            }
+            for (var n in this._initQueueProps) {
+                if ((v0 = p0[n]) == null) {
+                    p0[n] = v0 = this._initQueueProps[n];
+                }
+                if ((v1 = p1[n]) == null) {
+                    p1[n] = v1 = v0;
+                }
+                if (v0 == v1 || ratio == 0 || ratio == 1 || (typeof (v0) != "number")) {
+                    v = ratio == 1 ? v1 : v0;
+                }
+                else {
+                    v = v0 + (v1 - v0) * ratio;
+                }
+                this._target[n] = v;
+            }
+        };
+        Tween.prototype._cloneProps = function (props) {
+            var o = {};
+            for (var n in props) {
+                o[n] = props[n];
+            }
+            return o;
+        };
+        Tween.prototype._addStep = function (o) {
+            if (o.d > 0) {
+                o.type = "step";
+                this._steps.push(o);
+                o.t = this._duration;
+                this._duration += o.d;
+            }
+            return this;
+        };
+        Tween.prototype._appendQueueProps = function (o) {
+            var oldValue, injectProps;
+            for (var n in o) {
+                if (this._initQueueProps[n] === undefined) {
+                    oldValue = this._target[n];
+                    this._initQueueProps[n] = this._curQueueProps[n] = (oldValue === undefined) ? null : oldValue;
+                }
+                else {
+                    oldValue = this._curQueueProps[n];
+                }
+            }
+            for (var n in o) {
+                oldValue = this._curQueueProps[n];
+                this._curQueueProps[n] = o[n];
+            }
+            if (injectProps) {
+                this._appendQueueProps(injectProps);
+            }
+            return this._curQueueProps;
+        };
+        Tween.prototype._addAction = function (o) {
+            o.t = this._duration;
+            o.type = "action";
+            this._steps.push(o);
+            return this;
+        };
+        Tween.prototype._set = function (props, o) {
+            for (var n in props) {
+                o[n] = props[n];
+            }
+        };
+        /**
+         * 不做特殊处理
+         */
+        Tween.NONE = 0;
+        /**
+         * 循环
+         */
+        Tween.LOOP = 1;
+        /**
+         * 倒序
+         */
+        Tween.REVERSE = 2;
+        Tween._tweens = [];
+        return Tween;
+    }(dou.EventDispatcher));
+    dou.Tween = Tween;
 })(dou || (dou = {}));
 var dou;
 (function (dou) {

@@ -19,7 +19,7 @@ function loadJSAsync(src: string, callback: () => void): void {
 
 class Main {
     public constructor(urlParams: { [key: string]: string }) {
-        // 加载类型注册
+        // 注册加载类型解析器
         dou.loader.registerAnalyzer(ResourceType.text, new dou.TextAnalyzer());
         dou.loader.registerAnalyzer(ResourceType.json, new dou.JsonAnalyzer());
         dou.loader.registerAnalyzer(ResourceType.binary, new dou.BytesAnalyzer());
