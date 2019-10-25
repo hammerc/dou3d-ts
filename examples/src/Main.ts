@@ -42,52 +42,9 @@ class Main {
         });
         engine.addView3D(view3D);
 
-        switch (urlParams.demo) {
-            case "cube":
-                loadJSAsync("bin/examples/CubeTest.js", () => {
-                    new examples.CubeTest(view3D);
-                });
-                break;
-            case "texture":
-                loadJSAsync("bin/examples/TextureTest.js", () => {
-                    new examples.TextureTest(view3D);
-                });
-                break;
-            case "light":
-                loadJSAsync("bin/examples/LightTest.js", () => {
-                    new examples.LightTest(view3D);
-                });
-                break;
-            case "shadow":
-                loadJSAsync("bin/examples/ShadowTest.js", () => {
-                    new examples.ShadowTest(view3D);
-                });
-                break;
-            case "animation":
-                loadJSAsync("bin/examples/AnimationTest.js", () => {
-                    new examples.AnimationTest(view3D);
-                });
-                break;
-            case "lookAt":
-                loadJSAsync("bin/examples/LookAtControllerTest.js", () => {
-                    new examples.LookAtControllerTest(view3D);
-                });
-                break;
-            case "hover":
-                loadJSAsync("bin/examples/HoverControllerTest.js", () => {
-                    new examples.HoverControllerTest(view3D);
-                });
-                break;
-            case "transform":
-                loadJSAsync("bin/examples/TransformTest.js", () => {
-                    new examples.TransformTest(view3D);
-                });
-                break;
-            case "skyBox":
-                loadJSAsync("bin/examples/SkyBoxTest.js", () => {
-                    new examples.SkyBoxTest(view3D);
-                });
-                break;
-        }
+        let demo = urlParams.demo;
+        loadJSAsync("bin/examples/" + demo + ".js", () => {
+            new examples[demo](view3D);
+        });
     }
 }

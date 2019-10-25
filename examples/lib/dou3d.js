@@ -2261,7 +2261,13 @@ var dou3d;
         }
         Billboard.prototype.update = function (time, delay, camera) {
             _super.prototype.update.call(this, time, delay, camera);
-            this.globalOrientation = camera.globalOrientation;
+            var euler = dou.recyclable(dou3d.Vector3);
+            camera.globalOrientation.toEuler(euler);
+            var orientation = dou.recyclable(dou3d.Quaternion);
+            orientation.fromEuler(euler.x + dou3d.MathUtil.toRadians(270), euler.y, euler.z);
+            this.globalOrientation = orientation;
+            euler.recycle();
+            orientation.recycle();
         };
         Billboard.prototype.clone = function () {
             var cloneMesh = new Billboard(this.material, this.geometry, this._plane.width, this._plane.height);
@@ -2281,16 +2287,15 @@ var dou3d;
      */
     var Wireframe = /** @class */ (function (_super) {
         __extends(Wireframe, _super);
-        function Wireframe(src, vf) {
-            if (vf === void 0) { vf = 1 /* VF_POSITION */; }
+        function Wireframe(color) {
+            if (color === void 0) { color = 0x7e7e7e; }
             var _this = _super.call(this) || this;
             _this.type = "wireframe";
             _this.geometry = new dou3d.Geometry();
-            _this.material = new dou3d.ColorMaterial(0xff0000);
+            _this.material = new dou3d.ColorMaterial(color);
             _this.addSubMaterial(0, _this.material);
             _this.material.drawMode = dou3d.ContextConfig.LINES;
             _this.geometry.vertexFormat = 1 /* VF_POSITION */ | 2 /* VF_NORMAL */ | 8 /* VF_COLOR */ | 16 /* VF_UV0 */;
-            _this.fromVertexs(src, vf);
             return _this;
         }
         Wireframe.prototype.fromVertexs = function (src, vf) {

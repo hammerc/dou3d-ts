@@ -19,7 +19,13 @@ namespace dou3d {
 
         public update(time: number, delay: number, camera: Camera3D): void {
             super.update(time, delay, camera);
-            this.globalOrientation = camera.globalOrientation;
+            let euler = dou.recyclable(Vector3);
+            camera.globalOrientation.toEuler(euler);
+            let orientation = dou.recyclable(Quaternion);
+            orientation.fromEuler(euler.x + MathUtil.toRadians(270), euler.y, euler.z);
+            this.globalOrientation = orientation;
+            euler.recycle();
+            orientation.recycle();
         }
 
         public clone(): Mesh {

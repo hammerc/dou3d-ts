@@ -37,53 +37,10 @@ var Main = /** @class */ (function () {
             view3D.height = viewRect.h;
         });
         engine.addView3D(view3D);
-        switch (urlParams.demo) {
-            case "cube":
-                loadJSAsync("bin/examples/CubeTest.js", function () {
-                    new examples.CubeTest(view3D);
-                });
-                break;
-            case "texture":
-                loadJSAsync("bin/examples/TextureTest.js", function () {
-                    new examples.TextureTest(view3D);
-                });
-                break;
-            case "light":
-                loadJSAsync("bin/examples/LightTest.js", function () {
-                    new examples.LightTest(view3D);
-                });
-                break;
-            case "shadow":
-                loadJSAsync("bin/examples/ShadowTest.js", function () {
-                    new examples.ShadowTest(view3D);
-                });
-                break;
-            case "animation":
-                loadJSAsync("bin/examples/AnimationTest.js", function () {
-                    new examples.AnimationTest(view3D);
-                });
-                break;
-            case "lookAt":
-                loadJSAsync("bin/examples/LookAtControllerTest.js", function () {
-                    new examples.LookAtControllerTest(view3D);
-                });
-                break;
-            case "hover":
-                loadJSAsync("bin/examples/HoverControllerTest.js", function () {
-                    new examples.HoverControllerTest(view3D);
-                });
-                break;
-            case "transform":
-                loadJSAsync("bin/examples/TransformTest.js", function () {
-                    new examples.TransformTest(view3D);
-                });
-                break;
-            case "skyBox":
-                loadJSAsync("bin/examples/SkyBoxTest.js", function () {
-                    new examples.SkyBoxTest(view3D);
-                });
-                break;
-        }
+        var demo = urlParams.demo;
+        loadJSAsync("bin/examples/" + demo + ".js", function () {
+            new examples[demo](view3D);
+        });
     }
     return Main;
 }());

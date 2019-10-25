@@ -5,15 +5,14 @@ namespace dou3d {
      * @author wizardc
      */
     export class Wireframe extends RenderBase {
-        public constructor(src?: any, vf: VertexFormat = VertexFormat.VF_POSITION) {
+        public constructor(color: number = 0x7e7e7e) {
             super();
             this.type = "wireframe";
             this.geometry = new Geometry();
-            this.material = new ColorMaterial(0xff0000);
+            this.material = new ColorMaterial(color);
             this.addSubMaterial(0, this.material);
             this.material.drawMode = ContextConfig.LINES;
             this.geometry.vertexFormat = VertexFormat.VF_POSITION | VertexFormat.VF_NORMAL | VertexFormat.VF_COLOR | VertexFormat.VF_UV0;
-            this.fromVertexs(src, vf);
         }
 
         public fromVertexs(src: any, vf: VertexFormat = VertexFormat.VF_POSITION): void {

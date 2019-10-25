@@ -963,7 +963,7 @@ declare namespace dou3d {
      * @author wizardc
      */
     class Wireframe extends RenderBase {
-        constructor(src?: any, vf?: VertexFormat);
+        constructor(color?: number);
         fromVertexs(src: any, vf?: VertexFormat): void;
         fromVertexsEx(src: any, vf?: VertexFormat): void;
         fromGeometry(geo: Geometry): void;
