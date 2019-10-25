@@ -5,9 +5,8 @@ namespace examples {
 
             view3D.camera3D.lookAt(new dou3d.Vector3(0, 0, -1000), new dou3d.Vector3(0, 0, 0));
 
-            let mat = new dou3d.ColorMaterial();
             let geometery = new dou3d.CubeGeometry();
-            let cube = new dou3d.Mesh(geometery, mat);
+            let cube = new dou3d.Mesh(geometery);
             view3D.scene.root.addChild(cube);
 
             cube.rotationX = 45;

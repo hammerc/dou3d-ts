@@ -78,6 +78,11 @@ var Main = /** @class */ (function () {
                     new examples.TransformTest(view3D);
                 });
                 break;
+            case "skyBox":
+                loadJSAsync("bin/examples/SkyBoxTest.js", function () {
+                    new examples.SkyBoxTest(view3D);
+                });
+                break;
         }
     }
     return Main;

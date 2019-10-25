@@ -35,3 +35,5 @@
 * [坐标转换](https://hammerc.github.io/dou3d-ts/examples/index.html?demo=transform)
 
     *注：左边使用了本地坐标转全局坐标，右边使用了全局坐标转本地坐标*
+
+* [天空盒](https://hammerc.github.io/dou3d-ts/examples/index.html?demo=skyBox)

@@ -162,6 +162,7 @@
     "src/material/method/MethodBase.ts",
     "src/material/method/ColorMethod.ts",
     "src/material/method/ShadowMethod.ts",
+    "src/material/method/CubeMethod.ts",
 
     "src/material/pass/MaterialPass.ts",
     "src/material/pass/PassUsage.ts",
@@ -176,6 +177,7 @@
     "src/material/MethodData.ts",
     "src/material/ColorMaterial.ts",
     "src/material/TextureMaterial.ts",
+    "src/material/CubeTextureMaterial.ts",
 
     "src/render/RendererBase.ts",
     "src/render/MultiRenderer.ts",
@@ -209,6 +211,7 @@
     "src/texture/Texture.ts",
     "src/texture/CubeTexture.ts",
     "src/texture/RenderTexture.ts",
+    "src/texture/CheckerboardTexture.ts",
 
     "src/utils/MathUtil.ts",
     "src/utils/GeometryUtil.ts",

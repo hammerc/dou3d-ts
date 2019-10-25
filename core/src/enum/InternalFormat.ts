@@ -4,11 +4,11 @@ namespace dou3d {
      * @author wizardc
      */
     export const enum InternalFormat {
-        /**  */
-        pixelArray,
-        /**  */
+        /** Image 标签引入纹理 */
+        imageData,
+        /** 压缩纹理 */
         compressData,
-        /**  */
-        imageData
+        /** 像素数组 */
+        pixelArray
     }
 }

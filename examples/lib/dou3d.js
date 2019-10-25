@@ -774,13 +774,13 @@ var dou3d;
          */
         Context3DProxy.prototype.upLoadTextureData = function (mipLevel, texture) {
             Context3DProxy.gl.bindTexture(Context3DProxy.gl.TEXTURE_2D, texture.texture2D.texture);
-            if (texture.texture2D.internalFormat == 2 /* imageData */) {
+            if (texture.texture2D.internalFormat == 0 /* imageData */) {
                 Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_2D, 0, Context3DProxy.gl.RGBA, Context3DProxy.gl.RGBA, texture.texture2D.dataFormat, texture.texture2D.imageData);
             }
             else if (texture.texture2D.internalFormat == 1 /* compressData */) {
                 this.upLoadCompressedTexture2D(mipLevel, texture.texture2D);
             }
-            else if (texture.texture2D.internalFormat == 0 /* pixelArray */) {
+            else if (texture.texture2D.internalFormat == 2 /* pixelArray */) {
                 Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_2D, mipLevel, texture.texture2D.colorFormat, texture.texture2D.mimapData[mipLevel].width, texture.texture2D.mimapData[mipLevel].height, texture.texture2D.border, texture.texture2D.colorFormat, texture.texture2D.dataFormat, texture.texture2D.mimapData[mipLevel].data);
             }
             if (texture.useMipmap) {
@@ -805,7 +805,7 @@ var dou3d;
                 Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_right.imageData);
             }
             if (tex.image_left.mimapData && tex.image_left.mimapData.length > 0) {
-                Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, Context3DProxy.gl.RGB, tex.image_right.mimapData[0].width, tex.image_right.mimapData[0].height, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_right.mimapData[0].data);
+                Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, Context3DProxy.gl.RGB, tex.image_left.mimapData[0].width, tex.image_left.mimapData[0].height, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_left.mimapData[0].data);
             }
             else {
                 Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_left.imageData);
@@ -822,17 +822,17 @@ var dou3d;
             else {
                 Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_down.imageData);
             }
-            if (tex.image_back.mimapData && tex.image_back.mimapData.length > 0) {
-                Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, Context3DProxy.gl.RGB, tex.image_back.mimapData[0].width, tex.image_back.mimapData[0].height, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_back.mimapData[0].data);
-            }
-            else {
-                Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_back.imageData);
-            }
             if (tex.image_front.mimapData && tex.image_front.mimapData.length > 0) {
-                Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, Context3DProxy.gl.RGB, tex.image_front.mimapData[0].width, tex.image_front.mimapData[0].height, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_front.mimapData[0].data);
+                Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, Context3DProxy.gl.RGB, tex.image_front.mimapData[0].width, tex.image_front.mimapData[0].height, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_front.mimapData[0].data);
             }
             else {
-                Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_front.imageData);
+                Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_front.imageData);
+            }
+            if (tex.image_back.mimapData && tex.image_back.mimapData.length > 0) {
+                Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, Context3DProxy.gl.RGB, tex.image_back.mimapData[0].width, tex.image_back.mimapData[0].height, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_back.mimapData[0].data);
+            }
+            else {
+                Context3DProxy.gl.texImage2D(Context3DProxy.gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, Context3DProxy.gl.RGB, Context3DProxy.gl.RGB, Context3DProxy.gl.UNSIGNED_BYTE, tex.image_back.imageData);
             }
             Context3DProxy.gl.texParameteri(Context3DProxy.gl.TEXTURE_CUBE_MAP, Context3DProxy.gl.TEXTURE_MAG_FILTER, Context3DProxy.gl.LINEAR);
             Context3DProxy.gl.texParameteri(Context3DProxy.gl.TEXTURE_CUBE_MAP, Context3DProxy.gl.TEXTURE_MIN_FILTER, Context3DProxy.gl.LINEAR);
@@ -10411,6 +10411,30 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
+     * 立方体渲染方法
+     * @author wizardc
+     */
+    var CubeMethod = /** @class */ (function (_super) {
+        __extends(CubeMethod, _super);
+        function CubeMethod() {
+            var _this = _super.call(this) || this;
+            _this.vsShaderList[dou3d.ShaderPhaseType.global_vertex] = _this.fsShaderList[dou3d.ShaderPhaseType.global_vertex] || [];
+            _this.vsShaderList[dou3d.ShaderPhaseType.global_vertex].push("cube_vs");
+            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] = _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] || [];
+            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment].push("cube_fs");
+            return _this;
+        }
+        CubeMethod.prototype.upload = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+        };
+        CubeMethod.prototype.activeState = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+        };
+        return CubeMethod;
+    }(dou3d.MethodBase));
+    dou3d.CubeMethod = CubeMethod;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
      * 材质渲染通道
      * @author wizardc
      */
@@ -11750,6 +11774,7 @@ var dou3d;
             var data = new MaterialData();
             data.drawMode = this.drawMode;
             data.diffuseTexture = this.diffuseTexture;
+            data.diffuseTexture3D = this.diffuseTexture3D;
             data.shadowMapTexture = this.shadowMapTexture;
             for (var i = 0; i < 4; ++i) {
                 data.shadowColor[i] = this.shadowColor[i];
@@ -11850,7 +11875,7 @@ var dou3d;
         function TextureMaterial(texture, materialData) {
             var _this = _super.call(this, materialData) || this;
             if (!texture) {
-                // texture = CheckerboardTexture.texture;
+                texture = dou3d.CheckerboardTexture.texture;
             }
             _this.diffuseTexture = texture;
             _this.initMatPass();
@@ -11865,6 +11890,31 @@ var dou3d;
         return TextureMaterial;
     }(dou3d.MaterialBase));
     dou3d.TextureMaterial = TextureMaterial;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 立方体纹理材质
+     * @author wizardc
+     */
+    var CubeTextureMaterial = /** @class */ (function (_super) {
+        __extends(CubeTextureMaterial, _super);
+        function CubeTextureMaterial(texture, materialData) {
+            var _this = _super.call(this, materialData) || this;
+            _this.initMatPass();
+            _this.materialData.diffuseTexture3D = texture;
+            return _this;
+        }
+        CubeTextureMaterial.prototype.initMatPass = function () {
+            this.addPass(0 /* diffusePass */);
+            this.diffusePass.addMethod(new dou3d.CubeMethod());
+        };
+        CubeTextureMaterial.prototype.clone = function () {
+            return new CubeTextureMaterial(this.diffuseTexture, this.materialData.clone());
+        };
+        return CubeTextureMaterial;
+    }(dou3d.MaterialBase));
+    dou3d.CubeTextureMaterial = CubeTextureMaterial;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -12785,6 +12835,8 @@ var dou3d;
         ShaderLib.base_vs = "attribute vec3 attribute_position;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nvec3 e_position=vec3(0.0,0.0,0.0);\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvec4 outPosition;\nmat4 transpose(mat4 inMatrix){\nvec4 i0=inMatrix[0];\nvec4 i1=inMatrix[1];\nvec4 i2=inMatrix[2];\nvec4 i3=inMatrix[3];\nmat4 outMatrix=mat4(\nvec4(i0.x,i1.x,i2.x,i3.x),\nvec4(i0.y,i1.y,i2.y,i3.y),\nvec4(i0.z,i1.z,i2.z,i3.z),\nvec4(i0.w,i1.w,i2.w,i3.w)\n);\nreturn outMatrix;\n}\nmat4 inverse(mat4 m){\nfloat\na00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\na10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\na20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\na30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\nb00=a00*a11-a01*a10,\nb01=a00*a12-a02*a10,\nb02=a00*a13-a03*a10,\nb03=a01*a12-a02*a11,\nb04=a01*a13-a03*a11,\nb05=a02*a13-a03*a12,\nb06=a20*a31-a21*a30,\nb07=a20*a32-a22*a30,\nb08=a20*a33-a23*a30,\nb09=a21*a32-a22*a31,\nb10=a21*a33-a23*a31,\nb11=a22*a33-a23*a32,\ndet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\nreturn mat4(\na11*b11-a12*b10+a13*b09,\na02*b10-a01*b11-a03*b09,\na31*b05-a32*b04+a33*b03,\na22*b04-a21*b05-a23*b03,\na12*b08-a10*b11-a13*b07,\na00*b11-a02*b08+a03*b07,\na32*b02-a30*b05-a33*b01,\na20*b05-a22*b02+a23*b01,\na10*b10-a11*b08+a13*b06,\na01*b08-a00*b10-a03*b06,\na30*b04-a31*b02+a33*b00,\na21*b02-a20*b04-a23*b00,\na11*b07-a10*b09-a12*b06,\na00*b09-a01*b07+a02*b06,\na31*b01-a30*b03-a32*b00,\na20*b03-a21*b01+a22*b00)/det;\n}\nvoid main(){\ne_position=attribute_position;\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\n}";
         ShaderLib.colorPassEnd_fs = "void main(){\ngl_FragColor=vec4(diffuseColor.xyz,1.0);\n}";
         ShaderLib.color_fs = "vec4 diffuseColor;\nvoid main(){\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=vec4(1.0,1.0,1.0,1.0);\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\nelse{\ndiffuseColor.xyz*=diffuseColor.w;\n}\n}";
+        ShaderLib.cube_fs = "uniform samplerCube diffuseTexture3D;\nvarying vec3 varying_pos;\nvec4 diffuseColor;\nvoid main(){\nif(diffuseColor.w==0.0){\ndiscard;\n}\nvec3 uvw=normalize(varying_pos.xyz);\ndiffuseColor=vec4(textureCube(diffuseTexture3D,uvw.xyz));\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\nelse{\ndiffuseColor.xyz*=diffuseColor.w;\n}\n}";
+        ShaderLib.cube_vs = "varying vec3 varying_pos;\nvoid main(){\nvarying_pos=e_position;\n}";
         ShaderLib.diffuse_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvoid main(){\ndiffuseColor=texture2D(diffuseTexture,uv_0);\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\n}";
         ShaderLib.diffuse_vs = "attribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvarying vec4 varying_mvPose;\nvarying vec4 varying_color;\nvoid main(){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_mvPose=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition=varying_mvPose;\nvarying_color=attribute_color;\n}";
         ShaderLib.directLight_fs = "const int max_directLight=0;\nuniform float uniform_directLightSource[9*max_directLight];\nvarying vec4 varying_mvPose;\nuniform mat4 uniform_ViewMatrix;\nmat4 normalMatrix;\nstruct DirectLight{\nvec3 direction;\nvec3 diffuse;\nvec3 ambient;\n};\nmat4 transpose(mat4 inMatrix){\nvec4 i0=inMatrix[0];\nvec4 i1=inMatrix[1];\nvec4 i2=inMatrix[2];\nvec4 i3=inMatrix[3];\nmat4 outMatrix=mat4(\nvec4(i0.x,i1.x,i2.x,i3.x),\nvec4(i0.y,i1.y,i2.y,i3.y),\nvec4(i0.z,i1.z,i2.z,i3.z),\nvec4(i0.w,i1.w,i2.w,i3.w)\n);\nreturn outMatrix;\n}\nmat4 inverse(mat4 m){\nfloat\na00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\na10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\na20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\na30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\nb00=a00*a11-a01*a10,\nb01=a00*a12-a02*a10,\nb02=a00*a13-a03*a10,\nb03=a01*a12-a02*a11,\nb04=a01*a13-a03*a11,\nb05=a02*a13-a03*a12,\nb06=a20*a31-a21*a30,\nb07=a20*a32-a22*a30,\nb08=a20*a33-a23*a30,\nb09=a21*a32-a22*a31,\nb10=a21*a33-a23*a31,\nb11=a22*a33-a23*a32,\ndet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\nreturn mat4(\na11*b11-a12*b10+a13*b09,\na02*b10-a01*b11-a03*b09,\na31*b05-a32*b04+a33*b03,\na22*b04-a21*b05-a23*b03,\na12*b08-a10*b11-a13*b07,\na00*b11-a02*b08+a03*b07,\na32*b02-a30*b05-a33*b01,\na20*b05-a22*b02+a23*b01,\na10*b10-a11*b08+a13*b06,\na01*b08-a00*b10-a03*b06,\na30*b04-a31*b02+a33*b00,\na21*b02-a20*b04-a23*b00,\na11*b07-a10*b09-a12*b06,\na00*b09-a01*b07+a02*b06,\na31*b01-a30*b03-a32*b00,\na20*b03-a21*b01+a22*b00)/det;\n}\nvoid calculateDirectLight(MaterialSource materialSource){\nfloat lambertTerm,specular;\nvec3 dir,viewDir=normalize(varying_mvPose.xyz/varying_mvPose.w);\nfor(int i=0;i<max_directLight;i++){\nDirectLight directLight;\ndirectLight.direction=(normalMatrix*vec4(uniform_directLightSource[i*9],uniform_directLightSource[i*9+1],uniform_directLightSource[i*9+2],1.0)).xyz;\ndirectLight.diffuse=vec3(uniform_directLightSource[i*9+3],uniform_directLightSource[i*9+4],uniform_directLightSource[i*9+5]);\ndirectLight.ambient=vec3(uniform_directLightSource[i*9+6],uniform_directLightSource[i*9+7],uniform_directLightSource[i*9+8]);\ndir=normalize(directLight.direction);\nlight.xyzw+=LightingBlinnPhong(dir,directLight.diffuse,directLight.ambient,normal,viewDir,0.5);\n}\n}\nvoid main(){\nnormalMatrix=inverse(uniform_ViewMatrix);\nnormalMatrix=transpose(normalMatrix);\ncalculateDirectLight(materialSource);\n}";
@@ -13712,9 +13764,9 @@ var dou3d;
         ImageTexture.prototype.upload = function (context3D) {
             if (!this.texture2D.texture) {
                 this.texture2D.texture = context3D.createTexture();
-                this.texture2D.internalFormat = 2 /* imageData */;
+                this.texture2D.internalFormat = 0 /* imageData */;
                 this.texture2D.imageData = this._imageData;
-                this.texture2D.dataFormat = dou3d.Context3DProxy.gl.UNSIGNED_BYTE;
+                this.texture2D.dataFormat = dou3d.ContextConfig.UNSIGNED_BYTE;
                 this.texture2D.colorFormat = dou3d.ContextConfig.ColorFormat_RGBA8888;
                 context3D.upLoadTextureData(0, this);
             }
@@ -13845,6 +13897,80 @@ var dou3d;
         return RenderTexture;
     }(dou3d.TextureBase));
     dou3d.RenderTexture = RenderTexture;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 棋盘格纹理为黑白间隔色块组成的一张纹理, 主要用于判别模型UV的正确性, 若某模型UV值不正确, 其纹理表现必定乱序不规整
+     * @author wizardc
+     */
+    var CheckerboardTexture = /** @class */ (function (_super) {
+        __extends(CheckerboardTexture, _super);
+        function CheckerboardTexture(width, height) {
+            if (width === void 0) { width = 32; }
+            if (height === void 0) { height = 32; }
+            var _this = _super.call(this) || this;
+            _this.width = width;
+            _this.height = height;
+            _this.uvRectangle = new dou3d.Rectangle(0, 0, 1, 1);
+            _this.buildCheckerboard();
+            _this.texture2D = new dou3d.ContextTexture2D();
+            return _this;
+        }
+        CheckerboardTexture.prototype.buildCheckerboard = function () {
+            if (!this._pixelArray) {
+                this._pixelArray = new Uint8Array(this.width * this.height * 4);
+                var colors = [dou3d.Color.WHITE, dou3d.Color.BLACK];
+                var colorIndex = 0;
+                var blockSize = 4;
+                for (var y = 0; y < this.height; y++) {
+                    for (var x = 0; x < this.width; x++) {
+                        if ((x % blockSize) == 0) {
+                            colorIndex = (colorIndex + 1) % 2;
+                        }
+                        if ((y % blockSize) == 0 && x == 0) {
+                            var tmp = colors[0];
+                            colors[0] = colors[1];
+                            colors[1] = tmp;
+                            colorIndex = 0;
+                        }
+                        this._pixelArray[(y * (this.width * 4) + x * 4) + 0] = colors[colorIndex].r * 255;
+                        this._pixelArray[(y * (this.width * 4) + x * 4) + 1] = colors[colorIndex].g * 255;
+                        this._pixelArray[(y * (this.width * 4) + x * 4) + 2] = colors[colorIndex].b * 255;
+                        this._pixelArray[(y * (this.width * 4) + x * 4) + 3] = colors[colorIndex].a * 255;
+                    }
+                }
+            }
+        };
+        CheckerboardTexture.prototype.upload = function (context3D) {
+            if (!this.texture2D.texture) {
+                this.texture2D.texture = this.texture2D.texture || context3D.createTexture();
+                this.texture2D.border = 0;
+                this.texture2D.internalFormat = 2 /* pixelArray */;
+                this.texture2D.dataFormat = dou3d.ContextConfig.UNSIGNED_BYTE;
+                this.texture2D.colorFormat = dou3d.ContextConfig.ColorFormat_RGBA8888;
+                this.texture2D.mimapData = [];
+                this.texture2D.mimapData.push(new dou3d.MipmapData(this._pixelArray, this.width, this.height));
+                this.texture2D.width = this.width;
+                this.texture2D.height = this.height;
+                this.useMipmap = false;
+                context3D.upLoadTextureData(0, this);
+            }
+        };
+        CheckerboardTexture.prototype.uploadForcing = function (context3D) {
+            context3D.upLoadTextureData(0, this);
+        };
+        CheckerboardTexture.prototype.dispose = function () {
+            _super.prototype.dispose.call(this);
+            this._pixelArray = null;
+        };
+        /**
+        * 公用棋盘格实例对象
+        */
+        CheckerboardTexture.texture = new CheckerboardTexture();
+        return CheckerboardTexture;
+    }(dou3d.TextureBase));
+    dou3d.CheckerboardTexture = CheckerboardTexture;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {

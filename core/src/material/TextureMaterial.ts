@@ -9,7 +9,7 @@ namespace dou3d {
         public constructor(texture?: TextureBase, materialData?: MaterialData) {
             super(materialData);
             if (!texture) {
-                // texture = CheckerboardTexture.texture;
+                texture = CheckerboardTexture.texture;
             }
             this.diffuseTexture = texture;
             this.initMatPass();

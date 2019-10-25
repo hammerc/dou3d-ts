@@ -26,7 +26,7 @@ namespace dou3d {
                 this.texture2D.texture = context3D.createTexture();
                 this.texture2D.internalFormat = InternalFormat.imageData;
                 this.texture2D.imageData = this._imageData;
-                this.texture2D.dataFormat = Context3DProxy.gl.UNSIGNED_BYTE;
+                this.texture2D.dataFormat = ContextConfig.UNSIGNED_BYTE;
                 this.texture2D.colorFormat = ContextConfig.ColorFormat_RGBA8888;
                 context3D.upLoadTextureData(0, this);
             }

@@ -31,6 +31,11 @@ namespace dou3d {
         public diffuseTexture: TextureBase;
 
         /**
+         * 立方体漫反射贴图
+         */
+        public diffuseTexture3D: TextureBase;
+
+        /**
          * 法线贴图
          */
         public normalTexture: TextureBase;
@@ -206,6 +211,7 @@ namespace dou3d {
             let data = new MaterialData();
             data.drawMode = this.drawMode;
             data.diffuseTexture = this.diffuseTexture;
+            data.diffuseTexture3D = this.diffuseTexture3D;
             data.shadowMapTexture = this.shadowMapTexture;
             for (let i = 0; i < 4; ++i) {
                 data.shadowColor[i] = this.shadowColor[i];
