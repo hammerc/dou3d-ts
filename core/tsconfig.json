@@ -64,9 +64,6 @@
   "files": [
     "src/utils/Reference.ts",
 
-    "src/core/bound/Bound.ts",
-    "src/core/bound/BoundBox.ts",
-
     "src/core/context/Context3DProxy.ts",
     "src/core/context/ContextConfig.ts",
     "src/core/context/ContextTexture2D.ts",
@@ -105,7 +102,6 @@
     "src/animation/skeleton/SkeletonPose.ts",
 
     "src/camera/Camera3D.ts",
-    "src/camera/Frustum.ts",
 
     "src/controllers/ControllerBase.ts",
     "src/controllers/LookAtController.ts",

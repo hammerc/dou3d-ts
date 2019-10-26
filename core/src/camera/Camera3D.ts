@@ -9,8 +9,6 @@ namespace dou3d {
         private _projectMatrix: Matrix4;
         private _orthProjectMatrix: Matrix4;
 
-        private _frustum: Frustum;
-
         private _viewPort: Rectangle;
         private _aspectRatio: number = 1;
         private _fov: number = 0.78;
@@ -33,7 +31,6 @@ namespace dou3d {
             this._viewMatrix.identity();
             this._viewProjectionMatrix = new Matrix4();
             this._viewProjectionMatrix.identity();
-            this._frustum = new Frustum(this);
             this._orthProjectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
             this.cameraType = cameraType;
         }
@@ -43,13 +40,6 @@ namespace dou3d {
          */
         public get projectMatrix(): Matrix4 {
             return this._projectMatrix;
-        }
-
-        /**
-         * 相机的视椎体, 用来检测是否在当前相机可视范围内
-         */
-        public get frustum(): Frustum {
-            return this._frustum;
         }
 
         /**
@@ -66,7 +56,6 @@ namespace dou3d {
                     break;
             }
             this._orthProjectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
-            this._frustum.updateFrustum();
         }
         public get cameraType(): CameraType {
             return this._cameraType;
@@ -189,8 +178,6 @@ namespace dou3d {
 
             this._viewMatrix.copy(this._globalMatrix);
             this._viewMatrix.inverse();
-
-            this._frustum.update();
         }
 
         /**
@@ -206,19 +193,6 @@ namespace dou3d {
          */
         public get lookAtPosition(): Vector3 {
             return this._lookAtPosition;
-        }
-
-        /**
-         * 检测对象是否在相机视椎体内
-         */
-        public isVisibleToCamera(renderItem: RenderBase): boolean {
-            // 刷新自己和检测对象的矩阵
-            this.validateTransformNow();
-            renderItem.validateTransformNow();
-            if (renderItem.bound) {
-                return renderItem.bound.inBound(this._frustum);
-            }
-            return true;
         }
 
         /**
@@ -284,13 +258,6 @@ namespace dou3d {
             vector.set(1, 1, 1);
             this._globalMatrix.compose(this._globalPosition, this._globalOrientation, vector);
             vector.recycle();
-        }
-
-        public dispose() {
-            super.dispose();
-            if (this._frustum) {
-                this._frustum.dispose();
-            }
         }
     }
 }

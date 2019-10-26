@@ -12,9 +12,6 @@ namespace dou3d {
             }
             super(geometry, material);
             this._plane = <PlaneGeometry>this.geometry;
-            if (!this.bound) {
-                this.bound = this.buildBoundBox();
-            }
         }
 
         public update(time: number, delay: number, camera: Camera3D): void {

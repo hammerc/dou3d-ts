@@ -51,12 +51,6 @@ namespace dou3d {
          * 尝试将一个渲染对象进行视锥体裁剪放入到渲染队列中
          */
         private addRenderList(renderItem: RenderBase, camera: Camera3D, cameraCulling: boolean = true): void {
-            if (renderItem.enableCulling && cameraCulling) {
-                // TODO : 判断存在bug
-                // if (!camera.isVisibleToCamera(renderItem)) {
-                //     return;
-                // }
-            }
             if (renderItem.material) {
                 if (renderItem.layer == Layer.normal && renderItem.material.materialData.alphaBlending) {
                     this.layerMap[Layer.alpha].push(renderItem);

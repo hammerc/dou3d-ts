@@ -17,14 +17,11 @@ namespace dou3d {
         private _textureWidth: number = 1024 * 4;
         private _textureHeight: number = 1024 * 4;
 
-        private _boundBox: BoundBox;
-
         private _shadowCamera: Camera3D;
         private _shadowRender: MultiRenderer;
         private _directLight: DirectLight;
 
         private constructor() {
-            this._boundBox = new BoundBox(null, new Vector3(), new Vector3());
             this._shadowCamera = new Camera3D(CameraType.orthogonal);
             this._shadowRender = new MultiRenderer(PassType.shadowPass);
             this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, FrameBufferFormat.UNSIGNED_BYTE_RGBA);
@@ -100,49 +97,9 @@ namespace dou3d {
         }
 
         public update(entityCollect: EntityCollect, camera: Camera3D, time: number, delay: number, viewPort: Rectangle): void {
-            this.calculateBoundBox(entityCollect);
             Engine.context3DProxy.clearColor(1.0, 1.0, 1.0, 1.0);
             Engine.context3DProxy.clear(Context3DProxy.gl.COLOR_BUFFER_BIT | Context3DProxy.gl.DEPTH_BUFFER_BIT);
             this._shadowRender.draw(time, delay, Engine.context3DProxy, entityCollect, this._shadowCamera, viewPort);
-        }
-
-        private calculateBoundBox(entityCollect: EntityCollect): void {
-            this._boundBox.min.copy(new Vector3(MathUtil.INT_MAX, MathUtil.INT_MAX, MathUtil.INT_MAX));
-            this._boundBox.max.copy(new Vector3(-MathUtil.INT_MAX, -MathUtil.INT_MAX, -MathUtil.INT_MAX));
-            for (let i = 0; i < entityCollect.renderList.length; i++) {
-                let item = entityCollect.renderList[i];
-                if (!item.material || !item.material.castShadow) {
-                    continue;
-                }
-                let boundBox = <BoundBox>item.bound;
-                if (this._boundBox.max.x < boundBox.max.x + item.globalPosition.x) {
-                    this._boundBox.max.x = boundBox.max.x + item.globalPosition.x;
-                }
-                if (this._boundBox.max.y < boundBox.max.y + item.globalPosition.y) {
-                    this._boundBox.max.y = boundBox.max.y + item.globalPosition.y;
-                }
-                if (this._boundBox.max.z < boundBox.max.z + item.globalPosition.z) {
-                    this._boundBox.max.z = boundBox.max.z + item.globalPosition.z;
-                }
-                if (this._boundBox.min.x > boundBox.min.x + item.globalPosition.x) {
-                    this._boundBox.min.x = boundBox.min.x + item.globalPosition.x;
-                }
-                if (this._boundBox.min.y > boundBox.min.y + item.globalPosition.y) {
-                    this._boundBox.min.y = boundBox.min.y + item.globalPosition.y;
-                }
-                if (this._boundBox.min.z > boundBox.min.z + item.globalPosition.z) {
-                    this._boundBox.min.z = boundBox.min.z + item.globalPosition.z;
-                }
-            }
-            this._boundBox.fillBox(this._boundBox.min, this._boundBox.max);
-            let vec3 = dou.recyclable(Vector3);
-            vec3.copy(this._directLight.direction);
-            vec3.negate();
-            vec3.addScalar(this._boundBox.radius);
-            vec3.add(this._boundBox.center);
-            this._shadowCamera.globalPosition = vec3;
-            this._shadowCamera.updateViewport(0, 0, this._boundBox.radius * 2, this._boundBox.radius * 2);
-            this._shadowCamera.far = this._boundBox.radius * 2;
         }
     }
 }

@@ -1,7 +1,6 @@
 namespace dou3d {
     /**
      * 3D 空间中的一个对象
-     * - 内置包围盒
      * @author wizardc
      */
     export class Object3D extends dou.EventDispatcher {
@@ -22,10 +21,6 @@ namespace dou3d {
         protected _visible: boolean = true;
 
         protected _parent: ObjectContainer3D;
-
-        protected _bound: Bound;
-
-        protected _enableCulling: boolean = true;
 
         protected _name: string;
         protected _layer: Layer = Layer.normal;
@@ -326,34 +321,6 @@ namespace dou3d {
 
         public get parent(): ObjectContainer3D {
             return this._parent;
-        }
-
-        /**
-         * 包围盒
-         * * 每个场景物件都需要有自己的包围盒子, 可以自定义包围盒形状大小也可以根据模型本身生成
-         */
-        public set bound(bound: Bound) {
-            if (this._bound == bound) {
-                return;
-            }
-            if (this._bound) {
-                this._bound.dispose();
-            }
-            this._bound = bound;
-        }
-        public get bound(): Bound {
-            return this._bound;
-        }
-
-        /**
-         * 相机视锥裁剪
-         * * 设定这个物件是否具有视锥体裁剪功能, 为否的话将不参加场景渲染剔除, 无论是否在显示范围内都会进行相关的渲染逻辑运算
-         */
-        public set enableCulling(value: boolean) {
-            this._enableCulling = value;
-        }
-        public get enableCulling(): boolean {
-            return this._enableCulling;
         }
 
         public set name(value: string) {

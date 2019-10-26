@@ -10,9 +10,6 @@ namespace dou3d {
             super(geometry, material);
             this.camera = camera;
             material.cullMode = ContextConfig.FRONT;
-            if (!this.bound) {
-                this.bound = this.buildBoundBox();
-            }
         }
 
         public update(time: number, delay: number, camera: Camera3D): void {
