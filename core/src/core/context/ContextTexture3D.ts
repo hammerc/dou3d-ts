@@ -16,10 +16,10 @@ namespace dou3d {
 
         /**
          * 纹理贴图的颜色模式
-         * @see ContextConfig.ColorFormat_RGB565
-         * @see ContextConfig.ColorFormat_RGBA5551
-         * @see ContextConfig.ColorFormat_RGBA4444
-         * @see ContextConfig.ColorFormat_RGBA8888
+         * @see Context3DProxy.gl.ColorFormat_RGB565
+         * @see Context3DProxy.gl.ColorFormat_RGBA5551
+         * @see Context3DProxy.gl.ColorFormat_RGBA4444
+         * @see Context3DProxy.gl.ColorFormat_RGBA8888
          */
         public colorformat: number;
 

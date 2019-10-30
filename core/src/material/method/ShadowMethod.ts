@@ -7,8 +7,8 @@ namespace dou3d {
         public constructor(material: MaterialBase) {
             super();
             this.materialData = material.materialData;
-            this.vsShaderList[ShaderPhaseType.local_vertex] = this.vsShaderList[ShaderPhaseType.local_vertex] || [];
-            this.vsShaderList[ShaderPhaseType.local_vertex].push("shadowMapping_vs");
+            this.vsShaderList[ShaderPhaseType.vertex_1] = this.vsShaderList[ShaderPhaseType.vertex_1] || [];
+            this.vsShaderList[ShaderPhaseType.vertex_1].push("shadowMapping_vs");
             this.fsShaderList[ShaderPhaseType.shadow_fragment] = this.fsShaderList[ShaderPhaseType.shadow_fragment] || [];
             this.fsShaderList[ShaderPhaseType.shadow_fragment].push("shadowMapping_fs");
         }

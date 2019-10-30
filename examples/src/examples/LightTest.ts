@@ -8,38 +8,41 @@ namespace examples {
             dou.loader.load("resource/UV_Grid_Sm.jpg", (data, url) => {
 
                 if (data && data instanceof dou3d.ImageTexture) {
+                    // 从上向下照射的平行光
+                    let directLight = new dou3d.DirectLight(new dou3d.Vector3(0, -1, 0));
+                    directLight.diffuse = 0xffffff;
+
+                    // 位于中心点照射半径为 1000 的点光源
+                    let lightGroup2 = new dou3d.LightGroup();
+                    let pointLight = new dou3d.PointLight(0xffffff);
+                    pointLight.radius = 1000;
+                    pointLight.x = 0;
+                    pointLight.y = 0;
+                    pointLight.z = 0;
+
+                    // Z 轴正方向的聚光灯
+                    let spotLight = new dou3d.SpotLight(0xffffff);
+
                     let cube1 = this.createCube(data, -100, 100, 0);
                     view3D.scene.root.addChild(cube1);
-
                     let lightGroup1 = new dou3d.LightGroup();
-                    let directLight = new dou3d.DirectLight(new dou3d.Vector3(dou3d.MathUtil.toRadians(45), dou3d.MathUtil.toRadians(45), dou3d.MathUtil.toRadians(45)));
-                    directLight.diffuse = 0xffffff;
                     lightGroup1.addLight(directLight);
                     cube1.material.lightGroup = lightGroup1;
 
                     let cube2 = this.createCube(data, 100, 100, 0);
                     view3D.scene.root.addChild(cube2);
-
-                    let lightGroup2 = new dou3d.LightGroup();
-                    let pointLight = new dou3d.PointLight(0xffffff);
-                    pointLight.x = 100;
-                    pointLight.y = 100;
-                    pointLight.z = -200;
                     lightGroup2.addLight(pointLight);
                     cube2.material.lightGroup = lightGroup2;
                     view3D.scene.root.addChild(pointLight);
 
                     let cube3 = this.createCube(data, -100, -100, 0);
                     view3D.scene.root.addChild(cube3);
-
                     let lightGroup3 = new dou3d.LightGroup();
-                    let spotLight = new dou3d.SpotLight(0xffffff);
                     lightGroup3.addLight(spotLight);
                     cube3.material.lightGroup = lightGroup3;
 
                     let cube4 = this.createCube(data, 100, -100, 0);
                     view3D.scene.root.addChild(cube4);
-
                     let lightGroup4 = new dou3d.LightGroup();
                     lightGroup4.addLight(directLight);
                     lightGroup4.addLight(pointLight);

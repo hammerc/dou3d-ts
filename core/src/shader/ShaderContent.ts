@@ -1,7 +1,6 @@
 namespace dou3d {
     /**
-     * 解析着色器并对其内容进行分类
-     * 方便后面进行着色器合并
+     * 解析着色器并对其内容进行分类, 同时提供着色器合并的功能
      * @author wizardc
      */
     export class ShaderContent {

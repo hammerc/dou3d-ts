@@ -453,7 +453,7 @@ namespace dou3d {
         /**
          * 返回组合着色器后的内容
          */
-        export function fillShaderContent(shaderBase: ShaderBase, shaderNameList: string[], usage: PassUsage): Shader {
+        export function fillShaderContent(shaderComposer: ShaderComposer, shaderNameList: string[], usage: PassUsage): Shader {
             let shaderContent: ShaderContent;
             let i = 0;
             let varName = "";
@@ -512,30 +512,27 @@ namespace dou3d {
                         constR.value = usage.maxPointLight;
                         break;
                     case "bonesNumber":
-                        shaderBase.maxBone = usage.maxBone;
                         constR.value = usage.maxBone;
                         break;
                 }
             }
-            // sampler
             for (i = 0; i < shaderContent.sampler2DList.length; i++) {
                 let sampler2D = shaderContent.sampler2DList[i];
                 sampler2D.index = i;
                 usage.sampler2DList.push(sampler2D);
                 sampler2D.activeTextureIndex = getTexture2DIndex(i);
             }
-            // sampler
             for (i = 0; i < shaderContent.sampler3DList.length; i++) {
                 let sampler3D = shaderContent.sampler3DList[i];
                 sampler3D.activeTextureIndex = getTexture2DIndex(shaderContent.sampler2DList.length + i);
                 sampler3D.index = shaderContent.sampler2DList.length + i;
                 usage.sampler3DList.push(sampler3D);
             }
-            synthesisShader(shaderContent, shaderBase);
-            return ShaderPool.getGPUShader(shaderBase.shaderType, shaderContent.name, shaderContent.source);
+            synthesisShader(shaderContent, shaderComposer);
+            return ShaderPool.getGPUShader(shaderComposer.shaderType, shaderContent.name, shaderContent.source);
         }
 
-        function synthesisShader(content: ShaderContent, shaderBase: ShaderBase) {
+        function synthesisShader(content: ShaderContent, shaderComposer: ShaderComposer) {
             let i: number;
             let source = "";
             for (i = 0; i < content.extensionList.length; i++) {
@@ -545,36 +542,28 @@ namespace dou3d {
             for (i = 0; i < content.defineList.length; i++) {
                 source += connectDefine(content.defineList[i]);
             }
-            // let attribute
             for (i = 0; i < content.attributeList.length; i++) {
                 source += connectAtt(content.attributeList[i]);
             }
-            // let struct
             for (i = 0; i < content.structNames.length; i++) {
                 source += connectStruct(content.structDict[content.structNames[i]]);
             }
-            // let varying
             for (i = 0; i < content.varyingList.length; i++) {
                 source += connectVarying(content.varyingList[i]);
             }
-            // temp
             for (i = 0; i < content.tempList.length; i++) {
                 source += connectTemp(content.tempList[i]);
             }
-            // const
             for (i = 0; i < content.constList.length; i++) {
                 source += connectConst(content.constList[i]);
             }
-            // uniform
             for (i = 0; i < content.uniformList.length; i++) {
                 source += connectUniform(content.uniformList[i]);
             }
-            // sampler
             for (i = 0; i < content.sampler2DList.length; i++) {
                 let sampler2D = content.sampler2DList[i];
                 source += connectSampler(sampler2D);
             }
-            // sampler
             for (i = 0; i < content.sampler3DList.length; i++) {
                 let sampler3D = content.sampler3DList[i];
                 source += connectSampler3D(sampler3D);
@@ -649,7 +638,7 @@ namespace dou3d {
                 case 8:
                     return ContextSamplerType.TEXTURE_8;
             }
-            throw new Error("texture not big then 8")
+            throw new Error("texture not big then 8");
         }
     }
 }

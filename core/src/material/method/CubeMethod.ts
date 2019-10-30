@@ -6,8 +6,8 @@ namespace dou3d {
     export class CubeMethod extends MethodBase {
         constructor() {
             super();
-            this.vsShaderList[ShaderPhaseType.global_vertex] = this.fsShaderList[ShaderPhaseType.global_vertex] || [];
-            this.vsShaderList[ShaderPhaseType.global_vertex].push("cube_vs");
+            this.vsShaderList[ShaderPhaseType.vertex_2] = this.fsShaderList[ShaderPhaseType.vertex_2] || [];
+            this.vsShaderList[ShaderPhaseType.vertex_2].push("cube_vs");
             this.fsShaderList[ShaderPhaseType.diffuse_fragment] = this.fsShaderList[ShaderPhaseType.diffuse_fragment] || [];
             this.fsShaderList[ShaderPhaseType.diffuse_fragment].push("cube_fs");
         }

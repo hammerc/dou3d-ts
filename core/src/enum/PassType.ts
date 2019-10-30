@@ -5,8 +5,8 @@ namespace dou3d {
      */
     export const enum PassType {
         diffusePass,
+        shadowPass,
         colorPass,
-        normalPass,
-        shadowPass
+        normalPass
     }
 }

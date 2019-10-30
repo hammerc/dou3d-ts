@@ -9,6 +9,11 @@ namespace dou3d {
          */
         public static gl: WebGLRenderingContext;
 
+        /**
+         * canvas 窗口矩形
+         */
+        public static canvasRectangle: Rectangle;
+
         private _program: Program3D;
         private _sfactor: number;
         private _dfactor: number;
@@ -33,7 +38,6 @@ namespace dou3d {
             Context3DProxy.gl.getExtension("WEBGL_draw_buffers");
             Context3DProxy.gl.getExtension("WEBGL_depth_texture");
             Context3DProxy.gl.getExtension("WEBGL_lose_context");
-            ContextConfig.register(Context3DProxy.gl);
         }
 
         /**
@@ -48,7 +52,7 @@ namespace dou3d {
          * 设置矩形裁切区域
          */
         public setScissorRectangle(x: number, y: number, width: number, height: number): void {
-            Context3DProxy.gl.scissor(x, ContextConfig.canvasRectangle.h - height - y, width, height);
+            Context3DProxy.gl.scissor(x, Context3DProxy.canvasRectangle.h - height - y, width, height);
         }
 
         /**
@@ -506,9 +510,11 @@ namespace dou3d {
         }
 
         /**
-         * 设置贴图采样 第一个参数并不是类型
-         * @param samplerIndex
-         * @see ContextSamplerType
+         * 设置贴图采样
+         * @param samplerIndex 激活和绑定的采样器单元, 对应 gl.TEXTURE_0 ~ gl.TEXTURE_8
+         * @param uniLocation 着色器中对应的取样器索引
+         * @param index 赋值给取样器变量的纹理单元编号, 纹理单元对应的编号: 如果第一个参数是 gl.TEXTURE_0 则这里传递 0
+         * @param texture 贴图对象
          */
         public setTexture2DAt(samplerIndex: number, uniLocation: any, index: number, texture: ContextTexture2D): void {
             Context3DProxy.gl.activeTexture(samplerIndex);
@@ -517,14 +523,13 @@ namespace dou3d {
         }
 
         /**
-         * 设置贴图采样 第一个参数并不是类型
-         * @param samplerIndex
-         * @see ContextSamplerType
+         * 设置贴图采样
+         * @param samplerIndex 激活和绑定的采样器单元, 对应 gl.TEXTURE_0 ~ gl.TEXTURE_8
+         * @param uniLocation 着色器中对应的取样器索引
+         * @param index 赋值给取样器变量的纹理单元编号, 纹理单元对应的编号: 如果第一个参数是 gl.TEXTURE_0 则这里传递 0
+         * @param texture 贴图对象
          */
         public setCubeTextureAt(samplerIndex: number, uniLocation: number, index: number, texture: ContextTexture3D): void {
-            if (!texture) {
-                return;
-            }
             Context3DProxy.gl.activeTexture(samplerIndex);
             Context3DProxy.gl.bindTexture(Context3DProxy.gl.TEXTURE_CUBE_MAP, texture.texture);
             Context3DProxy.gl.uniform1i(uniLocation, index);
@@ -544,8 +549,8 @@ namespace dou3d {
 
         /**
          * 设置剔除模式
-         * @see ContextConfig.FRONT
-         * @see ContextConfig.BACK
+         * @see Context3DProxy.gl.FRONT
+         * @see Context3DProxy.gl.BACK
          */
         public setCulling(mode: number): void {
             if (this._cullingMode == mode) {
@@ -563,7 +568,7 @@ namespace dou3d {
                 return;
             }
             this._depthTest = true;
-            Context3DProxy.gl.enable(ContextConfig.DEPTH_TEST);
+            Context3DProxy.gl.enable(Context3DProxy.gl.DEPTH_TEST);
         }
 
         /**
@@ -574,7 +579,7 @@ namespace dou3d {
                 return;
             }
             this._depthTest = false;
-            Context3DProxy.gl.disable(ContextConfig.DEPTH_TEST);
+            Context3DProxy.gl.disable(Context3DProxy.gl.DEPTH_TEST);
         }
 
         /**
@@ -585,7 +590,7 @@ namespace dou3d {
                 return;
             }
             this._cullFace = true;
-            Context3DProxy.gl.enable(ContextConfig.CULL_FACE);
+            Context3DProxy.gl.enable(Context3DProxy.gl.CULL_FACE);
         }
 
         /**
@@ -596,7 +601,7 @@ namespace dou3d {
                 return;
             }
             this._cullFace = false;
-            Context3DProxy.gl.disable(ContextConfig.CULL_FACE);
+            Context3DProxy.gl.disable(Context3DProxy.gl.CULL_FACE);
         }
 
         /**
@@ -607,7 +612,7 @@ namespace dou3d {
             //     return;
             // }
             // this._blend = true;
-            Context3DProxy.gl.enable(ContextConfig.BLEND);
+            Context3DProxy.gl.enable(Context3DProxy.gl.BLEND);
         }
 
         /**
@@ -618,7 +623,7 @@ namespace dou3d {
             //     return;
             // }
             // this._blend = false;
-            Context3DProxy.gl.disable(ContextConfig.BLEND);
+            Context3DProxy.gl.disable(Context3DProxy.gl.BLEND);
         }
 
         /**

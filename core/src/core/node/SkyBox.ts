@@ -9,7 +9,7 @@ namespace dou3d {
         public constructor(geometry: Geometry, material: MaterialBase, camera?: Camera3D) {
             super(geometry, material);
             this.camera = camera;
-            material.cullMode = ContextConfig.FRONT;
+            material.cullMode = Context3DProxy.gl.FRONT;
         }
 
         public update(time: number, delay: number, camera: Camera3D): void {

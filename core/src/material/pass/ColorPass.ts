@@ -12,9 +12,7 @@ namespace dou3d {
         public initUseMethod(): void {
             this._passChange = false;
             this._passUsage = new PassUsage();
-            this._passUsage.vertexShader.shaderType = ShaderType.vertex;
-            this._passUsage.fragmentShader.shaderType = ShaderType.fragment;
-            if (this._materialData.shaderPhaseTypes[PassType.diffusePass].indexOf(ShaderPhaseType.diffuse_fragment) != -1) {
+            if (this._materialData.shaderPhaseTypes[PassType.diffusePass].contains(ShaderPhaseType.diffuse_fragment)) {
                 this._fs_shader_methods[ShaderPhaseType.diffuse_fragment] = [];
                 this._fs_shader_methods[ShaderPhaseType.diffuse_fragment].push("diffuse_fs");
             }

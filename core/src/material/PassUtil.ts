@@ -4,9 +4,15 @@ namespace dou3d {
      * @author wizardc
      */
     export namespace PassUtil {
-        export const passAuto: Readonly<boolean[]> = [true, true, true, false, false, true, true, true, true, true];
+        /**
+         * 和 PassType 对应, 指定的渲染通道没有设定时是否创建默认的通道对象
+         */
+        export const passAuto: Readonly<boolean[]> = [true, true, true, true];
 
-        export function creatPass(pass: PassType, materialData: MaterialData): MaterialPass[] {
+        /**
+         * 创建默认的渲染通道数组
+         */
+        export function createPass(pass: PassType, materialData: MaterialData): MaterialPass[] {
             switch (pass) {
                 case PassType.colorPass:
                     materialData.shaderPhaseTypes[PassType.colorPass] = [];

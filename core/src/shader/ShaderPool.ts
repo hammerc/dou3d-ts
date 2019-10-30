@@ -4,14 +4,13 @@ namespace dou3d {
      * @author wizardc
      */
     export namespace ShaderPool {
-        //总shader的map容器
         const _programlib: { [key: string]: Program3D } = {};
         const _vsShaderHashMap: { [key: string]: Shader } = {};
         const _fsShaderHashMap: { [key: string]: Shader } = {};
 
         let _context: Context3DProxy;
 
-        export function register(context: Context3DProxy) {
+        export function register(context: Context3DProxy): void {
             _context = context;
         }
 
@@ -50,17 +49,9 @@ namespace dou3d {
             return _programlib[name];
         }
 
-        function unRegisterShader(list: Array<string>) {
-            //to delet shader
-        }
-
         function registerProgram(vsShader: Shader, fsShader: Shader): Program3D {
             let program3D = _context.createProgram(vsShader, fsShader);
             return program3D;
-        }
-
-        function unRegisterProgram(vsKey: string, fsKey: string) {
-            //to delet program
         }
     }
 }

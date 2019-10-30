@@ -12,144 +12,6 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
-     * 基础包围盒类
-     * - 包含包围盒的各顶点信息, 当包围盒要进行世界变换时, 应当变换各顶点信息
-     * @author wizardc
-     */
-    abstract class Bound extends dou.HashObject {
-        protected _vexData: Float32Array;
-        protected _indexData: Uint16Array;
-        protected _vexLength: number;
-        protected _childBound: Bound;
-        protected _owner: Object3D;
-        private _defaultMatrix;
-        constructor(owner: Object3D);
-        /**
-         * 被拥有的对象
-         */
-        owner: Object3D;
-        /**
-         * 顶点数据
-         */
-        readonly vexData: Float32Array;
-        /**
-         * 索引数据
-         */
-        readonly indexData: Uint16Array;
-        /**
-         * 顶点长度
-         */
-        readonly vexLength: number;
-        /**
-         * 子包围盒
-         */
-        readonly childBound: Bound;
-        /**
-         * 变换矩阵
-         */
-        readonly transform: Matrix4;
-        protected calculateTransform(): void;
-        abstract createChild(): void;
-        protected abstract updateAABB(): void;
-        copyVertex(bound: Bound): void;
-        /**
-         * 检测一个点是否包围盒内
-         */
-        abstract pointIntersect(pos: Vector3): boolean;
-        /**
-         * 检测两个包围盒是否相交
-         */
-        abstract intersectAABBs(box: BoundBox, boxIntersect?: BoundBox): boolean;
-        /**
-         * 检测两个包围对象是否相交
-         */
-        abstract intersect(target: Bound, intersect?: Bound): boolean;
-        /**
-         * 检测是否在视椎体内
-         */
-        abstract inBound(frustum: Frustum): boolean;
-        dispose(): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 包围盒
-     * @author wizardc
-     */
-    class BoundBox extends Bound {
-        private _min;
-        private _max;
-        private _width;
-        private _heigth;
-        private _depth;
-        private _volume;
-        private _center;
-        private _radius;
-        private _box1;
-        private _box2;
-        constructor(owner: Object3D, min: Vector3, max: Vector3);
-        /**
-         * 盒子最小点
-         */
-        readonly min: Vector3;
-        /**
-         * 盒子最大点
-         */
-        readonly max: Vector3;
-        /**
-         * 盒子宽
-         */
-        readonly width: number;
-        /**
-         * 盒子高
-         */
-        readonly height: number;
-        /**
-         * 盒子长
-         */
-        readonly depth: number;
-        /**
-         * 盒子体积
-         */
-        readonly volume: number;
-        /**
-         * 盒子包围球中心点
-         */
-        readonly center: Vector3;
-        /**
-         * 盒子包围球半径
-         */
-        readonly radius: number;
-        copy(box: BoundBox): void;
-        fillBox(min: Vector3, max: Vector3): void;
-        createChild(): void;
-        protected updateAABB(): void;
-        /**
-         * 计算包围盒数据
-         */
-        calculateBox(): void;
-        /**
-         * 检测一个点是否包围盒内
-         */
-        pointIntersect(pos: Vector3): boolean;
-        /**
-         * 检测两个包围盒是否相交
-         */
-        intersectAABBs(box: BoundBox, boxIntersect?: BoundBox): boolean;
-        /**
-         * 检测两个包围对象是否相交
-         */
-        intersect(target: Bound, intersect?: Bound): boolean;
-        /**
-         * 检测一个盒子是否在视椎体内
-         */
-        inBound(frustum: Frustum): boolean;
-        toString(): string;
-        clone(): Bound;
-    }
-}
-declare namespace dou3d {
-    /**
      * 渲染上下文
      * @author wizardc
      */
@@ -751,7 +613,6 @@ declare namespace dou3d {
 declare namespace dou3d {
     /**
      * 3D 空间中的一个对象
-     * - 内置包围盒
      * @author wizardc
      */
     class Object3D extends dou.EventDispatcher {
@@ -767,8 +628,6 @@ declare namespace dou3d {
         protected _globalTransformChanged: boolean;
         protected _visible: boolean;
         protected _parent: ObjectContainer3D;
-        protected _bound: Bound;
-        protected _enableCulling: boolean;
         protected _name: string;
         protected _layer: Layer;
         protected _controller: ControllerBase;
@@ -797,16 +656,6 @@ declare namespace dou3d {
         globalMatrix: Matrix4;
         visible: boolean;
         readonly parent: ObjectContainer3D;
-        /**
-         * 包围盒
-         * * 每个场景物件都需要有自己的包围盒子, 可以自定义包围盒形状大小也可以根据模型本身生成
-         */
-        bound: Bound;
-        /**
-         * 相机视锥裁剪
-         * * 设定这个物件是否具有视锥体裁剪功能, 为否的话将不参加场景渲染剔除, 无论是否在显示范围内都会进行相关的渲染逻辑运算
-         */
-        enableCulling: boolean;
         name: string;
         /**
          * 渲染的层
@@ -940,7 +789,6 @@ declare namespace dou3d {
      */
     class Mesh extends RenderBase {
         constructor(geometry: Geometry, material?: MaterialBase, animation?: IAnimation);
-        protected buildBoundBox(): Bound;
         clone(): Mesh;
     }
 }
@@ -1544,7 +1392,6 @@ declare namespace dou3d {
         private _cameraType;
         private _projectMatrix;
         private _orthProjectMatrix;
-        private _frustum;
         private _viewPort;
         private _aspectRatio;
         private _fov;
@@ -1559,10 +1406,6 @@ declare namespace dou3d {
          * 相机投影矩阵
          */
         readonly projectMatrix: Matrix4;
-        /**
-         * 相机的视椎体, 用来检测是否在当前相机可视范围内
-         */
-        readonly frustum: Frustum;
         /**
          * 相机类型
          */
@@ -1616,10 +1459,6 @@ declare namespace dou3d {
          */
         readonly lookAtPosition: Vector3;
         /**
-         * 检测对象是否在相机视椎体内
-         */
-        isVisibleToCamera(renderItem: RenderBase): boolean;
-        /**
          * 将 3 维空间中的坐标转换为屏幕坐标
          */
         spaceToScreen(point: IVector3, result?: IVector2): IVector2;
@@ -1631,52 +1470,6 @@ declare namespace dou3d {
         screenToSpace(point: IVector2, z?: number, result?: IVector3): IVector3;
         private unproject;
         protected markTransform(): void;
-        dispose(): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 摄像机视椎体
-     * - 计算出摄像机的可视范围
-     * @author wizardc
-     */
-    class Frustum {
-        private _camera;
-        private _box;
-        private _vtxNum;
-        private _vertex;
-        private _planeNum;
-        private _plane;
-        private _center;
-        constructor(camera: Camera3D);
-        /**
-         * 包围盒
-         */
-        readonly box: BoundBox;
-        /**
-         * 视椎体中心点
-         */
-        readonly center: Vector3;
-        /**
-         * 数据更新
-         */
-        updateFrustum(): void;
-        makeFrustum(fovY: number, aspectRatio: number, nearPlane: number, farPlane: number): void;
-        protected makeOrthoFrustum(w: number, h: number, zn: number, zf: number): void;
-        update(): void;
-        /**
-         * 检测一个坐标点是否在视椎体内
-         */
-        inPoint(pos: Vector3): boolean;
-        /**
-         * 检测一个球是否在视椎体内
-         */
-        inSphere(center: IVector3, radius: number): boolean;
-        /**
-         * 检测一个盒子是否在视椎体内
-         */
-        inBox(box: BoundBox): boolean;
-        dispose(): void;
     }
 }
 declare namespace dou3d {
@@ -3526,7 +3319,7 @@ declare namespace dou3d {
          */
         static readonly stride: number;
         private _direction;
-        constructor(direction: Vector3);
+        constructor(direction?: Vector3);
         direction: Vector3;
         protected onTransformUpdate(): void;
         updateLightData(camera: Camera3D, index: number, lightData: Float32Array): void;
@@ -4755,7 +4548,6 @@ declare namespace dou3d {
         private _enableShadow;
         private _textureWidth;
         private _textureHeight;
-        private _boundBox;
         private _shadowCamera;
         private _shadowRender;
         private _directLight;
@@ -4791,7 +4583,6 @@ declare namespace dou3d {
          */
         castShadowLight(light: DirectLight): void;
         update(entityCollect: EntityCollect, camera: Camera3D, time: number, delay: number, viewPort: Rectangle): void;
-        private calculateBoundBox;
     }
 }
 declare namespace dou3d {

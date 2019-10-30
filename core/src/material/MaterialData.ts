@@ -5,15 +5,15 @@ namespace dou3d {
      */
     export class MaterialData {
         /**
-         * 材质类型数组
-         * * 每个材质球可能会有很多种贴图方法, 而这个是做为默认支持的材质方法的添加通道
+         * 着色器阶段记录表
+         * 渲染通道类型 -> 着色器片段类型数组
          */
-        public shaderPhaseTypes: { [passID: number]: ShaderPhaseType[] } = {};
+        public shaderPhaseTypes: { [passType: number]: ShaderPhaseType[] } = {};
 
         /**
-         * 渲染模式
+         * 绘制模式
          */
-        public drawMode: number = ContextConfig.TRIANGLES;
+        public drawMode: number = Context3DProxy.gl.TRIANGLES;
 
         /**
          * 是否开启 MipMap
@@ -41,34 +41,9 @@ namespace dou3d {
         public normalTexture: TextureBase;
 
         /**
-         * 
-         */
-        public matcapTexture: TextureBase;
-
-        /**
-         * 特效贴图
+         * 高光贴图
          */
         public specularTexture: TextureBase;
-
-        /**
-         * 灯光贴图
-         */
-        public lightTexture: TextureBase;
-
-        /**
-         * 遮罩贴图
-         */
-        public maskTexture: TextureBase;
-
-        /**
-         * ao 贴图
-         */
-        public aoTexture: TextureBase;
-
-        /**
-         * mask 贴图
-         */
-        public blendMaskTexture: TextureBase;
 
         /**
          * 投射阴影
@@ -101,32 +76,32 @@ namespace dou3d {
         public blendMode: BlendMode = BlendMode.NORMAL;
 
         /**
-         * blend_src 值
+         * 混合 src 值
          */
-        public blend_src: number;
+        public blendSrc: number;
 
         /**
-         * blend_dest 值
+         * 混合 dest 值
          */
-        public blend_dest: number;
+        public blendDest: number;
 
         /**
-         * alphaBlending
+         * 透明混合
          */
         public alphaBlending: boolean = false;
 
         /**
-         * ambientColor 值
+         * 环境光颜色
          */
         public ambientColor: number = 0x333333;
 
         /**
-         * diffuseColor
+         * 漫反射颜色
          */
         public diffuseColor: number = 0xffffff;
 
         /**
-         * specularColor 值
+         * 高光颜色
          */
         public specularColor: number = 0xffffff;
 
@@ -138,15 +113,15 @@ namespace dou3d {
         /**
          * 材质球的高光强度
          */
-        public specularLevel: number = 4.0;
+        public specularLevel: number = 4;
 
         /**
          * 材质球的光滑度
          */
-        public gloss: number = 20.0;
+        public gloss: number = 20;
 
         /**
-         * cutAlpha 值
+         * 透明度小于该值的像素完全透明
          */
         public cutAlpha: number = 0.7;
 
@@ -156,14 +131,14 @@ namespace dou3d {
         public repeat: boolean = false;
 
         /**
-         * bothside 值
+         * 是否进行双面渲染
          */
         public bothside: boolean = false;
 
         /**
-         * alpha 值
+         * 透明度
          */
-        public alpha: number = 1.0;
+        public alpha: number = 1;
 
         /**
          * 反射颜色的强度值，出射光照的出射率
@@ -171,13 +146,7 @@ namespace dou3d {
         public albedo: number = 0.95;
 
         /**
-         * 高光亮度的强度值,设置较大的值会让高光部分极亮
-         */
-        public specularScale: number = 1.0;
-        public normalScale: number = 1.0;
-
-        /**
-         * uv 在贴图上的映射区域，值的范围限制在0.0~1.0之间
+         * uv 在贴图上的映射区域， 值的范围限制在 0~1 之间
          */
         public uvRectangle: Rectangle = new Rectangle(0, 0, 1, 1);
 
@@ -197,15 +166,14 @@ namespace dou3d {
         public textureStateChage: boolean = true;
 
         /**
-         * cullFrontOrBack
+         * 剔除模式
          */
-        public cullFrontOrBack: number = ContextConfig.BACK;
+        public cullFrontOrBack: number = Context3DProxy.gl.BACK;
 
+        /**
+         * 材质属性数据
+         */
         public materialSourceData: Float32Array = new Float32Array(20);
-
-        public colorGradientsSource: Float32Array = new Float32Array(10);
-
-        public colorTransform: ColorTransform;
 
         public clone(): MaterialData {
             let data = new MaterialData();
@@ -220,8 +188,8 @@ namespace dou3d {
             data.acceptShadow = this.acceptShadow;
             data.depthTest = this.depthTest;
             data.blendMode = this.blendMode;
-            data.blend_src = this.blend_src;
-            data.blend_dest = this.blend_dest;
+            data.blendSrc = this.blendSrc;
+            data.blendDest = this.blendDest;
             data.ambientColor = this.ambientColor;
             data.diffuseColor = this.diffuseColor;
             data.specularColor = this.specularColor;
@@ -230,11 +198,9 @@ namespace dou3d {
             data.specularLevel = this.specularLevel;
             data.gloss = this.gloss;
             data.albedo = this.albedo;
-            data.specularScale = this.specularScale;
             data.materialDataNeedChange = this.materialDataNeedChange;
             data.textureChange = true;
             data.cullFrontOrBack = this.cullFrontOrBack;
-            data.colorTransform = this.colorTransform;
             return data;
         }
 

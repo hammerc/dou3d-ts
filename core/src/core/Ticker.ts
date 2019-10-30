@@ -36,7 +36,7 @@ namespace dou3d {
 
             let viewRect = this._engine.viewRect;
             let view3Ds = this._engine.view3Ds;
-            ContextConfig.canvasRectangle = viewRect;
+            Context3DProxy.canvasRectangle = viewRect;
             Engine.context3DProxy.viewPort(0, 0, viewRect.w, viewRect.h);
             Engine.context3DProxy.setScissorRectangle(0, 0, viewRect.w, viewRect.h);
             for (let i = 0; i < view3Ds.length; i++) {

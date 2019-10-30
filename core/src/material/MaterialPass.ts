@@ -1,6 +1,6 @@
 namespace dou3d {
     /**
-     * 材质渲染通道
+     * 材质渲染通道基类
      * @author wizardc
      */
     export class MaterialPass {
@@ -84,27 +84,9 @@ namespace dou3d {
             this._materialData.textureChange = false;
         }
 
-        protected addMethodShaders(shaderBase: ShaderBase, shaders: string[]): void {
+        protected addMethodShaders(shaderComposer: ShaderComposer, shaders: string[]): void {
             for (let i = 0; i < shaders.length; i++) {
-                shaderBase.addUseShaderName(shaders[i]);
-            }
-        }
-
-        protected addShaderPhase(passType: number, sourcePhase: { [shaderPhase: number]: string[] }, targetPhase: { [shaderPhase: number]: string[] }): void {
-            let names: string[];
-            let phase: string;
-            let tn: string;
-            for (phase in sourcePhase) {
-                names = sourcePhase[phase];
-                for (let i = 0; i < names.length; i++) {
-                    targetPhase[phase] = targetPhase[phase] || [];
-                    targetPhase[phase].push(names[i]);
-                    tn = ShaderPhaseType[phase];
-                    let index = this._materialData.shaderPhaseTypes[passType].indexOf(ShaderPhaseType[tn]);
-                    if (index != -1) {
-                        this._materialData.shaderPhaseTypes[passType].splice(index, 1);
-                    }
-                }
+                shaderComposer.addUseShaderName(shaders[i]);
             }
         }
 
@@ -128,55 +110,51 @@ namespace dou3d {
             // 根据属性设定加入需要的渲染方法
             if (this._materialData.acceptShadow) {
                 // 添加接受阴影的 Shader
-                this._vs_shader_methods[ShaderPhaseType.global_vertex] = this._vs_shader_methods[ShaderPhaseType.global_vertex] || [];
+                this._vs_shader_methods[ShaderPhaseType.vertex_2] = this._vs_shader_methods[ShaderPhaseType.vertex_2] || [];
                 this._fs_shader_methods[ShaderPhaseType.shadow_fragment] = this._fs_shader_methods[ShaderPhaseType.shadow_fragment] || [];
             }
-            if (this._materialData.shaderPhaseTypes[PassType.diffusePass].indexOf(ShaderPhaseType.diffuse_fragment) != -1) {
+            if (this._materialData.shaderPhaseTypes[PassType.diffusePass].contains(ShaderPhaseType.diffuse_fragment)) {
                 this._fs_shader_methods[ShaderPhaseType.diffuse_fragment] = [];
                 this._fs_shader_methods[ShaderPhaseType.diffuse_fragment].push("diffuse_fs");
             }
-            if (this._materialData.shaderPhaseTypes[PassType.diffusePass].indexOf(ShaderPhaseType.normal_fragment) != -1) {
+            if (this._materialData.shaderPhaseTypes[PassType.diffusePass].contains(ShaderPhaseType.normal_fragment)) {
                 this._fs_shader_methods[ShaderPhaseType.normal_fragment] = [];
                 this._fs_shader_methods[ShaderPhaseType.normal_fragment].push("normalMap_fs");
             }
-            if (this._materialData.shaderPhaseTypes[PassType.diffusePass].indexOf(ShaderPhaseType.specular_fragment) != -1) {
+            if (this._materialData.shaderPhaseTypes[PassType.diffusePass].contains(ShaderPhaseType.specular_fragment)) {
                 this._fs_shader_methods[ShaderPhaseType.specular_fragment] = [];
                 this._fs_shader_methods[ShaderPhaseType.specular_fragment].push("specularMap_fs");
-            }
-            if (this._materialData.shaderPhaseTypes[PassType.diffusePass].indexOf(ShaderPhaseType.matCap_fragment) != -1) {
-                this._fs_shader_methods[ShaderPhaseType.matCap_fragment] = [];
-                this._fs_shader_methods[ShaderPhaseType.matCap_fragment].push("matCap_TextureMult_fs");
             }
             // 灯光相关的渲染方法
             if (this.lightGroup) {
                 this._passUsage.maxDirectLight = this.lightGroup.directList.length;
                 this._passUsage.maxSpotLight = this.lightGroup.spotList.length;
                 this._passUsage.maxPointLight = this.lightGroup.pointList.length;
-                this._vs_shader_methods[ShaderPhaseType.local_vertex] = this._vs_shader_methods[ShaderPhaseType.local_vertex] || [];
+                this._vs_shader_methods[ShaderPhaseType.vertex_1] = this._vs_shader_methods[ShaderPhaseType.vertex_1] || [];
                 this._fs_shader_methods[ShaderPhaseType.lighting_fragment] = [];
                 this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("lightingBase_fs");
                 if (this.lightGroup.directList.length) {
                     this._passUsage.directLightData = new Float32Array(DirectLight.stride * this.lightGroup.directList.length);
-                    this._vs_shader_methods[ShaderPhaseType.local_vertex].push("varyingViewDir_vs");
+                    this._vs_shader_methods[ShaderPhaseType.vertex_1].push("varyingViewDir_vs");
                     this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("directLight_fs");
-                }
-                if (this.lightGroup.spotList.length) {
-                    this._passUsage.spotLightData = new Float32Array(SpotLight.stride * this.lightGroup.spotList.length);
-                    this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("spotLight_fs");
                 }
                 if (this.lightGroup.pointList.length) {
                     this._passUsage.pointLightData = new Float32Array(PointLight.stride * this.lightGroup.pointList.length);
                     this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("pointLight_fs");
                 }
+                if (this.lightGroup.spotList.length) {
+                    this._passUsage.spotLightData = new Float32Array(SpotLight.stride * this.lightGroup.spotList.length);
+                    this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("spotLight_fs");
+                }
             }
-            this.initOtherMethods();
+            this.initMethodShader();
             this.phaseEnd();
         }
 
         /**
-         * 添加手动添加的其它渲染方法
+         * 添加来自 Method 的着色器片段
          */
-        protected initOtherMethods(): void {
+        protected initMethodShader(): void {
             let shaderPhase: string;
             let shaderList: string[];
             for (let d = 0; d < this.methodList.length; d++) {
@@ -204,14 +182,14 @@ namespace dou3d {
         protected phaseEnd(): void {
             let shaderList: string[];
             // 顶点着色器
-            shaderList = this._vs_shader_methods[ShaderPhaseType.base_vertex];
+            shaderList = this._vs_shader_methods[ShaderPhaseType.custom_vertex];
             if (shaderList && shaderList.length > 0) {
                 this.addMethodShaders(this._passUsage.vertexShader, shaderList);
             }
             // 没有时加入默认的着色器
             else {
                 this.addMethodShaders(this._passUsage.vertexShader, ["base_vs"]);
-                // start Phase
+                // start
                 shaderList = this._vs_shader_methods[ShaderPhaseType.start_vertex];
                 if (shaderList && shaderList.length > 0) {
                     this.addMethodShaders(this._passUsage.vertexShader, shaderList);
@@ -219,13 +197,13 @@ namespace dou3d {
                 else {
                     this.addMethodShaders(this._passUsage.vertexShader, ["diffuse_vs"]);
                 }
-                // local
-                shaderList = this._vs_shader_methods[ShaderPhaseType.local_vertex];
+                // vertex_1
+                shaderList = this._vs_shader_methods[ShaderPhaseType.vertex_1];
                 if (shaderList && shaderList.length > 0) {
                     this.addMethodShaders(this._passUsage.vertexShader, shaderList);
                 }
-                // global
-                shaderList = this._vs_shader_methods[ShaderPhaseType.global_vertex];
+                // vertex_2
+                shaderList = this._vs_shader_methods[ShaderPhaseType.vertex_2];
                 if (shaderList && shaderList.length > 0) {
                     this.addMethodShaders(this._passUsage.vertexShader, shaderList);
                 }
@@ -239,7 +217,7 @@ namespace dou3d {
                 }
             }
             // 片段着色器
-            shaderList = this._fs_shader_methods[ShaderPhaseType.base_fragment];
+            shaderList = this._fs_shader_methods[ShaderPhaseType.custom_fragment];
             if (shaderList && shaderList.length > 0) {
                 this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
             }
@@ -287,16 +265,6 @@ namespace dou3d {
                 if (shaderList && shaderList.length > 0) {
                     this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
                 }
-                // matCap
-                shaderList = this._fs_shader_methods[ShaderPhaseType.matCap_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // multi_end_fragment
-                shaderList = this._fs_shader_methods[ShaderPhaseType.multi_end_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
                 // end
                 shaderList = this._fs_shader_methods[ShaderPhaseType.end_fragment];
                 if (shaderList && shaderList.length > 0) {
@@ -308,12 +276,13 @@ namespace dou3d {
             }
         }
 
-        public upload(time: number, delay: number, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D, animation: IAnimation): void {
+        public upload(time: number, delay: number, context3DProxy: Context3DProxy, modelTransform: Matrix4, camera3D: Camera3D, animation: IAnimation): void {
             this._passChange = false;
             this.initUseMethod(animation);
             this._passUsage.vertexShader.shader = this._passUsage.vertexShader.getShader(this._passUsage);
             this._passUsage.fragmentShader.shader = this._passUsage.fragmentShader.getShader(this._passUsage);
             this._passUsage.program3D = ShaderPool.getProgram(this._passUsage.vertexShader.shader.id, this._passUsage.fragmentShader.shader.id);
+            // 添加 Shader 中所有带有 uniform 名称变量的索引
             for (let property in this._passUsage) {
                 if (property.indexOf("uniform") != -1) {
                     if (this._passUsage[property]) {
@@ -321,6 +290,7 @@ namespace dou3d {
                     }
                 }
             }
+            // 添加取样器的索引
             let sampler2D: Sampler2D;
             for (let index in this._passUsage.sampler2DList) {
                 sampler2D = this._passUsage.sampler2DList[index];
@@ -334,7 +304,7 @@ namespace dou3d {
             }
             if (this.methodList) {
                 for (let i = 0; i < this.methodList.length; i++) {
-                    this.methodList[i].upload(time, delay, this._passUsage, null, context3DProxy, modeltransform, camera3D);
+                    this.methodList[i].upload(time, delay, this._passUsage, null, context3DProxy, modelTransform, camera3D);
                 }
             }
         }
@@ -380,11 +350,11 @@ namespace dou3d {
             subGeometry.activeState(this._passUsage, context3DProxy);
             if (this._materialData.depthTest) {
                 context3DProxy.enableDepth();
-                context3DProxy.depthFunc(ContextConfig.LEQUAL);
+                context3DProxy.depthFunc(Context3DProxy.gl.LEQUAL);
             }
             else {
                 context3DProxy.disableDepth();
-                context3DProxy.depthFunc(ContextConfig.LEQUAL);
+                context3DProxy.depthFunc(Context3DProxy.gl.LEQUAL);
             }
             context3DProxy.setCulling(this._materialData.cullFrontOrBack);
             if (this._materialData.bothside) {
@@ -395,14 +365,14 @@ namespace dou3d {
             }
             if (this._passID == PassType.shadowPass) {
                 context3DProxy.disableBlend();
-                context3DProxy.setBlendFactors(ContextConfig.ONE, ContextConfig.ZERO);
+                context3DProxy.setBlendFactors(Context3DProxy.gl.ONE, Context3DProxy.gl.ZERO);
             }
             else {
                 if (this._materialData.alphaBlending) {
                     Context3DProxy.gl.depthMask(false);
                 }
                 context3DProxy.enableBlend();
-                context3DProxy.setBlendFactors(this._materialData.blend_src, this._materialData.blend_dest);
+                context3DProxy.setBlendFactors(this._materialData.blendSrc, this._materialData.blendDest);
             }
             if (this._passUsage.uniform_materialSource) {
                 context3DProxy.uniform1fv(this._passUsage.uniform_materialSource.uniformIndex, this._materialData.materialSourceData);

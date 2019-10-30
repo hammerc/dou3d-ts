@@ -12,11 +12,11 @@ namespace dou3d {
 
         private _direction: Vector3;
 
-        public constructor(direction: Vector3) {
+        public constructor(direction?: Vector3) {
             super();
             this._lightType = LightType.direct;
-            this._direction = new Vector3(0, 0, 1);
-            this.direction = direction;
+            this._direction = new Vector3();
+            this.direction = direction || new Vector3(0, 0, 1);
         }
 
         public set direction(value: Vector3) {

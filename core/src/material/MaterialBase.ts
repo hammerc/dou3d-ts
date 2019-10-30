@@ -82,10 +82,10 @@ namespace dou3d {
             if (texture) {
                 this._materialData.diffuseTexture = texture;
                 this._materialData.textureChange = true;
-                if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && this._materialData.shaderPhaseTypes[PassType.diffusePass].indexOf(ShaderPhaseType.diffuse_fragment) == -1) {
+                if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && !this._materialData.shaderPhaseTypes[PassType.diffusePass].contains(ShaderPhaseType.diffuse_fragment)) {
                     this._materialData.shaderPhaseTypes[PassType.diffusePass].push(ShaderPhaseType.diffuse_fragment);
                 }
-                if (this._materialData.shaderPhaseTypes[PassType.shadowPass] && this._materialData.shaderPhaseTypes[PassType.shadowPass].indexOf(ShaderPhaseType.diffuse_fragment) == -1) {
+                if (this._materialData.shaderPhaseTypes[PassType.shadowPass] && !this._materialData.shaderPhaseTypes[PassType.shadowPass].contains(ShaderPhaseType.diffuse_fragment)) {
                     this._materialData.shaderPhaseTypes[PassType.shadowPass].push(ShaderPhaseType.diffuse_fragment);
                 }
             }
@@ -101,7 +101,7 @@ namespace dou3d {
             if (texture) {
                 this._materialData.normalTexture = texture;
                 this._materialData.textureChange = true;
-                if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && this._materialData.shaderPhaseTypes[PassType.diffusePass].indexOf(ShaderPhaseType.normal_fragment) == -1) {
+                if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && !this._materialData.shaderPhaseTypes[PassType.diffusePass].contains(ShaderPhaseType.normal_fragment)) {
                     this._materialData.shaderPhaseTypes[PassType.diffusePass].push(ShaderPhaseType.normal_fragment);
                     this.passInvalid(PassType.diffusePass);
                 }
@@ -112,30 +112,13 @@ namespace dou3d {
         }
 
         /**
-         * 材质球特殊光效算法
-         */
-        public set matcapTexture(texture: TextureBase) {
-            if (texture) {
-                this._materialData.matcapTexture = texture;
-                this._materialData.textureChange = true;
-                if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && this._materialData.shaderPhaseTypes[PassType.diffusePass].indexOf(ShaderPhaseType.matCap_fragment) == -1) {
-                    this._materialData.shaderPhaseTypes[PassType.diffusePass].push(ShaderPhaseType.matCap_fragment);
-                    this.passInvalid(PassType.diffusePass);
-                }
-            }
-        }
-        public get matcapTexture(): TextureBase {
-            return this._materialData.normalTexture;
-        }
-
-        /**
          * 材质球的高光贴图
          */
         public set specularTexture(texture: TextureBase) {
             if (texture) {
                 this._materialData.specularTexture = texture;
                 this._materialData.textureChange = true;
-                if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && this._materialData.shaderPhaseTypes[PassType.diffusePass].indexOf(ShaderPhaseType.specular_fragment) == -1) {
+                if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && !this._materialData.shaderPhaseTypes[PassType.diffusePass].contains(ShaderPhaseType.specular_fragment)) {
                     this._materialData.shaderPhaseTypes[PassType.diffusePass].push(ShaderPhaseType.specular_fragment);
                 }
             }
@@ -384,38 +367,38 @@ namespace dou3d {
             this._materialData.blendMode = value;
             switch (value) {
                 case BlendMode.NORMAL:
-                    this._materialData.blend_src = ContextConfig.ONE;
-                    this._materialData.blend_dest = ContextConfig.ONE_MINUS_SRC_ALPHA;
+                    this._materialData.blendSrc = Context3DProxy.gl.ONE;
+                    this._materialData.blendDest = Context3DProxy.gl.ONE_MINUS_SRC_ALPHA;
                     this._materialData.alphaBlending = false;
                     break;
                 case BlendMode.LAYER:
-                    this._materialData.blend_src = ContextConfig.SRC_ALPHA;
-                    this._materialData.blend_dest = ContextConfig.ZERO;
+                    this._materialData.blendSrc = Context3DProxy.gl.SRC_ALPHA;
+                    this._materialData.blendDest = Context3DProxy.gl.ZERO;
                     this._materialData.alphaBlending = true;
                     break;
                 case BlendMode.MULTIPLY:
-                    this._materialData.blend_src = ContextConfig.ZERO;
-                    this._materialData.blend_dest = ContextConfig.SRC_COLOR;
+                    this._materialData.blendSrc = Context3DProxy.gl.ZERO;
+                    this._materialData.blendDest = Context3DProxy.gl.SRC_COLOR;
                     this._materialData.alphaBlending = true;
                     break;
                 case BlendMode.ADD:
-                    this._materialData.blend_src = ContextConfig.SRC_ALPHA;
-                    this._materialData.blend_dest = ContextConfig.ONE;
+                    this._materialData.blendSrc = Context3DProxy.gl.SRC_ALPHA;
+                    this._materialData.blendDest = Context3DProxy.gl.ONE;
                     this._materialData.alphaBlending = true;
                     break;
                 case BlendMode.SOFT_ADD:
-                    this._materialData.blend_src = ContextConfig.SRC_COLOR;
-                    this._materialData.blend_dest = ContextConfig.ONE;
+                    this._materialData.blendSrc = Context3DProxy.gl.SRC_COLOR;
+                    this._materialData.blendDest = Context3DProxy.gl.ONE;
                     this._materialData.alphaBlending = true;
                     break;
                 case BlendMode.ALPHA:
-                    this._materialData.blend_src = ContextConfig.ONE;
-                    this._materialData.blend_dest = ContextConfig.ONE_MINUS_SRC_ALPHA;
+                    this._materialData.blendSrc = Context3DProxy.gl.ONE;
+                    this._materialData.blendDest = Context3DProxy.gl.ONE_MINUS_SRC_ALPHA;
                     this._materialData.alphaBlending = true;
                     break;
                 case BlendMode.SCREEN:
-                    this._materialData.blend_src = ContextConfig.ONE;
-                    this._materialData.blend_dest = ContextConfig.ONE_MINUS_SRC_COLOR;
+                    this._materialData.blendSrc = Context3DProxy.gl.ONE;
+                    this._materialData.blendDest = Context3DProxy.gl.ONE_MINUS_SRC_COLOR;
                     break;
             }
         }
@@ -453,7 +436,7 @@ namespace dou3d {
          * 添加一个渲染通道
          */
         public addPass(pass: PassType): void {
-            this._passes[pass] = PassUtil.creatPass(pass, this._materialData);
+            this._passes[pass] = PassUtil.createPass(pass, this._materialData);
         }
 
         /**

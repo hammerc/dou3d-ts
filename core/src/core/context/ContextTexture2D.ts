@@ -16,21 +16,21 @@ namespace dou3d {
 
         /**
          * 纹理贴图的颜色格式
-         * @see ContextConfig.ColorFormat_RGB565
-         * @see ContextConfig.ColorFormat_RGBA5551
-         * @see ContextConfig.ColorFormat_RGBA4444
-         * @see ContextConfig.ColorFormat_RGBA8888
+         * @see Context3DProxy.gl.ColorFormat_RGB565
+         * @see Context3DProxy.gl.ColorFormat_RGBA5551
+         * @see Context3DProxy.gl.ColorFormat_RGBA4444
+         * @see Context3DProxy.gl.ColorFormat_RGBA8888
          */
         public colorFormat: number;
 
         /**
          * 纹理贴图的颜色格式
-         * @see ContextConfig.BYTE
-         * @see ContextConfig.SHORT
-         * @see ContextConfig.INT
-         * @see ContextConfig.UNSIGNED_BYTE
-         * @see ContextConfig.UNSIGNED_SHORT
-         * @see ContextConfig.UNSIGNED_INT
+         * @see Context3DProxy.gl.BYTE
+         * @see Context3DProxy.gl.SHORT
+         * @see Context3DProxy.gl.INT
+         * @see Context3DProxy.gl.UNSIGNED_BYTE
+         * @see Context3DProxy.gl.UNSIGNED_SHORT
+         * @see Context3DProxy.gl.UNSIGNED_INT
          */
         public dataFormat: number;
 

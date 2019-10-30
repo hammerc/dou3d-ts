@@ -28,35 +28,57 @@ namespace dou3d {
 
         /**
          * 变量值
+         * * 类型为宏和常量时
          */
         public value: any = "";
 
         /**
-         * texture
-         */
-        public texture//: ITexture;
-
-        /**
-         * uniform Index
+         * 着色器中的索引
+         * * 类型为 Attribute、 Uniform 和取样器时
          */
         public uniformIndex: any;
 
         /**
-         * active Texture Index
+         * 贴图对象
+         * * 采样器类型时
+         */
+        public texture: any;
+
+        /**
+         * 要激活的纹理单元
+         * * gl.TEXTURE_0 ~ gl.TEXTURE_8
          */
         public activeTextureIndex: number = -1;
 
         /**
-         * index
+         * 绑定到取样器的纹理索引
+         * * 如果激活的纹理单元是 gl.TEXTURE_0 则这里是 0, 和纹理单元对应
          */
         public index: number = -1;
 
+        /**
+         * 总大小
+         */
         public size: number = 0;
+
+        /**
+         * 数据类型
+         */
         public dataType: number = 0;
+
+        /**
+         * 是否归一化
+         */
         public normalized: boolean = false;
+
+        /**
+         * 一个完整数据的字节数
+         */
         public stride: number = 0;
-        public offset: number = 0;
-        public offsetIndex: number = 0;
+
+        /**
+         * 单个数据的偏移量
+         */
         public offsetBytes: number = 0;
 
         protected computeVarName(): void {

@@ -41,7 +41,7 @@ namespace dou3d {
                             material.addPass(this._pass);
                         }
                         for (let j = material.passes[this._pass].length - 1; j >= 0; j--) {
-                            material.passes[this._pass] = PassUtil.creatPass(this._pass, material.materialData);
+                            material.passes[this._pass] = PassUtil.createPass(this._pass, material.materialData);
                             material.passes[this._pass][j].draw(time, delay, context3D, renderItem.globalMatrix, camera, subGeometry, renderItem);
                         }
                     }

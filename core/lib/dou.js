@@ -11,6 +11,351 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+if (!Array.from) {
+    Array.from = (function () {
+        var toStr = Object.prototype.toString;
+        var isCallable = function (fn) {
+            return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
+        };
+        var toInteger = function (value) {
+            var number = Number(value);
+            if (isNaN(number)) {
+                return 0;
+            }
+            if (number === 0 || !isFinite(number)) {
+                return number;
+            }
+            return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
+        };
+        var maxSafeInteger = Math.pow(2, 53) - 1;
+        var toLength = function (value) {
+            var len = toInteger(value);
+            return Math.min(Math.max(len, 0), maxSafeInteger);
+        };
+        return function from(arrayLike) {
+            var C = this;
+            var items = Object(arrayLike);
+            if (arrayLike == null) {
+                throw new TypeError('Array.from requires an array-like object - not null or undefined');
+            }
+            var mapFn = arguments.length > 1 ? arguments[1] : void undefined;
+            var T;
+            if (typeof mapFn !== 'undefined') {
+                if (!isCallable(mapFn)) {
+                    throw new TypeError('Array.from: when provided, the second argument must be a function');
+                }
+                if (arguments.length > 2) {
+                    T = arguments[2];
+                }
+            }
+            var len = toLength(items.length);
+            var A = isCallable(C) ? Object(new C(len)) : new Array(len);
+            var k = 0;
+            var kValue;
+            while (k < len) {
+                kValue = items[k];
+                if (mapFn) {
+                    A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
+                }
+                else {
+                    A[k] = kValue;
+                }
+                k += 1;
+            }
+            A.length = len;
+            return A;
+        };
+    }());
+}
+if (!Array.prototype.fill) {
+    Object.defineProperty(Array.prototype, 'fill', {
+        value: function (value) {
+            if (this == null) {
+                throw new TypeError('this is null or not defined');
+            }
+            var O = Object(this);
+            var len = O.length >>> 0;
+            var start = arguments[1];
+            var relativeStart = start >> 0;
+            var k = relativeStart < 0 ?
+                Math.max(len + relativeStart, 0) :
+                Math.min(relativeStart, len);
+            var end = arguments[2];
+            var relativeEnd = end === undefined ?
+                len : end >> 0;
+            var final = relativeEnd < 0 ?
+                Math.max(len + relativeEnd, 0) :
+                Math.min(relativeEnd, len);
+            while (k < final) {
+                O[k] = value;
+                k++;
+            }
+            return O;
+        }
+    });
+}
+if (!String.prototype.startsWith) {
+    Object.defineProperty(Array.prototype, 'startsWith', {
+        value: function (search, pos) {
+            return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
+        }
+    });
+}
+if (!String.prototype.endsWith) {
+    Object.defineProperty(Array.prototype, 'endsWith', {
+        value: function (search, pos) {
+            if (pos === undefined || pos > this.length) {
+                pos = this.length;
+            }
+            return this.substring(pos - search.length, pos) === search;
+        }
+    });
+}
+(function () {
+    var f, p;
+    p = Object.prototype;
+    Object.defineProperties(p, {
+        getPropertyDescriptor: {
+            value: function (property) {
+                var pd = Object.getOwnPropertyDescriptor(this, property);
+                if (pd) {
+                    return pd;
+                }
+                var prototype = Object.getPrototypeOf(this);
+                if (prototype) {
+                    return prototype.getPropertyDescriptor(property);
+                }
+                return undefined;
+            },
+            enumerable: false
+        },
+        shallowClone: {
+            value: function () {
+                var result = {};
+                this.shallowCloneTo(result);
+                return result;
+            },
+            enumerable: false
+        },
+        shallowCloneTo: {
+            value: function (target) {
+                for (var key in this) {
+                    if (key in target) {
+                        var pd = target.getPropertyDescriptor(key);
+                        if (pd && (pd.set || pd.writable)) {
+                            target[key] = this[key];
+                        }
+                    }
+                    else {
+                        target[key] = this[key];
+                    }
+                }
+            },
+            enumerable: false
+        },
+        deepClone: {
+            value: function () {
+                var jsonStr = JSON.stringify(this);
+                return JSON.parse(jsonStr);
+            },
+            enumerable: false
+        },
+        deepCloneTo: {
+            value: function (target) {
+                var obj = this.deepClone();
+                for (var key in obj) {
+                    if (key in target) {
+                        var pd = target.getPropertyDescriptor(key);
+                        if (pd && (pd.set || pd.writable)) {
+                            target[key] = obj[key];
+                        }
+                    }
+                    else {
+                        target[key] = obj[key];
+                    }
+                }
+            },
+            enumerable: false
+        },
+        clearAllProperty: {
+            value: function () {
+                for (var key in this) {
+                    delete this[key];
+                }
+            },
+            enumerable: false
+        }
+    });
+    p = String.prototype;
+    Object.defineProperties(p, {
+        splitNum: {
+            value: function (separator, limit) {
+                var arr = this.split(separator, limit);
+                for (var i = 0, len = arr.length; i < len; i++) {
+                    arr[i] = parseFloat(arr[i]);
+                }
+                return arr;
+            },
+            enumerable: false
+        },
+    });
+    f = Array;
+    f.NORMAL = 0;
+    f.CASEINSENSITIVE = 1;
+    f.DESCENDING = 2;
+    f.RETURNINDEXEDARRAY = 4;
+    f.NUMERIC = 8;
+    p = Array.prototype;
+    Object.defineProperties(p, {
+        contains: {
+            value: function () {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                for (var _a = 0, args_1 = args; _a < args_1.length; _a++) {
+                    var v = args_1[_a];
+                    if (this.indexOf(v) == -1) {
+                        return false;
+                    }
+                }
+                return true;
+            },
+            enumerable: false
+        },
+        pushUnique: {
+            value: function () {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                for (var _a = 0, args_2 = args; _a < args_2.length; _a++) {
+                    var v = args_2[_a];
+                    if (this.indexOf(v) == -1) {
+                        this[this.length] = v;
+                    }
+                }
+                return this.length;
+            },
+            enumerable: false
+        },
+        sortOn: {
+            value: function (fieldNames, options) {
+                var array = this;
+                if (!Array.isArray(fieldNames)) {
+                    fieldNames = [fieldNames];
+                }
+                if (!Array.isArray(options)) {
+                    options = [options];
+                }
+                if (fieldNames.length !== options.length) {
+                    options = new Array(fieldNames.length).fill(0);
+                }
+                var returnIndexedArray = options[0] & Array.RETURNINDEXEDARRAY;
+                if (returnIndexedArray) {
+                    array = Array.from(array);
+                }
+                var functions = fieldNames.map(function (fieldName, index) {
+                    return createComparisonFn(fieldName, options[index]);
+                });
+                var sorted = array.sort(function (a, b) {
+                    return functions.reduce(function (result, fn) {
+                        return result || fn(a, b);
+                    }, 0);
+                });
+                return returnIndexedArray ? sorted : undefined;
+                function createComparisonFn(fieldName, options) {
+                    options = options || 0;
+                    var transformations = [];
+                    if (fieldName) {
+                        transformations.push(function () {
+                            return this[fieldName];
+                        });
+                    }
+                    transformations.push((options & Array.NUMERIC)
+                        ? function () {
+                            return parseFloat(this);
+                        }
+                        : function () {
+                            return (typeof this === 'string' && this)
+                                || (typeof this === 'number' && '' + this)
+                                || (this && this.toString())
+                                || this;
+                        });
+                    if (options & Array.CASEINSENSITIVE) {
+                        transformations.push(String.prototype.toLowerCase);
+                    }
+                    transformations.apply = Array.prototype.reduce.bind(transformations, function (value, transformation) {
+                        return transformation.apply(value);
+                    });
+                    var AGreaterThanB = (options & Array.DESCENDING) ? -1 : 1;
+                    var ALessThanB = -AGreaterThanB;
+                    return function (a, b) {
+                        a = transformations.apply(a);
+                        b = transformations.apply(b);
+                        if (a > b || (a != null && b == null)) {
+                            return AGreaterThanB;
+                        }
+                        if (a < b || (a == null && b != null)) {
+                            return ALessThanB;
+                        }
+                        return 0;
+                    };
+                }
+            },
+            enumerable: false
+        },
+        remove: {
+            value: function (item) {
+                var index = this.indexOf(item);
+                if (index > -1) {
+                    this.splice(index, 1);
+                    return true;
+                }
+                return false;
+            },
+            enumerable: false
+        },
+        shuffle: {
+            value: function () {
+                for (var i = 0, len = this.length; i < len; i++) {
+                    var index = Math.round(Math.random() * (len - 1));
+                    var t = this[i];
+                    this[i] = this[index];
+                    this[index] = t;
+                }
+                return this;
+            },
+            enumerable: false
+        }
+    });
+    p = Date.prototype;
+    Object.defineProperties(p, {
+        format: {
+            value: function (template) {
+                var map = {
+                    "M+": this.getMonth() + 1,
+                    "d+": this.getDate(),
+                    "h+": this.getHours(),
+                    "m+": this.getMinutes(),
+                    "s+": this.getSeconds(),
+                    "q+": Math.floor((this.getMonth() + 3) / 3),
+                    "S": this.getMilliseconds()
+                };
+                if (/(y+)/.test(template)) {
+                    template = template.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+                }
+                for (var k in map) {
+                    if (new RegExp("(" + k + ")").test(template)) {
+                        template = template.replace(RegExp.$1, (RegExp.$1.length == 1) ? (map[k]) : (("00" + map[k]).substr(("" + map[k]).length)));
+                    }
+                }
+                return template;
+            },
+            enumerable: false
+        },
+    });
+})();
 var dou;
 (function (dou) {
     dou.hashCount = 1;

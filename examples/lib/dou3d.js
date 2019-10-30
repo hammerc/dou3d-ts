@@ -46,428 +46,6 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
-     * 基础包围盒类
-     * - 包含包围盒的各顶点信息, 当包围盒要进行世界变换时, 应当变换各顶点信息
-     * @author wizardc
-     */
-    var Bound = /** @class */ (function (_super) {
-        __extends(Bound, _super);
-        function Bound(owner) {
-            var _this = _super.call(this) || this;
-            _this._vexLength = 3;
-            _this._owner = owner;
-            _this._defaultMatrix = new dou3d.Matrix4();
-            return _this;
-        }
-        Object.defineProperty(Bound.prototype, "owner", {
-            get: function () {
-                return this._owner;
-            },
-            /**
-             * 被拥有的对象
-             */
-            set: function (value) {
-                this._owner = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Bound.prototype, "vexData", {
-            /**
-             * 顶点数据
-             */
-            get: function () {
-                return this._vexData;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Bound.prototype, "indexData", {
-            /**
-             * 索引数据
-             */
-            get: function () {
-                return this._indexData;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Bound.prototype, "vexLength", {
-            /**
-             * 顶点长度
-             */
-            get: function () {
-                return this._vexLength;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Bound.prototype, "childBound", {
-            /**
-             * 子包围盒
-             */
-            get: function () {
-                return this._childBound;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Bound.prototype, "transform", {
-            /**
-             * 变换矩阵
-             */
-            get: function () {
-                if (!this._owner) {
-                    return this._defaultMatrix;
-                }
-                return this._owner.globalMatrix;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Bound.prototype.calculateTransform = function () {
-            var vec4 = dou.recyclable(dou3d.Vector4);
-            for (var j = 0; j < this._vexData.length; j += 3) {
-                vec4.set(this._vexData[j], this._vexData[j + 1], this._vexData[j + 2], 0);
-                this.transform.transformVector(vec4, vec4);
-                this._vexData[j + 0] = vec4.x;
-                this._vexData[j + 1] = vec4.y;
-                this._vexData[j + 2] = vec4.z;
-            }
-            vec4.recycle();
-        };
-        Bound.prototype.copyVertex = function (bound) {
-            for (var i = 0; i < bound.vexData.length; ++i) {
-                this._vexData[i] = bound.vexData[i];
-            }
-            for (var i = 0; i < bound.indexData.length; ++i) {
-                this._indexData[i] = bound.indexData[i];
-            }
-            this._vexLength = bound.vexLength;
-        };
-        Bound.prototype.dispose = function () {
-            if (this._childBound) {
-                this._childBound.dispose();
-            }
-        };
-        return Bound;
-    }(dou.HashObject));
-    dou3d.Bound = Bound;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 包围盒
-     * @author wizardc
-     */
-    var BoundBox = /** @class */ (function (_super) {
-        __extends(BoundBox, _super);
-        function BoundBox(owner, min, max) {
-            var _this = _super.call(this, owner) || this;
-            _this._width = 0;
-            _this._heigth = 0;
-            _this._depth = 0;
-            _this._volume = 0;
-            _this._radius = 0;
-            _this._min = new dou3d.Vector3();
-            _this._min.copy(min);
-            _this._max = new dou3d.Vector3();
-            _this._max.copy(max);
-            _this._center = new dou3d.Vector3();
-            _this.calculateBox();
-            return _this;
-        }
-        Object.defineProperty(BoundBox.prototype, "min", {
-            /**
-             * 盒子最小点
-             */
-            get: function () {
-                return this._min;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(BoundBox.prototype, "max", {
-            /**
-             * 盒子最大点
-             */
-            get: function () {
-                return this._max;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(BoundBox.prototype, "width", {
-            /**
-             * 盒子宽
-             */
-            get: function () {
-                return this._width;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(BoundBox.prototype, "height", {
-            /**
-             * 盒子高
-             */
-            get: function () {
-                return this._heigth;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(BoundBox.prototype, "depth", {
-            /**
-             * 盒子长
-             */
-            get: function () {
-                return this._depth;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(BoundBox.prototype, "volume", {
-            /**
-             * 盒子体积
-             */
-            get: function () {
-                return this._volume;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(BoundBox.prototype, "center", {
-            /**
-             * 盒子包围球中心点
-             */
-            get: function () {
-                return this._center;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(BoundBox.prototype, "radius", {
-            /**
-             * 盒子包围球半径
-             */
-            get: function () {
-                return this._radius;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        BoundBox.prototype.copy = function (box) {
-            this._min.copy(box._min);
-            this._max.copy(box._max);
-            this.calculateBox();
-        };
-        BoundBox.prototype.fillBox = function (min, max) {
-            this._min.copy(min);
-            this._max.copy(max);
-            this.calculateBox();
-        };
-        BoundBox.prototype.createChild = function () {
-            this._childBound = new BoundBox(this.owner, new dou3d.Vector3(), new dou3d.Vector3());
-            var max = new dou3d.Vector3();
-            var min = new dou3d.Vector3();
-            max.x = this._center.x + this._width / 4;
-            max.y = this._center.y + this._heigth / 4;
-            max.z = this._center.z + this._depth / 4;
-            min.x = this._center.x - this._width / 4;
-            min.y = this._center.y - this._heigth / 4;
-            min.z = this._center.z - this._depth / 4;
-            this.childBound.fillBox(min, max);
-        };
-        BoundBox.prototype.updateAABB = function () {
-            this._min.copy(new dou3d.Vector3(dou3d.MathUtil.INT_MAX, dou3d.MathUtil.INT_MAX, dou3d.MathUtil.INT_MAX));
-            this._max.copy(new dou3d.Vector3(dou3d.MathUtil.INT_MIN, dou3d.MathUtil.INT_MIN, dou3d.MathUtil.INT_MIN));
-            for (var i = 0; i < this.vexData.length; i += this.vexLength) {
-                if (this._max.x < this.vexData[i]) {
-                    this._max.x = this.vexData[i];
-                }
-                if (this._max.y < this.vexData[i + 1]) {
-                    this._max.y = this.vexData[i + 1];
-                }
-                if (this._max.z < this.vexData[i + 2]) {
-                    this._max.z = this.vexData[i + 2];
-                }
-                if (this._min.x > this.vexData[i]) {
-                    this._min.x = this.vexData[i];
-                }
-                if (this._min.y > this.vexData[i + 1]) {
-                    this._min.y = this.vexData[i + 1];
-                }
-                if (this._min.z > this.vexData[i + 2]) {
-                    this._min.z = this.vexData[i + 2];
-                }
-            }
-        };
-        /**
-         * 计算包围盒数据
-         */
-        BoundBox.prototype.calculateBox = function () {
-            var sub = this._max.subtract(this._min);
-            this._vexData = this.vexData || new Float32Array(24);
-            this._indexData = this.indexData || new Uint16Array(36);
-            this.vexData[0] = this._min.x;
-            this.vexData[1] = this._min.y;
-            this.vexData[2] = this._min.z;
-            this.vexData[3] = this._min.x;
-            this.vexData[4] = this._min.y;
-            this.vexData[5] = this._min.z + sub.z;
-            this.vexData[6] = this._min.x + sub.x;
-            this.vexData[7] = this._min.y;
-            this.vexData[8] = this._min.z + sub.z;
-            this.vexData[9] = this._min.x + sub.x;
-            this.vexData[10] = this._min.y;
-            this.vexData[11] = this._min.z;
-            this.vexData[12] = this._max.x - sub.x;
-            this.vexData[13] = this._max.y;
-            this.vexData[14] = this._max.z - sub.z;
-            this.vexData[15] = this._max.x - sub.x;
-            this.vexData[16] = this._max.y;
-            this.vexData[17] = this._max.z;
-            this.vexData[18] = this._max.x;
-            this.vexData[19] = this._max.y;
-            this.vexData[20] = this._max.z;
-            this.vexData[21] = this._max.x;
-            this.vexData[22] = this._max.y;
-            this.vexData[23] = this._max.z - sub.z;
-            this.indexData[0] = 0;
-            this.indexData[1] = 4;
-            this.indexData[2] = 7;
-            this.indexData[3] = 0;
-            this.indexData[4] = 7;
-            this.indexData[5] = 3;
-            this.indexData[6] = 2;
-            this.indexData[7] = 6;
-            this.indexData[8] = 5;
-            this.indexData[9] = 2;
-            this.indexData[10] = 5;
-            this.indexData[11] = 1;
-            this.indexData[12] = 4;
-            this.indexData[13] = 5;
-            this.indexData[14] = 6;
-            this.indexData[15] = 4;
-            this.indexData[16] = 6;
-            this.indexData[17] = 7;
-            this.indexData[18] = 0;
-            this.indexData[19] = 3;
-            this.indexData[20] = 2;
-            this.indexData[21] = 0;
-            this.indexData[22] = 2;
-            this.indexData[23] = 1;
-            this.indexData[24] = 0;
-            this.indexData[25] = 1;
-            this.indexData[26] = 5;
-            this.indexData[27] = 0;
-            this.indexData[28] = 5;
-            this.indexData[29] = 4;
-            this.indexData[30] = 3;
-            this.indexData[31] = 7;
-            this.indexData[32] = 6;
-            this.indexData[33] = 3;
-            this.indexData[34] = 6;
-            this.indexData[35] = 2;
-            this._width = this._max.x - this._min.x;
-            this._heigth = this._max.y - this._min.y;
-            this._depth = this._max.z - this._min.z;
-            this._volume = this._width * this._heigth * this._depth;
-            var c = this._max.subtract(this._min);
-            c.multiplyScalar(0.5);
-            this._radius = c.length;
-            this._center.copy(this._min);
-            var tmp = this._center.add(c);
-            this._center.copy(tmp);
-        };
-        /**
-         * 检测一个点是否包围盒内
-         */
-        BoundBox.prototype.pointIntersect = function (pos) {
-            return pos.x <= this._max.x && pos.x >= this._min.x && pos.y <= this._max.y && pos.y >= this._min.y && pos.z <= this._max.z && pos.z >= this._min.z;
-        };
-        /**
-         * 检测两个包围盒是否相交
-         */
-        BoundBox.prototype.intersectAABBs = function (box, boxIntersect) {
-            if (this._min.x > box._max.x) {
-                return false;
-            }
-            if (this._max.x < box._min.x) {
-                return false;
-            }
-            if (this._min.y > box._max.y) {
-                return false;
-            }
-            if (this._max.y < box._min.y) {
-                return false;
-            }
-            if (this._min.z > box._max.z) {
-                return false;
-            }
-            if (this._max.z < box._min.z) {
-                return false;
-            }
-            if (boxIntersect) {
-                boxIntersect._min.x = Math.max(this._min.x, box._min.x);
-                boxIntersect._max.x = Math.min(this._max.x, box._max.x);
-                boxIntersect._min.y = Math.max(this._min.y, box._min.y);
-                boxIntersect._max.y = Math.min(this._max.y, box._max.y);
-                boxIntersect._min.z = Math.max(this._min.z, box._min.z);
-                boxIntersect._max.z = Math.min(this._max.z, box._max.z);
-                boxIntersect.calculateBox();
-            }
-            return true;
-        };
-        /**
-         * 检测两个包围对象是否相交
-         */
-        BoundBox.prototype.intersect = function (target, intersect) {
-            if (intersect === void 0) { intersect = null; }
-            if (!this._box1) {
-                this._box1 = this.clone();
-            }
-            else {
-                this._box1.copyVertex(this);
-                this._box1.owner = this.owner;
-            }
-            this._box1.calculateTransform();
-            this._box1.updateAABB();
-            if (!this._box2) {
-                this._box2 = target.clone();
-            }
-            else {
-                this._box2.copyVertex(this);
-                this._box2.owner = target.owner;
-            }
-            this._box2.calculateTransform();
-            this._box2.updateAABB();
-            return this._box1.intersectAABBs(this._box2, intersect);
-        };
-        /**
-         * 检测一个盒子是否在视椎体内
-         */
-        BoundBox.prototype.inBound = function (frustum) {
-            var vec4 = dou.recyclable(dou3d.Vector4);
-            this.transform.transformVector(this._center, vec4);
-            var result = frustum.inSphere(vec4, this._radius);
-            vec4.recycle();
-            return result;
-        };
-        BoundBox.prototype.toString = function () {
-            return "BoundBox [min:(" + this._min.x + ", " + this._min.y + ", " + this._min.z + ") max:(" + this._max.x + ", " + this._max.y + ", " + this._max.z + ")]";
-        };
-        BoundBox.prototype.clone = function () {
-            return new BoundBox(this.owner, this._min, this._max);
-        };
-        return BoundBox;
-    }(dou3d.Bound));
-    dou3d.BoundBox = BoundBox;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
      * 渲染上下文
      * @author wizardc
      */
@@ -1394,7 +972,6 @@ var dou3d;
 (function (dou3d) {
     /**
      * 3D 空间中的一个对象
-     * - 内置包围盒
      * @author wizardc
      */
     var Object3D = /** @class */ (function (_super) {
@@ -1402,7 +979,6 @@ var dou3d;
         function Object3D() {
             var _this = _super.call(this) || this;
             _this._visible = true;
-            _this._enableCulling = true;
             _this._layer = 0 /* normal */;
             _this._globalMatrix = new dou3d.Matrix4();
             _this._position = new dou3d.Vector3();
@@ -1763,40 +1339,6 @@ var dou3d;
         Object.defineProperty(Object3D.prototype, "parent", {
             get: function () {
                 return this._parent;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Object3D.prototype, "bound", {
-            get: function () {
-                return this._bound;
-            },
-            /**
-             * 包围盒
-             * * 每个场景物件都需要有自己的包围盒子, 可以自定义包围盒形状大小也可以根据模型本身生成
-             */
-            set: function (bound) {
-                if (this._bound == bound) {
-                    return;
-                }
-                if (this._bound) {
-                    this._bound.dispose();
-                }
-                this._bound = bound;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Object3D.prototype, "enableCulling", {
-            get: function () {
-                return this._enableCulling;
-            },
-            /**
-             * 相机视锥裁剪
-             * * 设定这个物件是否具有视锥体裁剪功能, 为否的话将不参加场景渲染剔除, 无论是否在显示范围内都会进行相关的渲染逻辑运算
-             */
-            set: function (value) {
-                this._enableCulling = value;
             },
             enumerable: true,
             configurable: true
@@ -2184,7 +1726,6 @@ var dou3d;
             _this.geometry = geometry;
             _this.material = material || new dou3d.TextureMaterial();
             _this.addSubMaterial(0, _this.material);
-            _this.bound = _this.buildBoundBox();
             if (animation) {
                 _this.animation = animation;
             }
@@ -2197,37 +1738,6 @@ var dou3d;
             }
             return _this;
         }
-        Mesh.prototype.buildBoundBox = function () {
-            var bound = new dou3d.BoundBox(this, new dou3d.Vector3(), new dou3d.Vector3());
-            if (this.geometry && this.geometry.vertexArray) {
-                bound.min.copy(new dou3d.Vector3(dou3d.MathUtil.INT_MAX, dou3d.MathUtil.INT_MAX, dou3d.MathUtil.INT_MAX));
-                bound.max.copy(new dou3d.Vector3(-dou3d.MathUtil.INT_MAX, -dou3d.MathUtil.INT_MAX, -dou3d.MathUtil.INT_MAX));
-                for (var i = 0; i < this.geometry.vertexArray.length; i += this.geometry.vertexAttLength) {
-                    if (bound.max.x < this.geometry.vertexArray[i]) {
-                        bound.max.x = this.geometry.vertexArray[i];
-                    }
-                    if (bound.max.y < this.geometry.vertexArray[i + 1]) {
-                        bound.max.y = this.geometry.vertexArray[i + 1];
-                    }
-                    if (bound.max.z < this.geometry.vertexArray[i + 2]) {
-                        bound.max.z = this.geometry.vertexArray[i + 2];
-                    }
-                    if (bound.min.x > this.geometry.vertexArray[i]) {
-                        bound.min.x = this.geometry.vertexArray[i];
-                    }
-                    if (bound.min.y > this.geometry.vertexArray[i + 1]) {
-                        bound.min.y = this.geometry.vertexArray[i + 1];
-                    }
-                    if (bound.min.z > this.geometry.vertexArray[i + 2]) {
-                        bound.min.z = this.geometry.vertexArray[i + 2];
-                    }
-                }
-            }
-            bound.fillBox(bound.min, bound.max);
-            bound.createChild();
-            this.bound = bound;
-            return bound;
-        };
         Mesh.prototype.clone = function () {
             var cloneMesh = new Mesh(this.geometry, this.material, this.animation ? this.animation.clone() : null);
             cloneMesh.multiMaterial = this.multiMaterial;
@@ -2254,9 +1764,6 @@ var dou3d;
             }
             _this = _super.call(this, geometry, material) || this;
             _this._plane = _this.geometry;
-            if (!_this.bound) {
-                _this.bound = _this.buildBoundBox();
-            }
             return _this;
         }
         Billboard.prototype.update = function (time, delay, camera) {
@@ -2352,9 +1859,6 @@ var dou3d;
             var _this = _super.call(this, geometry, material) || this;
             _this.camera = camera;
             material.cullMode = dou3d.ContextConfig.FRONT;
-            if (!_this.bound) {
-                _this.bound = _this.buildBoundBox();
-            }
             return _this;
         }
         SkyBox.prototype.update = function (time, delay, camera) {
@@ -2478,12 +1982,6 @@ var dou3d;
          */
         EntityCollect.prototype.addRenderList = function (renderItem, camera, cameraCulling) {
             if (cameraCulling === void 0) { cameraCulling = true; }
-            if (renderItem.enableCulling && cameraCulling) {
-                // TODO : 判断存在bug
-                // if (!camera.isVisibleToCamera(renderItem)) {
-                //     return;
-                // }
-            }
             if (renderItem.material) {
                 if (renderItem.layer == 0 /* normal */ && renderItem.material.materialData.alphaBlending) {
                     this.layerMap[1 /* alpha */].push(renderItem);
@@ -3856,7 +3354,6 @@ var dou3d;
             _this._viewMatrix.identity();
             _this._viewProjectionMatrix = new dou3d.Matrix4();
             _this._viewProjectionMatrix.identity();
-            _this._frustum = new dou3d.Frustum(_this);
             _this._orthProjectMatrix.orthographicProjectMatrix(0, 0, _this._viewPort.w, _this._viewPort.h, _this._near, _this._far);
             _this.cameraType = cameraType;
             return _this;
@@ -3867,16 +3364,6 @@ var dou3d;
              */
             get: function () {
                 return this._projectMatrix;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Camera3D.prototype, "frustum", {
-            /**
-             * 相机的视椎体, 用来检测是否在当前相机可视范围内
-             */
-            get: function () {
-                return this._frustum;
             },
             enumerable: true,
             configurable: true
@@ -3899,7 +3386,6 @@ var dou3d;
                         break;
                 }
                 this._orthProjectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
-                this._frustum.updateFrustum();
             },
             enumerable: true,
             configurable: true
@@ -4040,7 +3526,6 @@ var dou3d;
             _super.prototype.onTransformUpdate.call(this);
             this._viewMatrix.copy(this._globalMatrix);
             this._viewMatrix.inverse();
-            this._frustum.update();
         };
         Object.defineProperty(Camera3D.prototype, "viewMatrix", {
             /**
@@ -4063,18 +3548,6 @@ var dou3d;
             enumerable: true,
             configurable: true
         });
-        /**
-         * 检测对象是否在相机视椎体内
-         */
-        Camera3D.prototype.isVisibleToCamera = function (renderItem) {
-            // 刷新自己和检测对象的矩阵
-            this.validateTransformNow();
-            renderItem.validateTransformNow();
-            if (renderItem.bound) {
-                return renderItem.bound.inBound(this._frustum);
-            }
-            return true;
-        };
         /**
          * 将 3 维空间中的坐标转换为屏幕坐标
          */
@@ -4136,263 +3609,9 @@ var dou3d;
             this._globalMatrix.compose(this._globalPosition, this._globalOrientation, vector);
             vector.recycle();
         };
-        Camera3D.prototype.dispose = function () {
-            _super.prototype.dispose.call(this);
-            if (this._frustum) {
-                this._frustum.dispose();
-            }
-        };
         return Camera3D;
     }(dou3d.Object3D));
     dou3d.Camera3D = Camera3D;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 摄像机视椎体
-     * - 计算出摄像机的可视范围
-     * @author wizardc
-     */
-    var Frustum = /** @class */ (function () {
-        function Frustum(camera) {
-            this._vtxNum = 8;
-            this._planeNum = 6;
-            this._camera = camera;
-            this._vertex = [];
-            for (var i = 0; i < this._vtxNum; ++i) {
-                this._vertex.push(new dou3d.Vector3());
-            }
-            this._plane = [];
-            for (var i = 0; i < 6; ++i) {
-                this._plane.push(new dou3d.Plane(dou3d.Vector3.UP));
-            }
-            this._box = new dou3d.BoundBox(null, new dou3d.Vector3(), new dou3d.Vector3());
-            this._center = new dou3d.Vector3();
-        }
-        Object.defineProperty(Frustum.prototype, "box", {
-            /**
-             * 包围盒
-             */
-            get: function () {
-                return this._box;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Frustum.prototype, "center", {
-            /**
-             * 视椎体中心点
-             */
-            get: function () {
-                return this._center;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 数据更新
-         */
-        Frustum.prototype.updateFrustum = function () {
-            switch (this._camera.cameraType) {
-                case 0 /* perspective */:
-                    this.makeFrustum(this._camera.fieldOfView, this._camera.aspectRatio, this._camera.near, this._camera.far);
-                    break;
-                case 1 /* orthogonal */:
-                    this.makeOrthoFrustum(this._camera.viewPort.w, this._camera.viewPort.h, this._camera.near, this._camera.far);
-                    break;
-            }
-        };
-        Frustum.prototype.makeFrustum = function (fovY, aspectRatio, nearPlane, farPlane) {
-            var tangent = Math.tan(fovY / 2 * (Math.PI / 180));
-            var nearHeight = nearPlane * tangent;
-            var nearWidth = nearHeight * aspectRatio;
-            var farHeight = farPlane * tangent;
-            var farWidth = farHeight * aspectRatio;
-            // near top right
-            this._vertex[0].x = nearWidth;
-            this._vertex[0].y = nearHeight;
-            this._vertex[0].z = nearPlane;
-            // near top left
-            this._vertex[1].x = -nearWidth;
-            this._vertex[1].y = nearHeight;
-            this._vertex[1].z = nearPlane;
-            // near bottom left
-            this._vertex[2].x = -nearWidth;
-            this._vertex[2].y = -nearHeight;
-            this._vertex[2].z = nearPlane;
-            // near bottom right
-            this._vertex[3].x = nearWidth;
-            this._vertex[3].y = -nearHeight;
-            this._vertex[3].z = nearPlane;
-            // far top right
-            this._vertex[4].x = farWidth;
-            this._vertex[4].y = farHeight;
-            this._vertex[4].z = farPlane;
-            // far top left
-            this._vertex[5].x = -farWidth;
-            this._vertex[5].y = farHeight;
-            this._vertex[5].z = farPlane;
-            // far bottom left
-            this._vertex[6].x = -farWidth;
-            this._vertex[6].y = -farHeight;
-            this._vertex[6].z = farPlane;
-            // far bottom right
-            this._vertex[7].x = farWidth;
-            this._vertex[7].y = -farHeight;
-            this._vertex[7].z = farPlane;
-        };
-        Frustum.prototype.makeOrthoFrustum = function (w, h, zn, zf) {
-            // near top right
-            this._vertex[0].x = w / 2;
-            this._vertex[0].y = h / 2;
-            this._vertex[0].z = zn;
-            // near top left
-            this._vertex[1].x = -w / 2;
-            this._vertex[1].y = h / 2;
-            this._vertex[1].z = zn;
-            // near bottom left
-            this._vertex[2].x = -w / 2;
-            this._vertex[2].y = -h / 2;
-            this._vertex[2].z = zn;
-            // near bottom right
-            this._vertex[3].x = w / 2;
-            this._vertex[3].y = -h / 2;
-            this._vertex[3].z = zn;
-            // far top right
-            this._vertex[4].x = w / 2;
-            this._vertex[4].y = h / 2;
-            this._vertex[4].z = zf;
-            // far top left
-            this._vertex[5].x = -w / 2;
-            this._vertex[5].y = h / 2;
-            this._vertex[5].z = zf;
-            // far bottom left
-            this._vertex[6].x = -w / 2;
-            this._vertex[6].y = -h / 2;
-            this._vertex[6].z = zf;
-            // far bottom right
-            this._vertex[7].x = w / 2;
-            this._vertex[7].y = -h / 2;
-            this._vertex[7].z = zf;
-        };
-        Frustum.prototype.update = function () {
-            var mat = dou.recyclable(dou3d.Matrix4);
-            mat.copy(this._camera.globalMatrix);
-            var vec3List = [];
-            for (var i = 0; i < this._vtxNum; ++i) {
-                var vec4 = dou.recyclable(dou3d.Vector4);
-                mat.transformVector(this._vertex[i], vec4);
-                var vec3 = dou.recyclable(dou3d.Vector3);
-                vec3.set(vec4.x, vec4.y, vec4.z);
-                vec3List.push(vec3);
-                vec4.recycle();
-            }
-            this._box.max.x = this._box.max.y = this._box.max.z = dou3d.MathUtil.INT_MIN;
-            this._box.min.x = this._box.min.y = this._box.min.z = dou3d.MathUtil.INT_MAX;
-            for (var i = 0; i < vec3List.length; ++i) {
-                if (this._box.max.x < vec3List[i].x) {
-                    this._box.max.x = vec3List[i].x;
-                }
-                if (this._box.max.y < vec3List[i].y) {
-                    this._box.max.y = vec3List[i].y;
-                }
-                if (this._box.max.z < vec3List[i].z) {
-                    this._box.max.z = vec3List[i].z;
-                }
-                if (this._box.min.x > vec3List[i].x) {
-                    this._box.min.x = vec3List[i].x;
-                }
-                if (this._box.min.y > vec3List[i].y) {
-                    this._box.min.y = vec3List[i].y;
-                }
-                if (this._box.min.z > vec3List[i].z) {
-                    this._box.min.z = vec3List[i].z;
-                }
-            }
-            this._box.calculateBox();
-            this._plane[0].fromPoints(vec3List[4], vec3List[5], vec3List[6]); // 远平面(far)
-            this._plane[1].fromPoints(vec3List[1], vec3List[6], vec3List[5]); // 左平面(left)
-            this._plane[2].fromPoints(vec3List[0], vec3List[4], vec3List[7]); // 右平面(right)
-            this._plane[3].fromPoints(vec3List[1], vec3List[0], vec3List[3]); // 近平面(near)
-            this._plane[4].fromPoints(vec3List[1], vec3List[5], vec3List[4]); // 上平面(top)
-            this._plane[5].fromPoints(vec3List[3], vec3List[7], vec3List[6]); // 下平面(bottom)
-            for (var i = 0; i < this._planeNum; i++) {
-                this._plane[i].normalize();
-            }
-            var nearCenter = dou.recyclable(dou3d.Vector3);
-            var farCenter = dou.recyclable(dou3d.Vector3);
-            nearCenter.copy(vec3List[0].subtract(vec3List[2]));
-            nearCenter.multiplyScalar(0.5);
-            nearCenter.copy(vec3List[2].add(nearCenter));
-            farCenter.copy(vec3List[4].subtract(vec3List[6]));
-            farCenter.multiplyScalar(0.5);
-            farCenter.copy(vec3List[6].add(farCenter));
-            this._center.copy(farCenter.subtract(nearCenter));
-            this._center.multiplyScalar(0.5);
-            this._center.copy(nearCenter.add(this._center));
-            nearCenter.recycle();
-            farCenter.recycle();
-            for (var i = 0; i < vec3List.length; ++i) {
-                vec3List[i].recycle();
-            }
-        };
-        /**
-         * 检测一个坐标点是否在视椎体内
-         */
-        Frustum.prototype.inPoint = function (pos) {
-            var dis = 0;
-            for (var i = 0; i < this._plane.length; ++i) {
-                dis = this._plane[i].getDistance(pos);
-                if (dis > 0) {
-                    return false;
-                }
-            }
-            return true;
-        };
-        /**
-         * 检测一个球是否在视椎体内
-         */
-        Frustum.prototype.inSphere = function (center, radius) {
-            var dis = 0;
-            for (var i = 0; i < this._plane.length; ++i) {
-                dis = this._plane[i].getDistance(center);
-                if (dis > radius) {
-                    return false;
-                }
-            }
-            return true;
-        };
-        /**
-         * 检测一个盒子是否在视椎体内
-         */
-        Frustum.prototype.inBox = function (box) {
-            var dis = 0;
-            var planeCount = this._plane.length;
-            var vec4 = dou.recyclable(dou3d.Vector4);
-            for (var i = 0; i < planeCount; ++i) {
-                var incount = box.vexData.length / 3;
-                var vexDataLength = box.vexData.length;
-                for (var j = 0; j < vexDataLength; j += 3) {
-                    vec4.set(box.vexData[j], box.vexData[j + 1], box.vexData[j + 2], 0);
-                    box.transform.transformVector(vec4, vec4);
-                    dis = this._plane[i].getDistance(vec4);
-                    if (dis > 0) {
-                        incount--;
-                    }
-                }
-                if (incount <= 0) {
-                    vec4.recycle();
-                    return false;
-                }
-            }
-            vec4.recycle();
-            return true;
-        };
-        Frustum.prototype.dispose = function () {
-        };
-        return Frustum;
-    }());
-    dou3d.Frustum = Frustum;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -9418,8 +8637,8 @@ var dou3d;
         function DirectLight(direction) {
             var _this = _super.call(this) || this;
             _this._lightType = 1 /* direct */;
-            _this._direction = new dou3d.Vector3(0, 0, 1);
-            _this.direction = direction;
+            _this._direction = new dou3d.Vector3();
+            _this.direction = direction || new dou3d.Vector3(0, 0, 1);
             return _this;
         }
         Object.defineProperty(DirectLight.prototype, "direction", {
@@ -13499,7 +12718,6 @@ var dou3d;
             this._enableShadow = false;
             this._textureWidth = 1024 * 4;
             this._textureHeight = 1024 * 4;
-            this._boundBox = new dou3d.BoundBox(null, new dou3d.Vector3(), new dou3d.Vector3());
             this._shadowCamera = new dou3d.Camera3D(1 /* orthogonal */);
             this._shadowRender = new dou3d.MultiRenderer(3 /* shadowPass */);
             this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, 3 /* UNSIGNED_BYTE_RGBA */);
@@ -13597,48 +12815,9 @@ var dou3d;
             light.addChild(this._shadowCamera);
         };
         ShadowCast.prototype.update = function (entityCollect, camera, time, delay, viewPort) {
-            this.calculateBoundBox(entityCollect);
             dou3d.Engine.context3DProxy.clearColor(1.0, 1.0, 1.0, 1.0);
             dou3d.Engine.context3DProxy.clear(dou3d.Context3DProxy.gl.COLOR_BUFFER_BIT | dou3d.Context3DProxy.gl.DEPTH_BUFFER_BIT);
             this._shadowRender.draw(time, delay, dou3d.Engine.context3DProxy, entityCollect, this._shadowCamera, viewPort);
-        };
-        ShadowCast.prototype.calculateBoundBox = function (entityCollect) {
-            this._boundBox.min.copy(new dou3d.Vector3(dou3d.MathUtil.INT_MAX, dou3d.MathUtil.INT_MAX, dou3d.MathUtil.INT_MAX));
-            this._boundBox.max.copy(new dou3d.Vector3(-dou3d.MathUtil.INT_MAX, -dou3d.MathUtil.INT_MAX, -dou3d.MathUtil.INT_MAX));
-            for (var i = 0; i < entityCollect.renderList.length; i++) {
-                var item = entityCollect.renderList[i];
-                if (!item.material || !item.material.castShadow) {
-                    continue;
-                }
-                var boundBox = item.bound;
-                if (this._boundBox.max.x < boundBox.max.x + item.globalPosition.x) {
-                    this._boundBox.max.x = boundBox.max.x + item.globalPosition.x;
-                }
-                if (this._boundBox.max.y < boundBox.max.y + item.globalPosition.y) {
-                    this._boundBox.max.y = boundBox.max.y + item.globalPosition.y;
-                }
-                if (this._boundBox.max.z < boundBox.max.z + item.globalPosition.z) {
-                    this._boundBox.max.z = boundBox.max.z + item.globalPosition.z;
-                }
-                if (this._boundBox.min.x > boundBox.min.x + item.globalPosition.x) {
-                    this._boundBox.min.x = boundBox.min.x + item.globalPosition.x;
-                }
-                if (this._boundBox.min.y > boundBox.min.y + item.globalPosition.y) {
-                    this._boundBox.min.y = boundBox.min.y + item.globalPosition.y;
-                }
-                if (this._boundBox.min.z > boundBox.min.z + item.globalPosition.z) {
-                    this._boundBox.min.z = boundBox.min.z + item.globalPosition.z;
-                }
-            }
-            this._boundBox.fillBox(this._boundBox.min, this._boundBox.max);
-            var vec3 = dou.recyclable(dou3d.Vector3);
-            vec3.copy(this._directLight.direction);
-            vec3.negate();
-            vec3.addScalar(this._boundBox.radius);
-            vec3.add(this._boundBox.center);
-            this._shadowCamera.globalPosition = vec3;
-            this._shadowCamera.updateViewport(0, 0, this._boundBox.radius * 2, this._boundBox.radius * 2);
-            this._shadowCamera.far = this._boundBox.radius * 2;
         };
         return ShadowCast;
     }());

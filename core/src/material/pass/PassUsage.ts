@@ -4,111 +4,100 @@ namespace dou3d {
      * @author wizardc
      */
     export class PassUsage {
-        public uniform_1ivs: Uniform[];
-        public uniform_1fvs: Uniform[];
-        public uniform_2ivs: Uniform[];
-        public uniform_2fvs: Uniform[];
-        public uniform_3ivs: Uniform[];
-        public uniform_3fvs: Uniform[];
-        public uniform_4ivs: Uniform[];
-        public uniform_4fvs: Uniform[];
-
+        /** 顶点位置 */
         public attribute_position: Attribute;
+        /** 顶点法线 */
         public attribute_normal: Attribute;
+        /** 顶点切线 */
         public attribute_tangent: Attribute;
+        /** 顶点颜色 */
         public attribute_color: Attribute;
+        /** 第一套 UV */
         public attribute_uv0: Attribute;
+        /** 第二套 UV, 一般用于场景灯光烘焙 */
         public attribute_uv1: Attribute;
+
+        /** 骨骼索引, 最多包含 4 个索引 */
         public attribute_boneIndex: Attribute;
+        /** 骨骼权重 */
         public attribute_boneWeight: Attribute;
-        public attribute_shapePosition: Attribute;
-        public attribute_uvRec: Attribute;
-        // public attribute_rotation: Attribute;
-        public attribute_size: Attribute;
-        public attribute_quad_color: Attribute;
-        // public attribute_scale: Attribute;
 
-        // ----- 粒子 -----
-        public attribute_offset: Attribute;
-        public attribute_billboardXYZ: Attribute;
-        public attribute_lifecycle: Attribute;
-        public attribute_direction: Attribute;
-        public attribute_speed: Attribute;
-        public attribute_startScale: Attribute;
-        public attribute_endScale: Attribute;
-        public attribute_startColor: Attribute;
-        public attribute_endColor: Attribute;
-        public attribute_rotate: Attribute;
-        public attribute_acceleRotate: Attribute;
-        public attribute_maskRectangle: Attribute;
-        public attribute_acceleScale: Attribute;
-        public attribute_startSpaceLifeTime: Attribute;
-
-        public varying_pos: Attribute;
-        public varying_normal: Attribute;
-        public varying_tangent: Attribute;
-        public varying_color: Attribute;
-        public varying_uv0: Attribute;
-        public varying_uv1: Attribute;
-        public varying_eyeNormal: Attribute;
-        public varying_eyedir: Attribute;
-
-        public TBN: Attribute;
-
+        /** 模型全局转换信息矩阵 */
         public uniform_ModelMatrix: Uniform;
-        public uniform_ProjectionMatrix: Uniform;
-        public uniform_ViewProjectionMatrix: Uniform;
-        public uniform_ViewMatrix: Uniform;
-        public uniform_ModelViewMatrix: Uniform;
-        public uniform_orthProectMatrix: Uniform;
-        public uniform_ShadowMatrix: Uniform;
-        public uniform_eyepos: Uniform;
-        public uniform_PoseMatrix: Uniform;
-        public uniform_sceneWidth: Uniform;
-        public uniform_sceneHeight: Uniform;
-        public uniform_time: Uniform;
+
+        /** 摄像机全局转换信息矩阵 */
         public uniform_cameraMatrix: Uniform;
-        public uniform_enableBillboardXYZ: Uniform;
-        public uniform_startColor: Uniform;
-        public uniform_endColor: Uniform;
-        public uniform_startScale: Uniform;
-        public uniform_endScale: Uniform;
-        public uniform_startRot: Uniform;
-        public uniform_endRot: Uniform;
+        /** 摄像机全局转换信息逆矩阵 */
+        public uniform_ViewMatrix: Uniform;
+        /** 摄像机投影矩阵 */
+        public uniform_ProjectionMatrix: Uniform;
+        /** 摄像机全局转换信息逆矩阵乘与摄像机投影矩阵之后的矩阵 */
+        public uniform_ViewProjectionMatrix: Uniform;
+        /** 摄像机正交投影矩阵 */
+        public uniform_orthProectMatrix: Uniform;
+        /** 摄像机本地坐标位置信息 */
+        public uniform_eyepos: Uniform;
 
-        public sampler2DList: Sampler2D[] = [];
-        public sampler3DList: Sampler3D[] = [];
-
+        /** 材质自身的一些信息数据 */
         public uniform_materialSource: Uniform;
-        public uniform_LightSource: Uniform;
-        public uniform_lightModelSource: Uniform;
+
+        /** 方向光信息 */
         public uniform_directLightSource: Uniform;
-        public uniform_sportLightSource: Uniform;
+        /** 点光源信息 */
         public uniform_pointLightSource: Uniform;
-        public uniform_skyLightSource: Uniform;
+        /** 聚光灯信息 */
+        public uniform_sportLightSource: Uniform;
+
+        /** 阴影渲染摄像机 uniform_ViewProjectionMatrix 矩阵 */
+        public uniform_ShadowMatrix: Uniform;
+        /** 阴影颜色 */
         public uniform_ShadowColor: Uniform;
 
+        /** 骨骼动画骨骼相关造型数据 */
+        public uniform_PoseMatrix: Uniform;
+        /** 骨骼动画的当前时间 */
+        public uniform_time: Uniform;
+
+        /** 2D 采样器 */
+        public sampler2DList: Sampler2D[] = [];
+        /** 立方体采样器 */
+        public sampler3DList: Sampler3D[] = [];
+
+        /** 片段着色器 */
+        public vertexShader: ShaderComposer;
+        /** 顶点着色器 */
+        public fragmentShader: ShaderComposer;
+        /** 对应的渲染程序 */
         public program3D: Program3D;
-        public vs_shader: Shader;
-        public fs_shader: Shader;
 
-        //public vertexShaderRegister: ver;
-
-        public vertexShader: ShaderBase = new ShaderBase(ShaderType.vertex);
-        public fragmentShader: ShaderBase = new ShaderBase(ShaderType.fragment);
-
+        /** 方向光数量 */
         public maxDirectLight: number = 0;
-        public maxSpotLight: number = 0;
-        public maxPointLight: number = 0;
-        public maxBone: number = 0;
-
+        /** 对应的方向光数据 */
         public directLightData: Float32Array;
-        public spotLightData: Float32Array;
+
+        /** 点光源数量 */
+        public maxPointLight: number = 0;
+        /** 对应的点光源数据 */
         public pointLightData: Float32Array;
 
+        /** 聚光灯数量 */
+        public maxSpotLight: number = 0;
+        /** 对应的聚光灯数据 */
+        public spotLightData: Float32Array;
+
+        /** 骨骼数量 */
+        public maxBone: number = 0;
+
+        /** 存放当前使用到的所有属性 */
+        public attributeList: Attribute[];
+
+        /** 属性是否改变, 改变后需要重新提交 */
         public attributeDiry: boolean = true;
 
-        public attributeList: Attribute[];
+        public constructor() {
+            this.vertexShader = new ShaderComposer(ShaderType.vertex);
+            this.fragmentShader = new ShaderComposer(ShaderType.fragment);
+        }
 
         public dispose(): void {
             if (this.program3D) {

@@ -65,7 +65,6 @@
     "src/utils/Reference.ts",
 
     "src/core/context/Context3DProxy.ts",
-    "src/core/context/ContextConfig.ts",
     "src/core/context/ContextTexture2D.ts",
     "src/core/context/ContextTexture3D.ts",
     "src/core/context/FrameBuffer.ts",
@@ -155,14 +154,14 @@
     "src/load/analyzer/ESMAnalzyer.ts",
     "src/load/analyzer/EAMAnalzyer.ts",
 
-    "src/material/method/MethodBase.ts",
+    "src/material/MethodBase.ts",
+    "src/material/MaterialPass.ts",
+
     "src/material/method/ColorMethod.ts",
     "src/material/method/ShadowMethod.ts",
     "src/material/method/CubeMethod.ts",
 
-    "src/material/pass/MaterialPass.ts",
     "src/material/pass/PassUsage.ts",
-    "src/material/pass/PassUtil.ts",
     "src/material/pass/ColorPass.ts",
     "src/material/pass/DiffusePass.ts",
     "src/material/pass/ShadowPass.ts",
@@ -174,6 +173,7 @@
     "src/material/ColorMaterial.ts",
     "src/material/TextureMaterial.ts",
     "src/material/CubeTextureMaterial.ts",
+    "src/material/PassUtil.ts",
 
     "src/render/RendererBase.ts",
     "src/render/MultiRenderer.ts",
@@ -182,7 +182,6 @@
 
     "src/shader/register/VarRegister.ts",
     "src/shader/register/Attribute.ts",
-    "src/shader/register/AttributeType.ts",
     "src/shader/register/ConstVar.ts",
     "src/shader/register/DefineVar.ts",
     "src/shader/register/Extension.ts",
@@ -190,11 +189,8 @@
     "src/shader/register/Sampler3D.ts",
     "src/shader/register/TmpVar.ts",
     "src/shader/register/Uniform.ts",
-    "src/shader/register/UniformType.ts",
     "src/shader/register/Varying.ts",
-    "src/shader/register/VaryingType.ts",
-    "src/shader/register/ShaderBase.ts",
-    "src/shader/register/VarConstName.ts",
+    "src/shader/ShaderComposer.ts",
     "src/shader/ShaderContent.ts",
     "src/shader/ShaderPool.ts",
     "src/shader/ShaderLib.ts",

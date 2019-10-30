@@ -11,7 +11,7 @@ namespace dou3d {
             this.geometry = new Geometry();
             this.material = new ColorMaterial(color);
             this.addSubMaterial(0, this.material);
-            this.material.drawMode = ContextConfig.LINES;
+            this.material.drawMode = Context3DProxy.gl.LINES;
             this.geometry.vertexFormat = VertexFormat.VF_POSITION | VertexFormat.VF_NORMAL | VertexFormat.VF_COLOR | VertexFormat.VF_UV0;
         }
 

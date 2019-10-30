@@ -49,7 +49,7 @@ namespace dou3d {
             }
             contextProxy.disableAllVertexAttribArray();
             for (let i = 0; i < passUsage.attributeList.length; i++) {
-                let attribute: Attribute = passUsage.attributeList[i];
+                let attribute = passUsage.attributeList[i];
                 if (attribute.uniformIndex >= 0) {
                     contextProxy.vertexAttribPointer(attribute.uniformIndex, attribute.size, attribute.dataType, attribute.normalized, attribute.stride, attribute.offsetBytes);
                 }
@@ -66,7 +66,7 @@ namespace dou3d {
                         passUsage.attribute_position.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_position.varName);
                     }
                     passUsage.attribute_position.size = Geometry.positionSize;
-                    passUsage.attribute_position.dataType = ContextConfig.FLOAT;
+                    passUsage.attribute_position.dataType = Context3DProxy.gl.FLOAT;
                     passUsage.attribute_position.normalized = false;
                     passUsage.attribute_position.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_position.offsetBytes = offsetBytes;
@@ -81,7 +81,7 @@ namespace dou3d {
                         passUsage.attribute_normal.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_normal.varName);
                     }
                     passUsage.attribute_normal.size = Geometry.normalSize;
-                    passUsage.attribute_normal.dataType = ContextConfig.FLOAT;
+                    passUsage.attribute_normal.dataType = Context3DProxy.gl.FLOAT;
                     passUsage.attribute_normal.normalized = false;
                     passUsage.attribute_normal.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_normal.offsetBytes = offsetBytes;
@@ -96,7 +96,7 @@ namespace dou3d {
                         passUsage.attribute_tangent.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_tangent.varName);
                     }
                     passUsage.attribute_tangent.size = Geometry.tangentSize;
-                    passUsage.attribute_tangent.dataType = ContextConfig.FLOAT;
+                    passUsage.attribute_tangent.dataType = Context3DProxy.gl.FLOAT;
                     passUsage.attribute_tangent.normalized = false;
                     passUsage.attribute_tangent.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_tangent.offsetBytes = offsetBytes;
@@ -111,7 +111,7 @@ namespace dou3d {
                         passUsage.attribute_color.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_color.varName);
                     }
                     passUsage.attribute_color.size = Geometry.colorSize;
-                    passUsage.attribute_color.dataType = ContextConfig.FLOAT;
+                    passUsage.attribute_color.dataType = Context3DProxy.gl.FLOAT;
                     passUsage.attribute_color.normalized = false;
                     passUsage.attribute_color.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_color.offsetBytes = offsetBytes;
@@ -126,7 +126,7 @@ namespace dou3d {
                         passUsage.attribute_uv0.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_uv0.varName);
                     }
                     passUsage.attribute_uv0.size = Geometry.uvSize;
-                    passUsage.attribute_uv0.dataType = ContextConfig.FLOAT;
+                    passUsage.attribute_uv0.dataType = Context3DProxy.gl.FLOAT;
                     passUsage.attribute_uv0.normalized = false;
                     passUsage.attribute_uv0.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_uv0.offsetBytes = offsetBytes;
@@ -141,7 +141,7 @@ namespace dou3d {
                         passUsage.attribute_uv1.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_uv1.varName);
                     }
                     passUsage.attribute_uv1.size = Geometry.uv2Size;
-                    passUsage.attribute_uv1.dataType = ContextConfig.FLOAT;
+                    passUsage.attribute_uv1.dataType = Context3DProxy.gl.FLOAT;
                     passUsage.attribute_uv1.normalized = false;
                     passUsage.attribute_uv1.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_uv1.offsetBytes = offsetBytes;
@@ -156,7 +156,7 @@ namespace dou3d {
                         passUsage.attribute_boneIndex.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_boneIndex.varName);
                     }
                     passUsage.attribute_boneIndex.size = Geometry.skinSize / 2;
-                    passUsage.attribute_boneIndex.dataType = ContextConfig.FLOAT;
+                    passUsage.attribute_boneIndex.dataType = Context3DProxy.gl.FLOAT;
                     passUsage.attribute_boneIndex.normalized = false;
                     passUsage.attribute_boneIndex.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_boneIndex.offsetBytes = offsetBytes;
@@ -169,7 +169,7 @@ namespace dou3d {
                         passUsage.attribute_boneWeight.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_boneWeight.varName);
                     }
                     passUsage.attribute_boneWeight.size = Geometry.skinSize / 2;
-                    passUsage.attribute_boneWeight.dataType = ContextConfig.FLOAT;
+                    passUsage.attribute_boneWeight.dataType = Context3DProxy.gl.FLOAT;
                     passUsage.attribute_boneWeight.normalized = false;
                     passUsage.attribute_boneWeight.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_boneWeight.offsetBytes = offsetBytes;
@@ -185,7 +185,7 @@ namespace dou3d {
                     if (!attribute.uniformIndex) {
                         attribute.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, attribute.varName);
                         attribute.size = var0.size;
-                        attribute.dataType = ContextConfig.FLOAT;
+                        attribute.dataType = Context3DProxy.gl.FLOAT;
                         attribute.normalized = false;
                         attribute.stride = this.geometry.vertexSizeInBytes;
                         attribute.offsetBytes = offsetBytes;

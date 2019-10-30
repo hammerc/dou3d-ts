@@ -7,8 +7,6 @@ uniform sampler2D normalTexture;
 varying vec2 varying_uv0;
 varying vec4 varying_mvPose;
 
-mat3 TBN;
-
 mat3 cotangentFrame(vec3 N, vec3 p, vec2 uv) {
     vec3 dp1 = dFdx(p);
     vec3 dp2 = dFdy(p);

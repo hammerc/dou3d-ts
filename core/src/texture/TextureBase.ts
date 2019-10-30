@@ -46,47 +46,19 @@ namespace dou3d {
         public premultiplyAlpha: boolean;
 
         /**
-         * gl.LINEAR
-         * gl.NEAREST
-         * gl.LINEAR_MIPMAP_LINEAR
-         * gl.LINEAR_MIPMAP_NEAREST
-         * gl.NEAREST_MIPMAP_LINEAR
-         * gl.NEAREST_MIPMAP_NEAREST
-         */
-        public min_filter: number;
-
-        /**
-         * gl.LINEAR
-         * gl.NEAREST
-         * gl.LINEAR_MIPMAP_LINEAR
-         * gl.LINEAR_MIPMAP_NEAREST
-         * gl.NEAREST_MIPMAP_LINEAR
-         * gl.NEAREST_MIPMAP_NEAREST
-         */
-        public mag_filter: number;
-
-        /**
-         * gl.REPEAT
-         * gl.MIRRORED_REPEAT
-         * gl.CLAMP_TO_EDGE
-         */
-        public wrap_u_filter: number;
-
-        /**
-         * gl.REPEAT
-         * gl.MIRRORED_REPEAT
-         * gl.CLAMP_TO_EDGE
-         */
-        public wrap_v_filter: number;
-
-        /**
          * 是否需要颠倒 uv
          * gl.filp_y
          */
         public filp_y: boolean;
 
+        /**
+         * 当前贴图如果是大图集的一部分则这里用来记录位于大图集中的区域信息
+         */
         public uvRectangle: Rectangle;
 
+        /**
+         * 大图集贴图对象
+         */
         public parentTexture: TextureBase;
 
         /**
@@ -111,7 +83,10 @@ namespace dou3d {
 
         private _ready: boolean = false;
 
-        public copyFromTexture(texture: TextureBase, x: number, y: number, width: number, height: number) {
+        /**
+         * 从大图集中的某一区域进行拷贝
+         */
+        public copyFromTexture(texture: TextureBase, x: number, y: number, width: number, height: number): void {
             this.parentTexture = texture;
             texture.width = width;
             texture.height = height;
