@@ -421,7 +421,7 @@ namespace dou3d {
         }
 
         protected initPass(): void {
-            this.addPass(PassType.colorPass);
+            this.addPass(PassType.diffusePass);
         }
 
         protected passInvalid(passType: PassType): void {

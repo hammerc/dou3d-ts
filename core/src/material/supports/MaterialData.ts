@@ -123,7 +123,7 @@ namespace dou3d {
         /**
          * 透明度小于该值的像素完全透明
          */
-        public cutAlpha: number = 0.7;
+        public cutAlpha: number = 0;
 
         /**
          * 是否重复

@@ -2,21 +2,33 @@
 // 基础的顶点着色器
 // -----
 
+// 顶点坐标
 attribute vec3 attribute_position;
+// 顶点法线
 attribute vec3 attribute_normal;
+// 顶点颜色
 attribute vec4 attribute_color;
+// 顶点 UV0
 attribute vec2 attribute_uv0;
 
+// 最终输出的顶点坐标, 正常情况下就是 attribute_position, 蒙皮动画中会被设置为通过骨骼运算出的坐标
 vec3 e_position = vec3(0.0, 0.0, 0.0);
 
+// 模型全局转换信息矩阵
 uniform mat4 uniform_ModelMatrix;
+// 摄像机全局转换信息逆矩阵
 uniform mat4 uniform_ViewMatrix;
+// 摄像机投影矩阵
 uniform mat4 uniform_ProjectionMatrix;
 
+// 眼睛法线
 varying vec3 varying_eyeNormal;
+// 顶点 UV0
 varying vec2 varying_uv0;
+// 顶点颜色
 varying vec4 varying_color;
 
+// 输出坐标
 vec4 outPosition;
 
 // 转置

@@ -135,7 +135,6 @@ namespace dou3d {
                 this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("lightingBase_fs");
                 if (this.lightGroup.directList.length) {
                     this._passUsage.directLightData = new Float32Array(DirectLight.stride * this.lightGroup.directList.length);
-                    this._vs_shader_methods[ShaderPhaseType.vertex_1].push("varyingViewDir_vs");
                     this._fs_shader_methods[ShaderPhaseType.lighting_fragment].push("directLight_fs");
                 }
                 if (this.lightGroup.pointList.length) {

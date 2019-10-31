@@ -30,7 +30,7 @@ namespace dou3d {
         /**
          * 顶点着色器写入顺序: 2
          * * 无默认着色器片段
-         * * 目前会添加的是 varyingViewDir_vs、shadowMapping_vs
+         * * 目前会添加的是 shadowMapping_vs
          */
         vertex_1,
 

@@ -8,23 +8,22 @@ varying vec3 varying_eyeNormal;
 varying vec2 varying_uv0;
 varying vec4 varying_color;
 
+// 摄像机全局转换信息逆矩阵
 uniform mat4 uniform_ViewMatrix;
 
-vec4 outColor;
-
+// 从贴图获取到的颜色值
 vec4 diffuseColor;
+// 高光颜色
 vec4 specularColor;
+// 环境光颜色
 vec4 ambientColor;
 
+// 灯光颜色
 vec4 light;
+// 法线
 vec3 normal;
+// UV0
 vec2 uv_0;
-
-vec3 flatNormals(vec3 pos) {
-	vec3 fdx = dFdx(pos); // 在 x 方向上的偏导数
-	vec3 fdy = dFdy(pos);  // 在 x 方向上的偏导数
-	return normalize(cross(fdx, fdy));
-}
 
 void main() {
 	diffuseColor = vec4(1.0, 1.0, 1.0, 1.0);

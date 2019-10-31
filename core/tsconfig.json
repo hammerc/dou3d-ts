@@ -154,26 +154,24 @@
     "src/load/analyzer/ESMAnalzyer.ts",
     "src/load/analyzer/EAMAnalzyer.ts",
 
-    "src/material/MethodBase.ts",
-    "src/material/MaterialPass.ts",
+    "src/material/supports/MaterialData.ts",
+    "src/material/supports/MaterialBase.ts",
+    "src/material/supports/MaterialPass.ts",
+    "src/material/supports/PassUsage.ts",
+    "src/material/supports/PassUtil.ts",
+    "src/material/supports/MethodData.ts",
+    "src/material/supports/MethodBase.ts",
 
     "src/material/method/ColorMethod.ts",
     "src/material/method/ShadowMethod.ts",
     "src/material/method/CubeMethod.ts",
 
-    "src/material/pass/PassUsage.ts",
-    "src/material/pass/ColorPass.ts",
     "src/material/pass/DiffusePass.ts",
     "src/material/pass/ShadowPass.ts",
-    "src/material/pass/NormalPass.ts",
 
-    "src/material/MaterialBase.ts",
-    "src/material/MaterialData.ts",
-    "src/material/MethodData.ts",
     "src/material/ColorMaterial.ts",
     "src/material/TextureMaterial.ts",
     "src/material/CubeTextureMaterial.ts",
-    "src/material/PassUtil.ts",
 
     "src/render/RendererBase.ts",
     "src/render/MultiRenderer.ts",
