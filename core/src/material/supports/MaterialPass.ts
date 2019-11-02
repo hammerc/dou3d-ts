@@ -418,8 +418,8 @@ namespace dou3d {
                 if (this._passUsage.uniform_directLightSource) {
                     context3DProxy.uniform1fv(this._passUsage.uniform_directLightSource.uniformIndex, this._passUsage.directLightData);
                 }
-                if (this._passUsage.uniform_sportLightSource) {
-                    context3DProxy.uniform1fv(this._passUsage.uniform_sportLightSource.uniformIndex, this._passUsage.spotLightData);
+                if (this._passUsage.uniform_spotLightSource) {
+                    context3DProxy.uniform1fv(this._passUsage.uniform_spotLightSource.uniformIndex, this._passUsage.spotLightData);
                 }
                 if (this._passUsage.uniform_pointLightSource) {
                     context3DProxy.uniform1fv(this._passUsage.uniform_pointLightSource.uniformIndex, this._passUsage.pointLightData);
@@ -449,7 +449,7 @@ namespace dou3d {
                 }
             }
             if (this._passUsage.uniform_eyepos) {
-                context3DProxy.uniform3f(this._passUsage.uniform_eyepos.uniformIndex, camera3D.x, camera3D.y, camera3D.z);
+                context3DProxy.uniform3f(this._passUsage.uniform_eyepos.uniformIndex, camera3D.globalPosition.x, camera3D.globalPosition.y, camera3D.globalPosition.z);
             }
             if (this._passUsage.uniform_cameraMatrix) {
                 context3DProxy.uniformMatrix4fv(this._passUsage.uniform_cameraMatrix.uniformIndex, false, camera3D.globalMatrix.rawData);

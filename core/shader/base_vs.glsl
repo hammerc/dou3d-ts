@@ -27,6 +27,10 @@ varying vec3 varying_eyeNormal;
 varying vec2 varying_uv0;
 // 顶点颜色
 varying vec4 varying_color;
+// 世界坐标
+varying vec4 varying_worldPosition;
+// 世界法线
+varying vec3 varying_worldNormal;
 
 // 输出坐标
 vec4 outPosition;
@@ -94,4 +98,7 @@ void main() {
     e_position = attribute_position;
     varying_color = attribute_color;
     varying_uv0 = attribute_uv0;
+
+    varying_worldPosition = uniform_ModelMatrix * vec4(e_position, 1.0);
+    varying_worldNormal = normalize((uniform_ModelMatrix * vec4(attribute_normal, 0.0)).xyz);
 }

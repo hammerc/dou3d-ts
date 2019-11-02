@@ -7,85 +7,63 @@ namespace dou3d {
         /**
          * 光源数据结构长度
          */
-        public static readonly stride: number = 14;
+        public static readonly stride: number = 12;
 
-        private _spotExponent: number = 1.1;
-        private _spotCosCutoff: number = 0.1;
-        private _constantAttenuation: number = 0.1;
-        private _linearAttenuation: number = 0.1;
-        private _quadraticAttenuation: number = 0.1;
+        private _range: number = 10;
+        private _angle: number = 60;
+        private _penumbra: number = 0;
 
-        public constructor(color: number) {
+        public constructor(color: number = 0xffffff) {
             super();
             this._lightType = LightType.spot;
-            this.diffuse = color;
+            this.color = color;
         }
 
         /**
-         * 裁切范围, 照射范围的大小指数
+         * 光照范围
          */
-        public set spotCosCutoff(value: number) {
-            this._spotCosCutoff = value;
+        public set range(value: number) {
+            this._range = value;
         }
-        public get spotCosCutoff(): number {
-            return this._spotCosCutoff;
+        public get range(): number {
+            return this._range;
         }
 
         /**
-         * 灯光强弱, 圆形范围内随半径大小改变发生的灯光强弱指数
+         * 角度
          */
-        public set spotExponent(value: number) {
-            this._spotExponent = value;
+        public set angle(value: number) {
+            this._angle = value;
         }
-        public get spotExponent(): number {
-            return this._spotExponent;
+        public get angle(): number {
+            return this._angle;
         }
 
         /**
-         * 灯光衰减, 圆形范围内随半径大小改变发生的灯光衰减常数指数
+         * 半影
          */
-        public set constantAttenuation(value: number) {
-            this._constantAttenuation = value;
+        public set penumbra(value: number) {
+            this._penumbra = value;
         }
-        public get constantAttenuation(): number {
-            return this._constantAttenuation;
-        }
-
-        /**
-         * 灯光线性衰减, 圆形范围内随半径大小改变发生的灯光线性衰减
-         */
-        public set linearAttenuation(value: number) {
-            this._linearAttenuation = value;
-        }
-        public get linearAttenuation(): number {
-            return this._linearAttenuation;
-        }
-
-        /**
-         * 灯光线性2次衰减, 圆形范围内随半径大小改变发生的灯光线性2次衰减
-         */
-        public set quadraticAttenuation(value: number) {
-            this._quadraticAttenuation = value;
-        }
-        public get quadraticAttenuation(): number {
-            return this._quadraticAttenuation;
+        public get penumbra(): number {
+            return this._penumbra;
         }
 
         public updateLightData(camera: Camera3D, index: number, lightData: Float32Array): void {
+            super.updateLightData(camera, index, lightData);
+
             lightData[index * SpotLight.stride] = this.globalPosition.x;
             lightData[index * SpotLight.stride + 1] = this.globalPosition.y;
             lightData[index * SpotLight.stride + 2] = this.globalPosition.z;
-            lightData[index * SpotLight.stride + 3] = this.globalRotation.x * MathUtil.DEG_RAD;
-            lightData[index * SpotLight.stride + 4] = this.globalRotation.y * MathUtil.DEG_RAD;
-            lightData[index * SpotLight.stride + 5] = this.globalRotation.z * MathUtil.DEG_RAD;
-            lightData[index * SpotLight.stride + 6] = this._diffuse.x;
-            lightData[index * SpotLight.stride + 7] = this._diffuse.y;
-            lightData[index * SpotLight.stride + 8] = this._diffuse.z;
-            lightData[index * SpotLight.stride + 9] = this._spotExponent;
-            lightData[index * SpotLight.stride + 10] = this._spotCosCutoff;
-            lightData[index * SpotLight.stride + 11] = this._constantAttenuation;
-            lightData[index * SpotLight.stride + 12] = this._linearAttenuation;
-            lightData[index * SpotLight.stride + 13] = this._quadraticAttenuation;
+            lightData[index * SpotLight.stride + 3] = this._direction.x;
+            lightData[index * SpotLight.stride + 4] = this._direction.y;
+            lightData[index * SpotLight.stride + 5] = this._direction.z;
+            lightData[index * SpotLight.stride + 6] = this._colorVec4.x * this._intensity;
+            lightData[index * SpotLight.stride + 7] = this._colorVec4.y * this._intensity;
+            lightData[index * SpotLight.stride + 8] = this._colorVec4.z * this._intensity;
+            lightData[index * PointLight.stride + 9] = this._range;
+            lightData[index * PointLight.stride + 10] = Math.cos(this._angle * 0.5 * MathUtil.DEG_RAD);
+            lightData[index * PointLight.stride + 11] = Math.cos(this._angle * 0.5 * MathUtil.DEG_RAD * (1 - this._penumbra));
         }
     }
 }

@@ -8,51 +8,23 @@ namespace dou3d {
         /**
          * 光源数据结构长度
          */
-        public static readonly stride: number = 9;
+        public static readonly stride: number = 6;
 
-        private _direction: Vector3;
-
-        public constructor(direction?: Vector3) {
+        public constructor(color: number = 0xffffff) {
             super();
             this._lightType = LightType.direct;
-            this._direction = new Vector3();
-            this.direction = direction || new Vector3(0, 0, 1);
-        }
-
-        public set direction(value: Vector3) {
-            this._direction.copy(value);
-            this._direction.normalize();
-            let quaternion = dou.recyclable(Quaternion);
-            quaternion.fromVectors(Vector3.ZERO, this._direction);
-            this.orientation = quaternion;
-            quaternion.recycle();
-        }
-        public get direction(): Vector3 {
-            this.validateTransformNow();
-            return this._direction;
-        }
-
-        protected onTransformUpdate(): void {
-            super.onTransformUpdate();
-
-            this.orientation.transformVector(Vector3.UP, this._direction);
-            this._direction.normalize();
-            if (this.parent) {
-                this.parent.globalOrientation.transformVector(this._direction, this._direction);
-                this._direction.normalize();
-            }
+            this.color = color;
         }
 
         public updateLightData(camera: Camera3D, index: number, lightData: Float32Array): void {
-            lightData[index * DirectLight.stride + 0] = this._direction.x;
+            super.updateLightData(camera, index, lightData);
+
+            lightData[index * DirectLight.stride] = this._direction.x;
             lightData[index * DirectLight.stride + 1] = this._direction.y;
             lightData[index * DirectLight.stride + 2] = this._direction.z;
-            lightData[index * DirectLight.stride + 3] = this._diffuse.x * this._intensity;
-            lightData[index * DirectLight.stride + 4] = this._diffuse.y * this._intensity;
-            lightData[index * DirectLight.stride + 5] = this._diffuse.z * this._intensity;
-            lightData[index * DirectLight.stride + 6] = this._ambient.x;
-            lightData[index * DirectLight.stride + 7] = this._ambient.y;
-            lightData[index * DirectLight.stride + 8] = this._ambient.z;
+            lightData[index * DirectLight.stride + 3] = this._colorVec4.x * this._intensity;
+            lightData[index * DirectLight.stride + 4] = this._colorVec4.y * this._intensity;
+            lightData[index * DirectLight.stride + 5] = this._colorVec4.z * this._intensity;
         }
     }
 }

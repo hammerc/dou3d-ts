@@ -112,6 +112,56 @@ namespace dou3d {
         }
 
         /**
+         * 前方 (+Z轴方向)
+         */
+        public forward(result?: Vector3): Vector3 {
+            return this.copyColumnTo(2, result).normalize();
+        }
+
+        /**
+         * 上方 (+y轴方向)
+         */
+        public up(result?: Vector3): IVector3 {
+            return this.copyColumnTo(1, result).normalize();
+        }
+
+        /**
+         * 右方 (+x轴方向)
+         */
+        public right(result?: Vector3): IVector3 {
+            return this.copyColumnTo(0, result).normalize();
+        }
+
+        /**
+         * 后方 (-z轴方向)
+         */
+        public back(result?: Vector3): IVector3 {
+            return this.copyColumnTo(2, result).normalize().negate();
+        }
+
+        /**
+         * 下方 (-y轴方向)
+         */
+        public down(result?: Vector3): IVector3 {
+            return this.copyColumnTo(1, result).normalize().negate();
+        }
+
+        /**
+         * 左方 (-x轴方向)
+         */
+        public left(result?: Vector3): IVector3 {
+            return this.copyColumnTo(0, result).normalize().negate();
+        }
+
+        private copyColumnTo(column: number, result?: Vector3): Vector3 {
+            result = result || new Vector3();
+            result.x = this.rawData[column * 4 + 0];
+            result.y = this.rawData[column * 4 + 1];
+            result.z = this.rawData[column * 4 + 2];
+            return result;
+        }
+
+        /**
          * 通过平移向量、四元数旋转、缩放向量设置该矩阵
          * @param translation 平移向量
          * @param rotation 四元数旋转

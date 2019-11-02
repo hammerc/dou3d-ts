@@ -505,11 +505,11 @@ namespace dou3d {
                     case "max_directLight":
                         constR.value = usage.maxDirectLight;
                         break;
-                    case "max_spotLight":
-                        constR.value = usage.maxSpotLight;
-                        break;
                     case "max_pointLight":
                         constR.value = usage.maxPointLight;
+                        break;
+                    case "max_spotLight":
+                        constR.value = usage.maxSpotLight;
                         break;
                     case "bonesNumber":
                         constR.value = usage.maxBone;

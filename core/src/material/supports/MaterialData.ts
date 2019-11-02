@@ -113,7 +113,7 @@ namespace dou3d {
         /**
          * 材质球的高光强度
          */
-        public specularLevel: number = 4;
+        public specularLevel: number = 50;
 
         /**
          * 材质球的光滑度

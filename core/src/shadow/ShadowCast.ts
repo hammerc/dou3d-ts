@@ -22,15 +22,15 @@ namespace dou3d {
         private _directLight: DirectLight;
 
         private constructor() {
-            this._shadowCamera = new Camera3D(CameraType.orthogonal);
-            this._shadowRender = new MultiRenderer(PassType.shadowPass);
-            this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, FrameBufferFormat.UNSIGNED_BYTE_RGBA);
-            this.castShadowLight(new DirectLight(new Vector3(0, -1, 1)));
-            let vec3 = dou.recyclable(Vector3);
-            vec3.copy(this._directLight.direction);
-            vec3.negate();
-            vec3.addScalar(1000);
-            this._shadowCamera.globalPosition = vec3;
+            // this._shadowCamera = new Camera3D(CameraType.orthogonal);
+            // this._shadowRender = new MultiRenderer(PassType.shadowPass);
+            // this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, FrameBufferFormat.UNSIGNED_BYTE_RGBA);
+            // this.castShadowLight(new DirectLight(0xffffff, new Vector3(0, -1, 1)));
+            // let vec3 = dou.recyclable(Vector3);
+            // vec3.copy(this._directLight.direction);
+            // vec3.negate();
+            // vec3.addScalar(1000);
+            // this._shadowCamera.globalPosition = vec3;
         }
 
         public set enableShadow(value: boolean) {

@@ -17,4 +17,9 @@ gulp.task("uglify", function () {
     .pipe(gulp.dest("bin"));
 });
 
-gulp.task("default", gulp.series("ts", "uglify"));
+gulp.task("copy", function () {
+  return gulp.src("bin/**/*")
+    .pipe(gulp.dest("../examples/lib"));
+});
+
+gulp.task("default", gulp.series("ts", "uglify", "copy"));

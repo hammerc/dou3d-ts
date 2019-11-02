@@ -8,8 +8,13 @@ varying vec3 varying_eyeNormal;
 varying vec2 varying_uv0;
 varying vec4 varying_color;
 
+varying vec4 varying_worldPosition;
+varying vec3 varying_worldNormal;
+
 // 摄像机全局转换信息逆矩阵
 uniform mat4 uniform_ViewMatrix;
+// 摄像机位置
+uniform vec3 uniform_eyepos;
 
 // 从贴图获取到的颜色值
 vec4 diffuseColor;

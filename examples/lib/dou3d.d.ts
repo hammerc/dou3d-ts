@@ -20,6 +20,10 @@ declare namespace dou3d {
          * 渲染上下文
          */
         static gl: WebGLRenderingContext;
+        /**
+         * canvas 窗口矩形
+         */
+        static canvasRectangle: Rectangle;
         private _program;
         private _sfactor;
         private _dfactor;
@@ -226,15 +230,19 @@ declare namespace dou3d {
          */
         setRenderToBackBuffer(): void;
         /**
-         * 设置贴图采样 第一个参数并不是类型
-         * @param samplerIndex
-         * @see ContextSamplerType
+         * 设置贴图采样
+         * @param samplerIndex 激活和绑定的采样器单元, 对应 gl.TEXTURE_0 ~ gl.TEXTURE_8
+         * @param uniLocation 着色器中对应的取样器索引
+         * @param index 赋值给取样器变量的纹理单元编号, 纹理单元对应的编号: 如果第一个参数是 gl.TEXTURE_0 则这里传递 0
+         * @param texture 贴图对象
          */
         setTexture2DAt(samplerIndex: number, uniLocation: any, index: number, texture: ContextTexture2D): void;
         /**
-         * 设置贴图采样 第一个参数并不是类型
-         * @param samplerIndex
-         * @see ContextSamplerType
+         * 设置贴图采样
+         * @param samplerIndex 激活和绑定的采样器单元, 对应 gl.TEXTURE_0 ~ gl.TEXTURE_8
+         * @param uniLocation 着色器中对应的取样器索引
+         * @param index 赋值给取样器变量的纹理单元编号, 纹理单元对应的编号: 如果第一个参数是 gl.TEXTURE_0 则这里传递 0
+         * @param texture 贴图对象
          */
         setCubeTextureAt(samplerIndex: number, uniLocation: number, index: number, texture: ContextTexture3D): void;
         /**
@@ -243,8 +251,8 @@ declare namespace dou3d {
         setBlendFactors(src: number, dst: number): void;
         /**
          * 设置剔除模式
-         * @see ContextConfig.FRONT
-         * @see ContextConfig.BACK
+         * @see Context3DProxy.gl.FRONT
+         * @see Context3DProxy.gl.BACK
          */
         setCulling(mode: number): void;
         /**
@@ -310,113 +318,6 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
-     * 3D 相关配置
-     * @author wizardc
-     */
-    namespace ContextConfig {
-        /**
-         * canvas 窗口矩形
-         */
-        var canvasRectangle: Rectangle;
-        /**
-         * 混合模式标志
-         */
-        var BLEND: number;
-        /**
-         * 深度测试标志
-         */
-        var DEPTH_TEST: number;
-        /**
-         * 剔除面模式标志
-         */
-        var CULL_FACE: number;
-        /**
-         * 裁剪正面进行反面渲染
-         */
-        var FRONT: number;
-        /**
-         * 裁剪反面进行正面渲染
-         */
-        var BACK: number;
-        /**
-         * 裁剪正面和反面
-         */
-        var FRONT_AND_BACK: number;
-        /**
-         * 一个颜色用 16 个 bit (2 字节) 表示
-         */
-        var ColorFormat_RGB565: number;
-        /**
-         * 一个颜色用 16 个 bit (2 字节) 表示
-         */
-        var ColorFormat_RGBA5551: number;
-        /**
-         * 一个颜色用 16 个 bit (2 字节) 表示
-         */
-        var ColorFormat_RGBA4444: number;
-        /**
-         * 一个颜色用 32 个 bit (4 字节) 表示
-         */
-        var ColorFormat_RGBA8888: number;
-        /**
-         * 8 位整型
-         */
-        var BYTE: GLenum;
-        /**
-         * 16 位整形
-         */
-        var SHORT: GLenum;
-        /**
-         * 32 位整型
-         */
-        var INT: GLenum;
-        /**
-         * 无符号 8 位整型
-         */
-        var UNSIGNED_BYTE: GLenum;
-        /**
-         * 无符号 16 位整型
-         */
-        var UNSIGNED_SHORT: GLenum;
-        /**
-         * 无符号 32 位整型
-         */
-        var UNSIGNED_INT: GLenum;
-        /**
-         * 32 位浮点型
-         */
-        var FLOAT: GLenum;
-        /**
-         * 小于等于
-         */
-        var LEQUAL: number;
-        /**
-         * 绘制类型, 点
-         */
-        var POINTS: number;
-        /**
-         * 绘制类型, 直线
-         */
-        var LINES: number;
-        /**
-         * 绘制类型, 连续直线
-         */
-        var LINE_STRIP: number;
-        /**
-         * 绘制类型, 三角形
-         */
-        var TRIANGLES: number;
-        var ONE: number;
-        var ZERO: number;
-        var SRC_ALPHA: number;
-        var ONE_MINUS_SRC_ALPHA: number;
-        var SRC_COLOR: number;
-        var ONE_MINUS_SRC_COLOR: number;
-        function register(gl: WebGLRenderingContext): void;
-    }
-}
-declare namespace dou3d {
-    /**
      * 2D 纹理
      * @author wizardc
      */
@@ -431,20 +332,20 @@ declare namespace dou3d {
         border: number;
         /**
          * 纹理贴图的颜色格式
-         * @see ContextConfig.ColorFormat_RGB565
-         * @see ContextConfig.ColorFormat_RGBA5551
-         * @see ContextConfig.ColorFormat_RGBA4444
-         * @see ContextConfig.ColorFormat_RGBA8888
+         * @see Context3DProxy.gl.ColorFormat_RGB565
+         * @see Context3DProxy.gl.ColorFormat_RGBA5551
+         * @see Context3DProxy.gl.ColorFormat_RGBA4444
+         * @see Context3DProxy.gl.ColorFormat_RGBA8888
          */
         colorFormat: number;
         /**
          * 纹理贴图的颜色格式
-         * @see ContextConfig.BYTE
-         * @see ContextConfig.SHORT
-         * @see ContextConfig.INT
-         * @see ContextConfig.UNSIGNED_BYTE
-         * @see ContextConfig.UNSIGNED_SHORT
-         * @see ContextConfig.UNSIGNED_INT
+         * @see Context3DProxy.gl.BYTE
+         * @see Context3DProxy.gl.SHORT
+         * @see Context3DProxy.gl.INT
+         * @see Context3DProxy.gl.UNSIGNED_BYTE
+         * @see Context3DProxy.gl.UNSIGNED_SHORT
+         * @see Context3DProxy.gl.UNSIGNED_INT
          */
         dataFormat: number;
         /**
@@ -500,10 +401,10 @@ declare namespace dou3d {
         border: number;
         /**
          * 纹理贴图的颜色模式
-         * @see ContextConfig.ColorFormat_RGB565
-         * @see ContextConfig.ColorFormat_RGBA5551
-         * @see ContextConfig.ColorFormat_RGBA4444
-         * @see ContextConfig.ColorFormat_RGBA8888
+         * @see Context3DProxy.gl.ColorFormat_RGB565
+         * @see Context3DProxy.gl.ColorFormat_RGBA5551
+         * @see Context3DProxy.gl.ColorFormat_RGBA4444
+         * @see Context3DProxy.gl.ColorFormat_RGBA8888
          */
         colorformat: number;
         /**
@@ -1776,39 +1677,111 @@ declare namespace dou3d {
      */
     const enum PassType {
         diffusePass = 0,
-        colorPass = 1,
-        normalPass = 2,
-        shadowPass = 3
+        shadowPass = 1
     }
 }
 declare namespace dou3d {
     /**
-     * 着色器小片段类型
+     * 着色器片段类型
      * @author wizardc
      */
     enum ShaderPhaseType {
         /**
-         * 自定义顶点着色器类型, 设定了这个字段的着色器之后就只会使用设定的着色器进行渲染不会动态加入其它的着色器
+         * 自定义顶点着色器类型
+         * * 定了这个字段的着色器之后就只会使用设定的着色器进行渲染不会动态加入其它的着色器
          */
-        base_vertex = 0,
+        custom_vertex = 0,
+        /**
+         * 顶点着色器写入顺序: 0
+         * * 自动写入 base_vs
+         */
+        /**
+         * 顶点着色器写入顺序: 1
+         * * 该片段添加过着色器片段则使用添加的着色器片段, 没有添加过则使用默认的 diffuse_vs 着色器片段
+         * * 目前会添加的是 skeleton_vs
+         */
         start_vertex = 1,
-        local_vertex = 2,
-        global_vertex = 3,
+        /**
+         * 顶点着色器写入顺序: 2
+         * * 无默认着色器片段
+         * * 目前会添加的是 shadowMapping_vs
+         */
+        vertex_1 = 2,
+        /**
+         * 顶点着色器写入顺序: 3
+         * * 无默认着色器片段
+         * * 目前会添加的是 cube_vs
+         */
+        vertex_2 = 3,
+        /**
+         * 顶点着色器写入顺序: 最后
+         * * 该片段添加过着色器片段则使用添加的着色器片段, 没有添加过则使用默认的 end_vs 着色器片段
+         * * 目前会添加的是
+         */
         end_vertex = 4,
         /**
-         * 自定义片段着色器类型, 设定了这个字段的着色器之后就只会使用设定的着色器进行渲染不会动态加入其它的着色器
+         * 自定义片段着色器类型
+         * * 设定了这个字段的着色器之后就只会使用设定的着色器进行渲染不会动态加入其它的着色器
          */
-        base_fragment = 5,
+        custom_fragment = 5,
+        /**
+         * 片段着色器写入顺序: 0
+         * * 自动写入 base_fs
+         */
+        /**
+         * 片段着色器写入顺序: 1
+         * * 无默认着色器片段
+         * * 目前会添加的是
+         */
         start_fragment = 6,
+        /**
+         * 片段着色器写入顺序: 2
+         * * 解码 materialsource 数据
+         * * 该片段添加过着色器片段则使用添加的着色器片段, 没有添加过则使用默认的 materialSource_fs 着色器片段
+         * * 目前会添加的是
+         */
         materialsource_fragment = 7,
+        /**
+         * 片段着色器写入顺序: 3
+         * * 漫反射
+         * * 该片段添加过着色器片段则使用添加的着色器片段, 没有添加过则使用默认的 diffuse_fs 着色器片段
+         * * 目前会添加的是 color_fs
+         */
         diffuse_fragment = 8,
+        /**
+         * 片段着色器写入顺序: 4
+         * * 法线贴图
+         * * 无默认着色器片段
+         * * 目前会添加的是
+         */
         normal_fragment = 9,
-        matCap_fragment = 10,
-        specular_fragment = 11,
-        shadow_fragment = 12,
-        lighting_fragment = 13,
-        multi_end_fragment = 14,
-        end_fragment = 15
+        /**
+         * 片段着色器写入顺序: 5
+         * * 阴影贴图渲染
+         * * 无默认着色器片段
+         * * 目前会添加的是 shadowMapping_fss
+         */
+        shadow_fragment = 10,
+        /**
+         * 片段着色器写入顺序: 6
+         * * 灯光渲染
+         * * 无默认着色器片段
+         * * 目前会添加的是 lightingBase_fs、directLight_fs、pointLight_fs、spotLight_fs
+         */
+        lighting_fragment = 11,
+        /**
+         * 片段着色器写入顺序: 7
+         * * 高光贴图
+         * * 无默认着色器片段
+         * * 目前会添加的是 specularMap_fs
+         */
+        specular_fragment = 12,
+        /**
+         * 片段着色器写入顺序: 最后
+         * * 该片段添加过着色器片段则使用添加的着色器片段, 没有添加过则使用默认的 end_fs 着色器片段
+         * * 目前会添加的是 colorPassEnd_fs、normalPassEnd_fs
+         */
+        end_fragment = 13
     }
 }
 declare namespace dou3d {
@@ -2372,6 +2345,31 @@ declare namespace dou3d {
          */
         readonly maxScaleOnAxis: number;
         set(n11: number, n12: number, n13: number, n14: number, n21: number, n22: number, n23: number, n24: number, n31: number, n32: number, n33: number, n34: number, n41: number, n42: number, n43: number, n44: number): this;
+        /**
+         * 前方 (+Z轴方向)
+         */
+        forward(result?: Vector3): Vector3;
+        /**
+         * 上方 (+y轴方向)
+         */
+        up(result?: Vector3): IVector3;
+        /**
+         * 右方 (+x轴方向)
+         */
+        right(result?: Vector3): IVector3;
+        /**
+         * 后方 (-z轴方向)
+         */
+        back(result?: Vector3): IVector3;
+        /**
+         * 下方 (-y轴方向)
+         */
+        down(result?: Vector3): IVector3;
+        /**
+         * 左方 (-x轴方向)
+         */
+        left(result?: Vector3): IVector3;
+        private copyColumnTo;
         /**
          * 通过平移向量、四元数旋转、缩放向量设置该矩阵
          * @param translation 平移向量
@@ -3265,14 +3263,10 @@ declare namespace dou3d {
      */
     abstract class LightBase extends ObjectContainer3D {
         protected _lightType: LightType;
-        protected _ambientColor: number;
-        protected _ambient: Vector4;
-        protected _diffuseColor: number;
-        protected _diffuse: Vector4;
-        protected _specularColor: number;
-        protected _specular: Vector4;
+        protected _color: number;
+        protected _colorVec4: Vector4;
         protected _intensity: number;
-        protected _halfIntensity: number;
+        protected _direction: Vector3;
         protected _change: boolean;
         constructor();
         readonly lightType: LightType;
@@ -3282,29 +3276,15 @@ declare namespace dou3d {
          */
         intensity: number;
         /**
-         * 背光灯光强度
-         * * 影响灯光的强弱显示, 值的范围 0~没有上限, 但是值过大会导致画面过度曝光
-         */
-        halfIntensity: number;
-        /**
-         * 灯光环境颜色
-         * * 物体在未受到光的直接照射的地方, 模拟间接环境光颜色, 会影响背光面的颜色
-         */
-        ambient: number;
-        /**
          * 灯光漫反射颜色
          * * 直接影响最终灯光的颜色色值
          */
-        diffuse: number;
-        /**
-         * 灯光镜面高光反射颜色
-         * * 在灯光方向与物体和相机成一个反光角度的时候, 就会产生反光, 高光, 而不同的物体会有不同的颜色色值, 尤其是金属
-         */
-        specular: number;
+        color: number;
+        protected onTransformUpdate(): void;
         /**
          * 更新灯光数据
          */
-        abstract updateLightData(camera: Camera3D, index: number, lightData: Float32Array): void;
+        updateLightData(camera: Camera3D, index: number, lightData: Float32Array): void;
     }
 }
 declare namespace dou3d {
@@ -3318,10 +3298,7 @@ declare namespace dou3d {
          * 光源数据结构长度
          */
         static readonly stride: number;
-        private _direction;
-        constructor(direction?: Vector3);
-        direction: Vector3;
-        protected onTransformUpdate(): void;
+        constructor(color?: number);
         updateLightData(camera: Camera3D, index: number, lightData: Float32Array): void;
     }
 }
@@ -3336,16 +3313,11 @@ declare namespace dou3d {
          */
         static readonly stride: number;
         private _radius;
-        private _cutoff;
-        constructor(color: number);
+        constructor(color?: number);
         /**
          * 灯光半径
          */
         radius: number;
-        /**
-         * 灯光衰减度
-         */
-        cutoff: number;
         updateLightData(camera: Camera3D, index: number, lightData: Float32Array): void;
     }
 }
@@ -3359,32 +3331,22 @@ declare namespace dou3d {
          * 光源数据结构长度
          */
         static readonly stride: number;
-        private _spotExponent;
-        private _spotCosCutoff;
-        private _constantAttenuation;
-        private _linearAttenuation;
-        private _quadraticAttenuation;
-        constructor(color: number);
+        private _range;
+        private _angle;
+        private _penumbra;
+        constructor(color?: number);
         /**
-         * 裁切范围, 照射范围的大小指数
+         * 光照范围
          */
-        spotCosCutoff: number;
+        range: number;
         /**
-         * 灯光强弱, 圆形范围内随半径大小改变发生的灯光强弱指数
+         * 角度
          */
-        spotExponent: number;
+        angle: number;
         /**
-         * 灯光衰减, 圆形范围内随半径大小改变发生的灯光衰减常数指数
+         * 半影
          */
-        constantAttenuation: number;
-        /**
-         * 灯光线性衰减, 圆形范围内随半径大小改变发生的灯光线性衰减
-         */
-        linearAttenuation: number;
-        /**
-         * 灯光线性2次衰减, 圆形范围内随半径大小改变发生的灯光线性2次衰减
-         */
-        quadraticAttenuation: number;
+        penumbra: number;
         updateLightData(camera: Camera3D, index: number, lightData: Float32Array): void;
     }
 }
@@ -3459,276 +3421,151 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
-     * 渲染方法基类
+     * 材质渲染数据
      * @author wizardc
      */
-    abstract class MethodBase {
+    class MaterialData {
         /**
-         * 顶点着色器列表
+         * 着色器阶段记录表
+         * 渲染通道类型 -> 着色器片段类型数组
          */
-        vsShaderList: {
-            [shaderPhaseType: number]: string[];
+        shaderPhaseTypes: {
+            [passType: number]: ShaderPhaseType[];
         };
         /**
-         * 片段着色器列表
+         * 绘制模式
          */
-        fsShaderList: {
-            [shaderPhaseType: number]: string[];
-        };
+        drawMode: number;
         /**
-         * 材质数据
+         * 是否开启 MipMap
          */
-        materialData: MaterialData;
-        abstract upload(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
-        abstract activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
-        dispose(): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 颜色渲染方法
-     * @author wizardc
-     */
-    class ColorMethod extends MethodBase {
-        constructor();
-        upload(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
-        activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 阴影渲染方法
-     * @author wizardc
-     */
-    class ShadowMethod extends MethodBase {
-        constructor(material: MaterialBase);
+        useMipmap: boolean;
         /**
          * 阴影贴图
          */
         shadowMapTexture: TextureBase;
-        upload(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
-        activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 立方体渲染方法
-     * @author wizardc
-     */
-    class CubeMethod extends MethodBase {
-        constructor();
-        upload(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
-        activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 材质渲染通道
-     * @author wizardc
-     */
-    class MaterialPass {
-        protected _passID: number;
-        protected _passUsage: PassUsage;
-        protected _materialData: MaterialData;
-        protected _passChange: boolean;
-        protected _vs_shader_methods: {
-            [phaseType: number]: string[];
-        };
-        protected _fs_shader_methods: {
-            [phaseType: number]: string[];
-        };
-        methodList: MethodBase[];
-        methodDatas: MethodData[];
-        vsShaderNames: string[];
-        fsShaderNames: string[];
-        lightGroup: LightGroup;
-        constructor(materialData: MaterialData);
         /**
-         * 增加渲染方法
+         * 漫反射贴图
          */
-        addMethod(method: MethodBase): void;
+        diffuseTexture: TextureBase;
         /**
-         * 获取指定类型的渲染方法实例
+         * 立方体漫反射贴图
          */
-        getMethod(type: {
-            new (): MethodBase;
-        }): MethodBase;
+        diffuseTexture3D: TextureBase;
         /**
-         * 移除渲染方法
+         * 法线贴图
          */
-        removeMethod(method: MethodBase): void;
-        passInvalid(): void;
+        normalTexture: TextureBase;
         /**
-         * 重置纹理
+         * 高光贴图
          */
-        protected resetTexture(context3DProxy: Context3DProxy): void;
-        protected addMethodShaders(shaderBase: ShaderBase, shaders: string[]): void;
-        protected addShaderPhase(passType: number, sourcePhase: {
-            [shaderPhase: number]: string[];
-        }, targetPhase: {
-            [shaderPhase: number]: string[];
-        }): void;
+        specularTexture: TextureBase;
         /**
-         * 初始化所有的渲染方法
+         * 投射阴影
          */
-        initUseMethod(animation: IAnimation): void;
+        castShadow: boolean;
         /**
-         * 添加手动添加的其它渲染方法
+         * 接受阴影
          */
-        protected initOtherMethods(): void;
+        acceptShadow: boolean;
         /**
-         * 将渲染方法的对应着色器加入到对应的 Shader 对象中以便获得最终的着色器对象
+         * 阴影颜色
          */
-        protected phaseEnd(): void;
-        upload(time: number, delay: number, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D, animation: IAnimation): void;
-        draw(time: number, delay: number, context3DProxy: Context3DProxy, modelTransform: Matrix4, camera3D: Camera3D, subGeometry: SubGeometry, render: RenderBase): void;
-        deactiveState(passUsage: PassUsage, context3DProxy: Context3DProxy): void;
+        shadowColor: Float32Array;
+        /**
+         * 深度测试
+         */
+        depthTest: boolean;
+        /**
+         * 深度测试模式
+         */
+        depthMode: number;
+        /**
+         * 混合模式
+         */
+        blendMode: BlendMode;
+        /**
+         * 混合 src 值
+         */
+        blendSrc: number;
+        /**
+         * 混合 dest 值
+         */
+        blendDest: number;
+        /**
+         * 透明混合
+         */
+        alphaBlending: boolean;
+        /**
+         * 环境光颜色
+         */
+        ambientColor: number;
+        /**
+         * 漫反射颜色
+         */
+        diffuseColor: number;
+        /**
+         * 高光颜色
+         */
+        specularColor: number;
+        /**
+         * 色相
+         */
+        tintColor: number;
+        /**
+         * 材质球的高光强度
+         */
+        specularLevel: number;
+        /**
+         * 材质球的光滑度
+         */
+        gloss: number;
+        /**
+         * 透明度小于该值的像素完全透明
+         */
+        cutAlpha: number;
+        /**
+         * 是否重复
+         */
+        repeat: boolean;
+        /**
+         * 是否进行双面渲染
+         */
+        bothside: boolean;
+        /**
+         * 透明度
+         */
+        alpha: number;
+        /**
+         * 反射颜色的强度值，出射光照的出射率
+         */
+        albedo: number;
+        /**
+         * uv 在贴图上的映射区域， 值的范围限制在 0~1 之间
+         */
+        uvRectangle: Rectangle;
+        /**
+         * 材质数据需要变化
+         */
+        materialDataNeedChange: boolean;
+        /**
+         * 纹理变化
+         */
+        textureChange: boolean;
+        /**
+         * 纹理状态需要更新
+         */
+        textureStateChage: boolean;
+        /**
+         * 剔除模式
+         */
+        cullFrontOrBack: number;
+        /**
+         * 材质属性数据
+         */
+        materialSourceData: Float32Array;
+        clone(): MaterialData;
         dispose(): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 方法中需要用到的数据
-     * @author wizardc
-     */
-    class PassUsage {
-        uniform_1ivs: Uniform[];
-        uniform_1fvs: Uniform[];
-        uniform_2ivs: Uniform[];
-        uniform_2fvs: Uniform[];
-        uniform_3ivs: Uniform[];
-        uniform_3fvs: Uniform[];
-        uniform_4ivs: Uniform[];
-        uniform_4fvs: Uniform[];
-        attribute_position: Attribute;
-        attribute_normal: Attribute;
-        attribute_tangent: Attribute;
-        attribute_color: Attribute;
-        attribute_uv0: Attribute;
-        attribute_uv1: Attribute;
-        attribute_boneIndex: Attribute;
-        attribute_boneWeight: Attribute;
-        attribute_shapePosition: Attribute;
-        attribute_uvRec: Attribute;
-        attribute_size: Attribute;
-        attribute_quad_color: Attribute;
-        attribute_offset: Attribute;
-        attribute_billboardXYZ: Attribute;
-        attribute_lifecycle: Attribute;
-        attribute_direction: Attribute;
-        attribute_speed: Attribute;
-        attribute_startScale: Attribute;
-        attribute_endScale: Attribute;
-        attribute_startColor: Attribute;
-        attribute_endColor: Attribute;
-        attribute_rotate: Attribute;
-        attribute_acceleRotate: Attribute;
-        attribute_maskRectangle: Attribute;
-        attribute_acceleScale: Attribute;
-        attribute_startSpaceLifeTime: Attribute;
-        varying_pos: Attribute;
-        varying_normal: Attribute;
-        varying_tangent: Attribute;
-        varying_color: Attribute;
-        varying_uv0: Attribute;
-        varying_uv1: Attribute;
-        varying_eyeNormal: Attribute;
-        varying_eyedir: Attribute;
-        TBN: Attribute;
-        uniform_ModelMatrix: Uniform;
-        uniform_ProjectionMatrix: Uniform;
-        uniform_ViewProjectionMatrix: Uniform;
-        uniform_ViewMatrix: Uniform;
-        uniform_ModelViewMatrix: Uniform;
-        uniform_orthProectMatrix: Uniform;
-        uniform_ShadowMatrix: Uniform;
-        uniform_eyepos: Uniform;
-        uniform_PoseMatrix: Uniform;
-        uniform_sceneWidth: Uniform;
-        uniform_sceneHeight: Uniform;
-        uniform_time: Uniform;
-        uniform_cameraMatrix: Uniform;
-        uniform_enableBillboardXYZ: Uniform;
-        uniform_startColor: Uniform;
-        uniform_endColor: Uniform;
-        uniform_startScale: Uniform;
-        uniform_endScale: Uniform;
-        uniform_startRot: Uniform;
-        uniform_endRot: Uniform;
-        sampler2DList: Sampler2D[];
-        sampler3DList: Sampler3D[];
-        uniform_materialSource: Uniform;
-        uniform_LightSource: Uniform;
-        uniform_lightModelSource: Uniform;
-        uniform_directLightSource: Uniform;
-        uniform_sportLightSource: Uniform;
-        uniform_pointLightSource: Uniform;
-        uniform_skyLightSource: Uniform;
-        uniform_ShadowColor: Uniform;
-        program3D: Program3D;
-        vs_shader: Shader;
-        fs_shader: Shader;
-        vertexShader: ShaderBase;
-        fragmentShader: ShaderBase;
-        maxDirectLight: number;
-        maxSpotLight: number;
-        maxPointLight: number;
-        maxBone: number;
-        directLightData: Float32Array;
-        spotLightData: Float32Array;
-        pointLightData: Float32Array;
-        attributeDiry: boolean;
-        attributeList: Attribute[];
-        dispose(): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 渲染通道工具类
-     * @author wizardc
-     */
-    namespace PassUtil {
-        const passAuto: Readonly<boolean[]>;
-        function creatPass(pass: PassType, materialData: MaterialData): MaterialPass[];
-    }
-}
-declare namespace dou3d {
-    /**
-     * 颜色渲染通道
-     * @author wizardc
-     */
-    class ColorPass extends MaterialPass {
-        constructor(materialData: MaterialData);
-        initUseMethod(): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 漫反射渲染通道
-     * @author wizardc
-     */
-    class DiffusePass extends MaterialPass {
-        constructor(materialData: MaterialData);
-    }
-}
-declare namespace dou3d {
-    /**
-     * 阴影渲染通道
-     * @author wizardc
-     */
-    class ShadowPass extends MaterialPass {
-        constructor(materialData: MaterialData);
-        initUseMethod(): void;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 法线渲染通道
-     * @author wizardc
-     */
-    class NormalPass extends MaterialPass {
-        constructor(materialData: MaterialData);
-        initUseMethod(): void;
     }
 }
 declare namespace dou3d {
@@ -3772,10 +3609,6 @@ declare namespace dou3d {
          * 材质球的凹凸法线贴图
          */
         normalTexture: TextureBase;
-        /**
-         * 材质球特殊光效算法
-         */
-        matcapTexture: TextureBase;
         /**
          * 材质球的高光贴图
          */
@@ -3875,175 +3708,162 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
-     * 材质渲染数据
+     * 材质渲染通道基类
      * @author wizardc
      */
-    class MaterialData {
-        /**
-         * 材质类型数组
-         * * 每个材质球可能会有很多种贴图方法, 而这个是做为默认支持的材质方法的添加通道
-         */
-        shaderPhaseTypes: {
-            [passID: number]: ShaderPhaseType[];
+    class MaterialPass {
+        protected _passID: number;
+        protected _passUsage: PassUsage;
+        protected _materialData: MaterialData;
+        protected _passChange: boolean;
+        protected _vs_shader_methods: {
+            [phaseType: number]: string[];
         };
+        protected _fs_shader_methods: {
+            [phaseType: number]: string[];
+        };
+        methodList: MethodBase[];
+        methodDatas: MethodData[];
+        vsShaderNames: string[];
+        fsShaderNames: string[];
+        lightGroup: LightGroup;
+        constructor(materialData: MaterialData);
         /**
-         * 渲染模式
+         * 增加渲染方法
          */
-        drawMode: number;
+        addMethod(method: MethodBase): void;
         /**
-         * 是否开启 MipMap
+         * 获取指定类型的渲染方法实例
          */
-        useMipmap: boolean;
+        getMethod(type: {
+            new (): MethodBase;
+        }): MethodBase;
         /**
-         * 阴影贴图
+         * 移除渲染方法
          */
-        shadowMapTexture: TextureBase;
+        removeMethod(method: MethodBase): void;
+        passInvalid(): void;
         /**
-         * 漫反射贴图
+         * 重置纹理
          */
-        diffuseTexture: TextureBase;
+        protected resetTexture(context3DProxy: Context3DProxy): void;
+        protected addMethodShaders(shaderComposer: ShaderComposer, shaders: string[]): void;
         /**
-         * 立方体漫反射贴图
+         * 初始化所有的渲染方法
          */
-        diffuseTexture3D: TextureBase;
+        initUseMethod(animation: IAnimation): void;
         /**
-         * 法线贴图
+         * 添加来自 Method 的着色器片段
          */
-        normalTexture: TextureBase;
+        protected initMethodShader(): void;
         /**
-         *
+         * 将渲染方法的对应着色器加入到对应的 Shader 对象中以便获得最终的着色器对象
          */
-        matcapTexture: TextureBase;
-        /**
-         * 特效贴图
-         */
-        specularTexture: TextureBase;
-        /**
-         * 灯光贴图
-         */
-        lightTexture: TextureBase;
-        /**
-         * 遮罩贴图
-         */
-        maskTexture: TextureBase;
-        /**
-         * ao 贴图
-         */
-        aoTexture: TextureBase;
-        /**
-         * mask 贴图
-         */
-        blendMaskTexture: TextureBase;
-        /**
-         * 投射阴影
-         */
-        castShadow: boolean;
-        /**
-         * 接受阴影
-         */
-        acceptShadow: boolean;
-        /**
-         * 阴影颜色
-         */
-        shadowColor: Float32Array;
-        /**
-         * 深度测试
-         */
-        depthTest: boolean;
-        /**
-         * 深度测试模式
-         */
-        depthMode: number;
-        /**
-         * 混合模式
-         */
-        blendMode: BlendMode;
-        /**
-         * blend_src 值
-         */
-        blend_src: number;
-        /**
-         * blend_dest 值
-         */
-        blend_dest: number;
-        /**
-         * alphaBlending
-         */
-        alphaBlending: boolean;
-        /**
-         * ambientColor 值
-         */
-        ambientColor: number;
-        /**
-         * diffuseColor
-         */
-        diffuseColor: number;
-        /**
-         * specularColor 值
-         */
-        specularColor: number;
-        /**
-         * 色相
-         */
-        tintColor: number;
-        /**
-         * 材质球的高光强度
-         */
-        specularLevel: number;
-        /**
-         * 材质球的光滑度
-         */
-        gloss: number;
-        /**
-         * cutAlpha 值
-         */
-        cutAlpha: number;
-        /**
-         * 是否重复
-         */
-        repeat: boolean;
-        /**
-         * bothside 值
-         */
-        bothside: boolean;
-        /**
-         * alpha 值
-         */
-        alpha: number;
-        /**
-         * 反射颜色的强度值，出射光照的出射率
-         */
-        albedo: number;
-        /**
-         * 高光亮度的强度值,设置较大的值会让高光部分极亮
-         */
-        specularScale: number;
-        normalScale: number;
-        /**
-         * uv 在贴图上的映射区域，值的范围限制在0.0~1.0之间
-         */
-        uvRectangle: Rectangle;
-        /**
-         * 材质数据需要变化
-         */
-        materialDataNeedChange: boolean;
-        /**
-         * 纹理变化
-         */
-        textureChange: boolean;
-        /**
-         * 纹理状态需要更新
-         */
-        textureStateChage: boolean;
-        /**
-         * cullFrontOrBack
-         */
-        cullFrontOrBack: number;
-        materialSourceData: Float32Array;
-        colorGradientsSource: Float32Array;
-        colorTransform: ColorTransform;
-        clone(): MaterialData;
+        protected phaseEnd(): void;
+        upload(time: number, delay: number, context3DProxy: Context3DProxy, modelTransform: Matrix4, camera3D: Camera3D, animation: IAnimation): void;
+        draw(time: number, delay: number, context3DProxy: Context3DProxy, modelTransform: Matrix4, camera3D: Camera3D, subGeometry: SubGeometry, render: RenderBase): void;
+        deactiveState(passUsage: PassUsage, context3DProxy: Context3DProxy): void;
         dispose(): void;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 方法中需要用到的数据
+     * @author wizardc
+     */
+    class PassUsage {
+        /** 顶点位置 */
+        attribute_position: Attribute;
+        /** 顶点法线 */
+        attribute_normal: Attribute;
+        /** 顶点切线 */
+        attribute_tangent: Attribute;
+        /** 顶点颜色 */
+        attribute_color: Attribute;
+        /** 第一套 UV */
+        attribute_uv0: Attribute;
+        /** 第二套 UV, 一般用于场景灯光烘焙 */
+        attribute_uv1: Attribute;
+        /** 骨骼索引, 最多包含 4 个索引 */
+        attribute_boneIndex: Attribute;
+        /** 骨骼权重 */
+        attribute_boneWeight: Attribute;
+        /** 模型全局转换信息矩阵 */
+        uniform_ModelMatrix: Uniform;
+        /** 摄像机全局转换信息矩阵 */
+        uniform_cameraMatrix: Uniform;
+        /** 摄像机全局转换信息逆矩阵 */
+        uniform_ViewMatrix: Uniform;
+        /** 摄像机投影矩阵 */
+        uniform_ProjectionMatrix: Uniform;
+        /** 摄像机全局转换信息逆矩阵乘与摄像机投影矩阵之后的矩阵 */
+        uniform_ViewProjectionMatrix: Uniform;
+        /** 摄像机正交投影矩阵 */
+        uniform_orthProectMatrix: Uniform;
+        /** 摄像机本地坐标位置信息 */
+        uniform_eyepos: Uniform;
+        /** 材质自身的一些信息数据 */
+        uniform_materialSource: Uniform;
+        /** 方向光信息 */
+        uniform_directLightSource: Uniform;
+        /** 点光源信息 */
+        uniform_pointLightSource: Uniform;
+        /** 聚光灯信息 */
+        uniform_spotLightSource: Uniform;
+        /** 阴影渲染摄像机 uniform_ViewProjectionMatrix 矩阵 */
+        uniform_ShadowMatrix: Uniform;
+        /** 阴影颜色 */
+        uniform_ShadowColor: Uniform;
+        /** 骨骼动画骨骼相关造型数据 */
+        uniform_PoseMatrix: Uniform;
+        /** 骨骼动画的当前时间 */
+        uniform_time: Uniform;
+        /** 2D 采样器 */
+        sampler2DList: Sampler2D[];
+        /** 立方体采样器 */
+        sampler3DList: Sampler3D[];
+        /** 片段着色器 */
+        vertexShader: ShaderComposer;
+        /** 顶点着色器 */
+        fragmentShader: ShaderComposer;
+        /** 对应的渲染程序 */
+        program3D: Program3D;
+        /** 方向光数量 */
+        maxDirectLight: number;
+        /** 对应的方向光数据 */
+        directLightData: Float32Array;
+        /** 点光源数量 */
+        maxPointLight: number;
+        /** 对应的点光源数据 */
+        pointLightData: Float32Array;
+        /** 聚光灯数量 */
+        maxSpotLight: number;
+        /** 对应的聚光灯数据 */
+        spotLightData: Float32Array;
+        /** 骨骼数量 */
+        maxBone: number;
+        /** 存放当前使用到的所有属性 */
+        attributeList: Attribute[];
+        /** 属性是否改变, 改变后需要重新提交 */
+        attributeDiry: boolean;
+        constructor();
+        dispose(): void;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 渲染通道工具类
+     * @author wizardc
+     */
+    namespace PassUtil {
+        /**
+         * 和 PassType 对应, 指定的渲染通道没有设定时是否创建默认的通道对象
+         */
+        const passAuto: Readonly<boolean[]>;
+        /**
+         * 创建默认的渲染通道数组
+         */
+        function createPass(pass: PassType, materialData: MaterialData): MaterialPass[];
     }
 }
 declare namespace dou3d {
@@ -4056,6 +3876,89 @@ declare namespace dou3d {
         uniform: any;
         format: number;
         data: Float32Array;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 渲染方法基类
+     * @author wizardc
+     */
+    abstract class MethodBase {
+        /**
+         * 顶点着色器列表
+         */
+        vsShaderList: {
+            [shaderPhaseType: number]: string[];
+        };
+        /**
+         * 片段着色器列表
+         */
+        fsShaderList: {
+            [shaderPhaseType: number]: string[];
+        };
+        /**
+         * 材质数据
+         */
+        materialData: MaterialData;
+        abstract upload(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+        abstract activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+        dispose(): void;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 颜色渲染方法
+     * @author wizardc
+     */
+    class ColorMethod extends MethodBase {
+        constructor();
+        upload(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+        activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 阴影渲染方法
+     * @author wizardc
+     */
+    class ShadowMethod extends MethodBase {
+        constructor(material: MaterialBase);
+        /**
+         * 阴影贴图
+         */
+        shadowMapTexture: TextureBase;
+        upload(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+        activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 立方体渲染方法
+     * @author wizardc
+     */
+    class CubeMethod extends MethodBase {
+        constructor();
+        upload(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+        activeState(time: number, delay: number, usage: PassUsage, geometry: SubGeometry, context3DProxy: Context3DProxy, modeltransform: Matrix4, camera3D: Camera3D): void;
+    }
+}
+declare namespace dou3d {
+    /**
+     * 漫反射渲染通道
+     * @author wizardc
+     */
+    class DiffusePass extends MaterialPass {
+        constructor(materialData: MaterialData);
+    }
+}
+declare namespace dou3d {
+    /**
+     * 阴影渲染通道
+     * @author wizardc
+     */
+    class ShadowPass extends MaterialPass {
+        constructor(materialData: MaterialData);
+        initUseMethod(): void;
     }
 }
 declare namespace dou3d {
@@ -4166,30 +4069,48 @@ declare namespace dou3d {
         valueType: string;
         /**
          * 变量值
+         * * 类型为宏和常量时
          */
         value: any;
         /**
-         * texture
-         */
-        texture: any;
-        /**
-         * uniform Index
+         * 着色器中的索引
+         * * 类型为 Attribute、 Uniform 和取样器时
          */
         uniformIndex: any;
         /**
-         * active Texture Index
+         * 贴图对象
+         * * 采样器类型时
+         */
+        texture: any;
+        /**
+         * 要激活的纹理单元
+         * * gl.TEXTURE_0 ~ gl.TEXTURE_8
          */
         activeTextureIndex: number;
         /**
-         * index
+         * 绑定到取样器的纹理索引
+         * * 如果激活的纹理单元是 gl.TEXTURE_0 则这里是 0, 和纹理单元对应
          */
         index: number;
+        /**
+         * 总大小
+         */
         size: number;
+        /**
+         * 数据类型
+         */
         dataType: number;
+        /**
+         * 是否归一化
+         */
         normalized: boolean;
+        /**
+         * 一个完整数据的字节数
+         */
         stride: number;
-        offset: number;
-        offsetIndex: number;
+        /**
+         * 单个数据的偏移量
+         */
         offsetBytes: number;
         protected computeVarName(): void;
         clone(): VarRegister;
@@ -4202,22 +4123,6 @@ declare namespace dou3d {
      */
     class Attribute extends VarRegister {
         constructor(name: string, valueType: string);
-    }
-}
-declare namespace dou3d {
-    /**
-     * 属性类型
-     * @author wizardc
-     */
-    namespace AttributeType {
-        const int: string;
-        const float: string;
-        const vec2: string;
-        const vec3: string;
-        const vec4: string;
-        const mat2: string;
-        const mat3: string;
-        const mat4: string;
     }
 }
 declare namespace dou3d {
@@ -4285,31 +4190,6 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
-     * Uniform 属性类型
-     * @author wizardc
-     */
-    namespace UniformType {
-        const bool: string;
-        const int: string;
-        const float: string;
-        const vec2: string;
-        const vec3: string;
-        const vec4: string;
-        const bvec2: string;
-        const bvec3: string;
-        const bvec4: string;
-        const ivec2: string;
-        const ivec3: string;
-        const ivec4: string;
-        const mat2: string;
-        const mat3: string;
-        const mat4: string;
-        const sampler2D: string;
-        const sampleCube: string;
-    }
-}
-declare namespace dou3d {
-    /**
      * Varying 属性
      * @author wizardc
      */
@@ -4319,43 +4199,18 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
-     * Varying 属性类型
+     * 着色器组合器
+     * * 添加多个需要使用的着色器片段, 得到最终可以使用的着色器
      * @author wizardc
      */
-    namespace VaryingType {
-        const bool: string;
-        const int: string;
-        const float: string;
-        const vec2: string;
-        const vec3: string;
-        const vec4: string;
-        const bvec2: string;
-        const bvec3: string;
-        const bvec4: string;
-        const ivec2: string;
-        const ivec3: string;
-        const ivec4: string;
-        const mat2: string;
-        const mat3: string;
-        const mat4: string;
-        const sampler2D: string;
-        const sampleCube: string;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 着色器基类
-     * @author wizardc
-     */
-    class ShaderBase {
-        protected index: number;
-        protected shadersName: string[];
-        protected endShadername: string;
-        protected stateChange: boolean;
-        maxBone: number;
-        shaderType: number;
-        shader: Shader;
+    class ShaderComposer {
+        protected _shadersName: string[];
+        protected _endShadername: string;
+        private _shaderType;
+        private _shader;
         constructor(type: number);
+        readonly shaderType: number;
+        shader: Shader;
         addUseShaderName(shaderName: string): void;
         addEndShaderName(shaderName: string): void;
         getShader(passUsage: PassUsage): Shader;
@@ -4363,78 +4218,7 @@ declare namespace dou3d {
 }
 declare namespace dou3d {
     /**
-     * Shader 变量名
-     * 这里列出引擎中使用的所有变量名
-     * @author wizardc
-     */
-    namespace VarConstName {
-        const attribute_position: string;
-        const attribute_normal: string;
-        const attribute_tangent: string;
-        const attribute_vertexColor: string;
-        const attribute_uv0: string;
-        const attribute_uv1: string;
-        const varying_pos: string;
-        const varying_normal: string;
-        const varying_tangent: string;
-        const varying_color: string;
-        const varying_uv0: string;
-        const varying_uv1: string;
-        const varying_globalPos: string;
-        const varying_lightDir: string;
-        const varying_eye: string;
-        const uniform_floatv_0: string;
-        const uniform_floatv_1: string;
-        const uniform_floatv_2: string;
-        const uniform_iv_0: string;
-        const uniform_iv_1: string;
-        const uniform_iv_2: string;
-        const uniform_bv_0: string;
-        const uniform_bv_1: string;
-        const uniform_bv_2: string;
-        const uniform_vec2fv_0: string;
-        const uniform_vec2fv_1: string;
-        const uniform_vec2fv_2: string;
-        const uniform_vec3fv_0: string;
-        const uniform_vec3fv_1: string;
-        const uniform_vec3fv_2: string;
-        const uniform_vec4fv_0: string;
-        const uniform_vec4fv_1: string;
-        const uniform_vec4fv_2: string;
-        const uniform_vec2iv_0: string;
-        const uniform_vec2iv_1: string;
-        const uniform_vec2iv_2: string;
-        const uniform_vec3iv_0: string;
-        const uniform_vec3iv_1: string;
-        const uniform_vec3iv_2: string;
-        const uniform_vec4iv_0: string;
-        const uniform_vec4iv_1: string;
-        const uniform_vec4iv_2: string;
-        const uniform_vec2bv_0: string;
-        const uniform_vec2bv_1: string;
-        const uniform_vec2bv_2: string;
-        const uniform_vec3bv_0: string;
-        const uniform_vec3bv_1: string;
-        const uniform_vec3bv_2: string;
-        const uniform_vec4bv_0: string;
-        const uniform_vec4bv_1: string;
-        const uniform_vec4bv_2: string;
-        const uniform_modelMatrix: string;
-        const uniform_projectionMatrix: string;
-        const uniform_normalMatrix: string;
-        const uniform_eye: string;
-        const uniform_lightDir: string;
-        const texture2D_0: string;
-        const texture2D_1: string;
-        const texture2D_2: string;
-        const texture2D_3: string;
-        const texture2D_4: string;
-    }
-}
-declare namespace dou3d {
-    /**
-     * 解析着色器并对其内容进行分类
-     * 方便后面进行着色器合并
+     * 解析着色器并对其内容进行分类, 同时提供着色器合并的功能
      * @author wizardc
      */
     class ShaderContent {
@@ -4494,29 +4278,26 @@ declare namespace dou3d {
      * @author GLSLPacker
      */
     namespace ShaderLib {
-        const base_fs = "#extension GL_OES_standard_derivatives:enable\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nuniform mat4 uniform_ViewMatrix;\nvec4 outColor;\nvec4 diffuseColor;\nvec4 specularColor;\nvec4 ambientColor;\nvec4 light;\nvec3 normal;\nvec2 uv_0;\nvec3 flatNormals(vec3 pos){\nvec3 fdx=dFdx(pos);vec3 fdy=dFdy(pos);return normalize(cross(fdx,fdy));\n}\nvoid main(){\ndiffuseColor=vec4(1.0,1.0,1.0,1.0);\nspecularColor=vec4(0.0,0.0,0.0,0.0);\nambientColor=vec4(0.0,0.0,0.0,0.0);\nlight=vec4(1.0,1.0,1.0,1.0);\nnormal=normalize(varying_eyeNormal);\nuv_0=varying_uv0;\n}";
-        const base_vs = "attribute vec3 attribute_position;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nvec3 e_position=vec3(0.0,0.0,0.0);\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvec4 outPosition;\nmat4 transpose(mat4 inMatrix){\nvec4 i0=inMatrix[0];\nvec4 i1=inMatrix[1];\nvec4 i2=inMatrix[2];\nvec4 i3=inMatrix[3];\nmat4 outMatrix=mat4(\nvec4(i0.x,i1.x,i2.x,i3.x),\nvec4(i0.y,i1.y,i2.y,i3.y),\nvec4(i0.z,i1.z,i2.z,i3.z),\nvec4(i0.w,i1.w,i2.w,i3.w)\n);\nreturn outMatrix;\n}\nmat4 inverse(mat4 m){\nfloat\na00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\na10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\na20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\na30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\nb00=a00*a11-a01*a10,\nb01=a00*a12-a02*a10,\nb02=a00*a13-a03*a10,\nb03=a01*a12-a02*a11,\nb04=a01*a13-a03*a11,\nb05=a02*a13-a03*a12,\nb06=a20*a31-a21*a30,\nb07=a20*a32-a22*a30,\nb08=a20*a33-a23*a30,\nb09=a21*a32-a22*a31,\nb10=a21*a33-a23*a31,\nb11=a22*a33-a23*a32,\ndet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\nreturn mat4(\na11*b11-a12*b10+a13*b09,\na02*b10-a01*b11-a03*b09,\na31*b05-a32*b04+a33*b03,\na22*b04-a21*b05-a23*b03,\na12*b08-a10*b11-a13*b07,\na00*b11-a02*b08+a03*b07,\na32*b02-a30*b05-a33*b01,\na20*b05-a22*b02+a23*b01,\na10*b10-a11*b08+a13*b06,\na01*b08-a00*b10-a03*b06,\na30*b04-a31*b02+a33*b00,\na21*b02-a20*b04-a23*b00,\na11*b07-a10*b09-a12*b06,\na00*b09-a01*b07+a02*b06,\na31*b01-a30*b03-a32*b00,\na20*b03-a21*b01+a22*b00)/det;\n}\nvoid main(){\ne_position=attribute_position;\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\n}";
-        const colorPassEnd_fs = "void main(){\ngl_FragColor=vec4(diffuseColor.xyz,1.0);\n}";
-        const color_fs = "vec4 diffuseColor;\nvoid main(){\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=vec4(1.0,1.0,1.0,1.0);\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\nelse{\ndiffuseColor.xyz*=diffuseColor.w;\n}\n}";
-        const cube_fs = "uniform samplerCube diffuseTexture3D;\nvarying vec3 varying_pos;\nvec4 diffuseColor;\nvoid main(){\nif(diffuseColor.w==0.0){\ndiscard;\n}\nvec3 uvw=normalize(varying_pos.xyz);\ndiffuseColor=vec4(textureCube(diffuseTexture3D,uvw.xyz));\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\nelse{\ndiffuseColor.xyz*=diffuseColor.w;\n}\n}";
+        const base_fs = "#extension GL_OES_standard_derivatives:enable\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_worldPosition;\nvarying vec3 varying_worldNormal;\nuniform mat4 uniform_ViewMatrix;\nuniform vec3 uniform_eyepos;\nvec4 diffuseColor;\nvec4 specularColor;\nvec4 ambientColor;\nvec4 light;\nvec3 normal;\nvec2 uv_0;\nvoid main(){\ndiffuseColor=vec4(1.0,1.0,1.0,1.0);\nspecularColor=vec4(0.0,0.0,0.0,0.0);\nambientColor=vec4(0.0,0.0,0.0,0.0);\nlight=vec4(1.0,1.0,1.0,1.0);\nnormal=normalize(varying_eyeNormal);\nuv_0=varying_uv0;\n}";
+        const base_vs = "attribute vec3 attribute_position;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nvec3 e_position=vec3(0.0,0.0,0.0);\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_worldPosition;\nvarying vec3 varying_worldNormal;\nvec4 outPosition;\nmat4 transpose(mat4 inMatrix){\nvec4 i0=inMatrix[0];\nvec4 i1=inMatrix[1];\nvec4 i2=inMatrix[2];\nvec4 i3=inMatrix[3];\nmat4 outMatrix=mat4(\nvec4(i0.x,i1.x,i2.x,i3.x),\nvec4(i0.y,i1.y,i2.y,i3.y),\nvec4(i0.z,i1.z,i2.z,i3.z),\nvec4(i0.w,i1.w,i2.w,i3.w)\n);\nreturn outMatrix;\n}\nmat4 inverse(mat4 m){\nfloat\na00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\na10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\na20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\na30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\nb00=a00*a11-a01*a10,\nb01=a00*a12-a02*a10,\nb02=a00*a13-a03*a10,\nb03=a01*a12-a02*a11,\nb04=a01*a13-a03*a11,\nb05=a02*a13-a03*a12,\nb06=a20*a31-a21*a30,\nb07=a20*a32-a22*a30,\nb08=a20*a33-a23*a30,\nb09=a21*a32-a22*a31,\nb10=a21*a33-a23*a31,\nb11=a22*a33-a23*a32,\ndet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\nreturn mat4(\na11*b11-a12*b10+a13*b09,\na02*b10-a01*b11-a03*b09,\na31*b05-a32*b04+a33*b03,\na22*b04-a21*b05-a23*b03,\na12*b08-a10*b11-a13*b07,\na00*b11-a02*b08+a03*b07,\na32*b02-a30*b05-a33*b01,\na20*b05-a22*b02+a23*b01,\na10*b10-a11*b08+a13*b06,\na01*b08-a00*b10-a03*b06,\na30*b04-a31*b02+a33*b00,\na21*b02-a20*b04-a23*b00,\na11*b07-a10*b09-a12*b06,\na00*b09-a01*b07+a02*b06,\na31*b01-a30*b03-a32*b00,\na20*b03-a21*b01+a22*b00)/det;\n}\nvoid main(){\ne_position=attribute_position;\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\nvarying_worldPosition=uniform_ModelMatrix*vec4(e_position,1.0);\nvarying_worldNormal=normalize((uniform_ModelMatrix*vec4(attribute_normal,0.0)).xyz);\n}";
+        const color_fs = "void main(){\n}";
+        const cube_fs = "uniform samplerCube diffuseTexture3D;\nvarying vec3 varying_pos;\nvec4 diffuseColor;\nvoid main(){\nvec3 uvw=normalize(varying_pos.xyz);\ndiffuseColor=vec4(textureCube(diffuseTexture3D,uvw.xyz));\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\nelse{\ndiffuseColor.xyz*=diffuseColor.w;\n}\n}";
         const cube_vs = "varying vec3 varying_pos;\nvoid main(){\nvarying_pos=e_position;\n}";
         const diffuse_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvoid main(){\ndiffuseColor=texture2D(diffuseTexture,uv_0);\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\n}";
-        const diffuse_vs = "attribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvarying vec4 varying_mvPose;\nvarying vec4 varying_color;\nvoid main(){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_mvPose=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition=varying_mvPose;\nvarying_color=attribute_color;\n}";
-        const directLight_fs = "const int max_directLight=0;\nuniform float uniform_directLightSource[9*max_directLight];\nvarying vec4 varying_mvPose;\nuniform mat4 uniform_ViewMatrix;\nmat4 normalMatrix;\nstruct DirectLight{\nvec3 direction;\nvec3 diffuse;\nvec3 ambient;\n};\nmat4 transpose(mat4 inMatrix){\nvec4 i0=inMatrix[0];\nvec4 i1=inMatrix[1];\nvec4 i2=inMatrix[2];\nvec4 i3=inMatrix[3];\nmat4 outMatrix=mat4(\nvec4(i0.x,i1.x,i2.x,i3.x),\nvec4(i0.y,i1.y,i2.y,i3.y),\nvec4(i0.z,i1.z,i2.z,i3.z),\nvec4(i0.w,i1.w,i2.w,i3.w)\n);\nreturn outMatrix;\n}\nmat4 inverse(mat4 m){\nfloat\na00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\na10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\na20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\na30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\nb00=a00*a11-a01*a10,\nb01=a00*a12-a02*a10,\nb02=a00*a13-a03*a10,\nb03=a01*a12-a02*a11,\nb04=a01*a13-a03*a11,\nb05=a02*a13-a03*a12,\nb06=a20*a31-a21*a30,\nb07=a20*a32-a22*a30,\nb08=a20*a33-a23*a30,\nb09=a21*a32-a22*a31,\nb10=a21*a33-a23*a31,\nb11=a22*a33-a23*a32,\ndet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\nreturn mat4(\na11*b11-a12*b10+a13*b09,\na02*b10-a01*b11-a03*b09,\na31*b05-a32*b04+a33*b03,\na22*b04-a21*b05-a23*b03,\na12*b08-a10*b11-a13*b07,\na00*b11-a02*b08+a03*b07,\na32*b02-a30*b05-a33*b01,\na20*b05-a22*b02+a23*b01,\na10*b10-a11*b08+a13*b06,\na01*b08-a00*b10-a03*b06,\na30*b04-a31*b02+a33*b00,\na21*b02-a20*b04-a23*b00,\na11*b07-a10*b09-a12*b06,\na00*b09-a01*b07+a02*b06,\na31*b01-a30*b03-a32*b00,\na20*b03-a21*b01+a22*b00)/det;\n}\nvoid calculateDirectLight(MaterialSource materialSource){\nfloat lambertTerm,specular;\nvec3 dir,viewDir=normalize(varying_mvPose.xyz/varying_mvPose.w);\nfor(int i=0;i<max_directLight;i++){\nDirectLight directLight;\ndirectLight.direction=(normalMatrix*vec4(uniform_directLightSource[i*9],uniform_directLightSource[i*9+1],uniform_directLightSource[i*9+2],1.0)).xyz;\ndirectLight.diffuse=vec3(uniform_directLightSource[i*9+3],uniform_directLightSource[i*9+4],uniform_directLightSource[i*9+5]);\ndirectLight.ambient=vec3(uniform_directLightSource[i*9+6],uniform_directLightSource[i*9+7],uniform_directLightSource[i*9+8]);\ndir=normalize(directLight.direction);\nlight.xyzw+=LightingBlinnPhong(dir,directLight.diffuse,directLight.ambient,normal,viewDir,0.5);\n}\n}\nvoid main(){\nnormalMatrix=inverse(uniform_ViewMatrix);\nnormalMatrix=transpose(normalMatrix);\ncalculateDirectLight(materialSource);\n}";
+        const diffuse_vs = "attribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvarying vec4 varying_modelViewPosition;\nvarying vec4 varying_color;\nvoid main(){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_modelViewPosition=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition=varying_modelViewPosition;\nvarying_color=attribute_color;\n}";
+        const directLight_fs = "const int max_directLight=0;\nuniform float uniform_directLightSource[6*max_directLight];\nstruct DirectLight{\nvec3 direction;\nvec3 diffuse;\nvec3 ambient;\n};\nvoid calculateDirectLight(MaterialSource materialSource){\nvec3 viewDir=normalize(uniform_eyepos-varying_worldPosition.xyz);\nfor(int i=0;i<max_directLight;i++){\nDirectLight directLight;\ndirectLight.direction=vec3(uniform_directLightSource[i*6],uniform_directLightSource[i*6+1],uniform_directLightSource[i*6+2]);\ndirectLight.diffuse=vec3(uniform_directLightSource[i*6+3],uniform_directLightSource[i*6+4],uniform_directLightSource[i*6+5]);\nvec3 lightDir=-directLight.direction;\nfloat diffuse=calculateLightDiffuse(varying_worldNormal,lightDir);\nfloat specular=calculateLightSpecular(varying_worldNormal,lightDir,viewDir,materialSource.specularScale);\nlight.xyz+=(materialSource.ambient+diffuse*materialSource.diffuse+specular*materialSource.specular)*directLight.diffuse;\n}\n}\nvoid main(){\ncalculateDirectLight(materialSource);\n}";
         const end_fs = "varying vec4 varying_color;\nvec4 outColor;\nvec4 diffuseColor;\nvec4 specularColor;\nvec4 ambientColor;\nvec4 light;\nvoid main(){\noutColor.xyz=(light.xyz+materialSource.ambient)*diffuseColor.xyz*materialSource.diffuse*varying_color.xyz;\noutColor.w=materialSource.alpha*diffuseColor.w*varying_color.w;\noutColor.xyz*=outColor.w;\ngl_FragColor=outColor;\n}";
-        const end_vs = "vec4 endPosition;\nuniform float uniform_materialSource[20];\nvoid main(){\ngl_PointSize=50.0;\ngl_PointSize=uniform_materialSource[18];\ngl_Position=uniform_ProjectionMatrix*outPosition;\n}";
-        const lightingBase_fs = "vec4 LightingBlinnPhong(vec3 lightDir,vec3 lightColor,vec3 lightAmbient,vec3 normal,vec3 viewDir,float atten){\nfloat NdotL=clamp(dot(normal,lightDir),0.0,1.0);\nvec3 diffuse=lightColor.xyz*NdotL;\nvec3 h=normalize(lightDir+normalize(viewDir));\nfloat nh=clamp(dot(normal,h),0.0,1.0);\nfloat specPower=pow(nh,materialSource.shininess)*materialSource.specularScale;\nvec3 specular=lightColor.xyz*specPower*materialSource.specular;\nspecularColor.xyz+=specular;\nvec4 c;\nc.rgb=(diffuse+specular+lightAmbient)*(atten*2.0);\nc.a=materialSource.alpha+(specPower*atten);\nreturn c;\n}\nvoid main(){\nlight.xyzw=vec4(0.0,0.0,0.0,1.0);\n}";
+        const end_vs = "uniform float uniform_materialSource[20];\nvoid main(){\ngl_PointSize=uniform_materialSource[18];\ngl_Position=uniform_ProjectionMatrix*outPosition;\n}";
+        const lightingBase_fs = "float computeDistanceLightFalloff(float lightDistance,float range){\nreturn max(0.0,1.0-lightDistance/range);\n}\nfloat calculateLightDiffuse(vec3 normal,vec3 lightDir){\nreturn clamp(dot(normal,lightDir),0.0,1.0);\n}\nfloat calculateLightSpecular(vec3 normal,vec3 lightDir,vec3 viewDir,float glossiness){\nvec3 halfVec=normalize(lightDir+viewDir);\nfloat specComp=max(dot(normal,halfVec),0.0);\nspecComp=pow(specComp,glossiness);\nreturn specComp;\n}\nvoid main(){\nlight.xyzw=vec4(0.0,0.0,0.0,1.0);\n}";
         const materialSource_fs = "struct MaterialSource{\nvec3 diffuse;\nvec3 ambient;\nvec3 specular;\nfloat alpha;\nfloat cutAlpha;\nfloat shininess;\nfloat roughness;\nfloat albedo;\nvec4 uvRectangle;\nfloat specularScale;\nfloat normalScale;\n};\nuniform float uniform_materialSource[20];\nvarying vec2 varying_uv0;\nMaterialSource materialSource;\nvec2 uv_0;\nvoid main(){\nmaterialSource.diffuse.x=uniform_materialSource[0];\nmaterialSource.diffuse.y=uniform_materialSource[1];\nmaterialSource.diffuse.z=uniform_materialSource[2];\nmaterialSource.ambient.x=uniform_materialSource[3];\nmaterialSource.ambient.y=uniform_materialSource[4];\nmaterialSource.ambient.z=uniform_materialSource[5];\nmaterialSource.specular.x=uniform_materialSource[6];\nmaterialSource.specular.y=uniform_materialSource[7];\nmaterialSource.specular.z=uniform_materialSource[8];\nmaterialSource.alpha=uniform_materialSource[9];\nmaterialSource.cutAlpha=uniform_materialSource[10];\nmaterialSource.shininess=uniform_materialSource[11];\nmaterialSource.specularScale=uniform_materialSource[12];\nmaterialSource.albedo=uniform_materialSource[13];\nmaterialSource.uvRectangle.x=uniform_materialSource[14];\nmaterialSource.uvRectangle.y=uniform_materialSource[15];\nmaterialSource.uvRectangle.z=uniform_materialSource[16];\nmaterialSource.uvRectangle.w=uniform_materialSource[17];\nmaterialSource.specularScale=uniform_materialSource[18];\nmaterialSource.normalScale=uniform_materialSource[19];\nuv_0=varying_uv0.xy*materialSource.uvRectangle.zw+materialSource.uvRectangle.xy;\n}";
-        const normalMap_fs = "uniform sampler2D normalTexture;\nvarying vec2 varying_uv0;\nvarying vec4 varying_mvPose;\nmat3 TBN;\nmat3 cotangentFrame(vec3 N,vec3 p,vec2 uv){\nvec3 dp1=dFdx(p);\nvec3 dp2=dFdy(p);\nvec2 duv1=dFdx(uv);\nvec2 duv2=dFdy(uv);\nvec3 dp2perp=cross(dp2,N);\nvec3 dp1perp=cross(N,dp1);\nvec3 T=dp2perp*duv1.x+dp1perp*duv2.x;\nvec3 B=dp2perp*duv1.y+dp1perp*duv2.y;\nfloat invmax=1.0/sqrt(max(dot(T,T),dot(B,B)));\nreturn mat3(T*invmax,B*invmax,N);\n}\nvec3 tbn(vec3 map,vec3 N,vec3 V,vec2 texcoord){\nmat3 TBN=cotangentFrame(N,-V,texcoord);\nreturn normalize(TBN*map);\n}\nvoid main(){\nvec3 normalTex=texture2D(normalTexture,uv_0).xyz*2.0-1.0;\nnormalTex.y*=-1.0;\nnormal.xyz=tbn(normalTex.xyz,normal.xyz,varying_mvPose.xyz,uv_0);\n}";
-        const normalPassEnd_fs = "void main(){\ngl_FragColor=vec4(normal,1.0);\n}";
-        const pointLight_fs = "const int max_pointLight=0;\nuniform float uniform_pointLightSource[12*max_pointLight];\nvarying vec4 varying_mvPose;\nstruct PointLight{\nvec3 position;\nvec3 diffuse;\nvec3 ambient;\nfloat intensity;\nfloat radius;\nfloat cutoff;\n};\nvoid calculatePointLight(MaterialSource materialSource){\nvec3 N=normal;\nvec3 viewDir=normalize(varying_mvPose.xyz/varying_mvPose.w);\nfor(int i=0;i<max_pointLight;i++){\nPointLight pointLight;\npointLight.position=vec3(uniform_pointLightSource[i*12],uniform_pointLightSource[i*12+1],uniform_pointLightSource[i*12+2]);\npointLight.diffuse=vec3(uniform_pointLightSource[i*12+3],uniform_pointLightSource[i*12+4],uniform_pointLightSource[i*12+5]);\npointLight.ambient=vec3(uniform_pointLightSource[i*12+6],uniform_pointLightSource[i*12+7],uniform_pointLightSource[i*12+8]);\npointLight.intensity=uniform_pointLightSource[i*12+9];\npointLight.radius=uniform_pointLightSource[i*12+10];\npointLight.cutoff=uniform_pointLightSource[i*12+11];\nvec3 lightCentre=(mat4(uniform_ViewMatrix)*vec4(pointLight.position.xyz,1.0)).xyz;\nfloat r=pointLight.radius*0.5;\nvec3 ldir=varying_mvPose.xyz-lightCentre;\nfloat distance=length(ldir);\nfloat d=max(distance-r,0.0);\nvec3 L=ldir/distance;\nfloat denom=d/r+1.0;\nfloat attenuation=1.0/(denom*denom);\nfloat cutoff=pointLight.cutoff;\nattenuation=(attenuation-cutoff)/(1.0-cutoff);\nattenuation=max(attenuation*pointLight.intensity,0.0);\nlight.xyzw+=LightingBlinnPhong(normalize(ldir),pointLight.diffuse,pointLight.ambient,N,viewDir,attenuation);\n};\n}\nvoid main(){\ncalculatePointLight(materialSource);\n}";
+        const normalMap_fs = "uniform sampler2D normalTexture;\nvarying vec2 varying_uv0;\nvarying vec4 varying_modelViewPosition;\nmat3 cotangentFrame(vec3 N,vec3 p,vec2 uv){\nvec3 dp1=dFdx(p);\nvec3 dp2=dFdy(p);\nvec2 duv1=dFdx(uv);\nvec2 duv2=dFdy(uv);\nvec3 dp2perp=cross(dp2,N);\nvec3 dp1perp=cross(N,dp1);\nvec3 T=dp2perp*duv1.x+dp1perp*duv2.x;\nvec3 B=dp2perp*duv1.y+dp1perp*duv2.y;\nfloat invmax=1.0/sqrt(max(dot(T,T),dot(B,B)));\nreturn mat3(T*invmax,B*invmax,N);\n}\nvec3 tbn(vec3 map,vec3 N,vec3 V,vec2 texcoord){\nmat3 TBN=cotangentFrame(N,-V,texcoord);\nreturn normalize(TBN*map);\n}\nvoid main(){\nvec3 normalTex=texture2D(normalTexture,uv_0).xyz*2.0-1.0;\nnormalTex.y*=-1.0;\nnormal.xyz=tbn(normalTex.xyz,normal.xyz,varying_modelViewPosition.xyz,uv_0);\n}";
+        const pointLight_fs = "const int max_pointLight=0;\nuniform float uniform_pointLightSource[7*max_pointLight];\nstruct PointLight{\nvec3 position;\nvec3 diffuse;\nvec3 ambient;\nfloat intensity;\nfloat radius;\n};\nvoid calculatePointLight(MaterialSource materialSource){\nvec3 viewDir=normalize(uniform_eyepos-varying_worldPosition.xyz);\nfor(int i=0;i<max_pointLight;i++){\nPointLight pointLight;\npointLight.position=vec3(uniform_pointLightSource[i*7],uniform_pointLightSource[i*7+1],uniform_pointLightSource[i*7+2]);\npointLight.diffuse=vec3(uniform_pointLightSource[i*7+3],uniform_pointLightSource[i*7+4],uniform_pointLightSource[i*7+5]);\npointLight.radius=uniform_pointLightSource[i*7+6];\nvec3 lightOffset=pointLight.position-varying_worldPosition.xyz;\nvec3 lightDir=normalize(lightOffset);\nfloat falloff=computeDistanceLightFalloff(length(lightOffset),pointLight.radius);\nfloat diffuse=calculateLightDiffuse(varying_worldNormal,lightDir);\nfloat specular=calculateLightSpecular(varying_worldNormal,lightDir,viewDir,materialSource.specularScale);\nlight.xyz+=(materialSource.ambient+diffuse*materialSource.diffuse+specular*materialSource.specular)*pointLight.diffuse*falloff;\n}\n}\nvoid main(){\ncalculatePointLight(materialSource);\n}";
         const shadowMapping_fs = "uniform sampler2D shadowMapTexture;\nuniform vec4 uniform_ShadowColor;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvec3 shadowColor=vec3(1.0,1.0,1.0);\nfloat offset=uniform_ShadowColor.w;\nvec2 sample=varying_ShadowCoord.xy/varying_ShadowCoord.w*0.5+0.5;\nif(sample.x>=0.0 && sample.x<=1.0 && sample.y>=0.0 && sample.y<=1.0){\nvec4 sampleDepth=texture2D(shadowMapTexture,sample).xyzw;\nfloat depth=varying_ShadowCoord.z;\nif(sampleDepth.z !=0.0){\nif(sampleDepth.z<depth-offset){\nshadowColor=uniform_ShadowColor.xyz;\n}\n}\n}\ndiffuseColor.xyz=diffuseColor.xyz*shadowColor;\n}";
         const shadowMapping_vs = "uniform mat4 uniform_ShadowMatrix;\nuniform mat4 uniform_ModelMatrix;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvarying_ShadowCoord=uniform_ShadowMatrix*uniform_ModelMatrix*vec4(e_position,1.0);\n}";
         const shadowPass_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\ndiffuseColor=varying_color;\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=texture2D(diffuseTexture,varying_uv0);\nif(diffuseColor.w<=0.3){\ndiscard;\n}\ngl_FragColor=vec4(varying_pos.zzz,1.0);\n}";
         const shadowPass_vs = "attribute vec3 attribute_position;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\nvarying_pos=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\ngl_Position=varying_pos;\n}";
-        const skeleton_vs = "attribute vec4 attribute_boneIndex;\nattribute vec4 attribute_boneWeight;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvec4 e_boneIndex=vec4(0.0,0.0,0.0,0.0);\nvec4 e_boneWeight=vec4(0.0,0.0,0.0,0.0);\nconst int bonesNumber=0;\nuniform vec4 uniform_PoseMatrix[bonesNumber];\nvarying vec4 varying_mvPose;\nmat4 buildMat4(int index){\nvec4 quat=uniform_PoseMatrix[index*2+0];\nvec4 translation=uniform_PoseMatrix[index*2+1];\nfloat xy2=2.0*quat.x*quat.y;\nfloat xz2=2.0*quat.x*quat.z;\nfloat xw2=2.0*quat.x*quat.w;\nfloat yz2=2.0*quat.y*quat.z;\nfloat yw2=2.0*quat.y*quat.w;\nfloat zw2=2.0*quat.z*quat.w;\nfloat xx=quat.x*quat.x;\nfloat yy=quat.y*quat.y;\nfloat zz=quat.z*quat.z;\nfloat ww=quat.w*quat.w;\nmat4 matrix=mat4(\nxx-yy-zz+ww,xy2+zw2,xz2-yw2,0,\nxy2-zw2,-xx+yy-zz+ww,yz2+xw2,0,\nxz2+yw2,yz2-xw2,-xx-yy+zz+ww,0,\ntranslation.x,translation.y,translation.z,1\n);\nreturn matrix;\n}\nvoid main(){\ne_boneIndex=attribute_boneIndex;\ne_boneWeight=attribute_boneWeight;\nvec4 temp_position=vec4(attribute_position,1.0);\nvec4 temp_normal=vec4(attribute_normal,0.0);\nmat4 m0=buildMat4(int(e_boneIndex.x));\nmat4 m1=buildMat4(int(e_boneIndex.y));\nmat4 m2=buildMat4(int(e_boneIndex.z));\nmat4 m3=buildMat4(int(e_boneIndex.w));\noutPosition=m0*temp_position*e_boneWeight.x;\noutPosition+=m1*temp_position*e_boneWeight.y;\noutPosition+=m2*temp_position*e_boneWeight.z;\noutPosition+=m3*temp_position*e_boneWeight.w;\ne_position=outPosition.xyz;\nvec4 temp_n;\ntemp_n=m0*temp_normal*e_boneWeight.x;\ntemp_n+=m1*temp_normal*e_boneWeight.y;\ntemp_n+=m2*temp_normal*e_boneWeight.z;\ntemp_n+=m3*temp_normal*e_boneWeight.w;\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_mvPose=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition.xyzw=varying_mvPose.xyzw;\nvarying_color=attribute_color;\n}";
-        const spotLight_fs = "";
-        const varyingViewDir_vs = "varying vec3 varying_ViewDir;\nuniform vec3 uniform_eyepos;\nvoid main(){\nvarying_ViewDir=uniform_eyepos.xyz-e_position;\n}";
+        const skeleton_vs = "attribute vec4 attribute_boneIndex;\nattribute vec4 attribute_boneWeight;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvec4 e_boneIndex=vec4(0.0,0.0,0.0,0.0);\nvec4 e_boneWeight=vec4(0.0,0.0,0.0,0.0);\nconst int bonesNumber=0;\nuniform vec4 uniform_PoseMatrix[bonesNumber];\nvarying vec4 varying_modelViewPosition;\nmat4 buildMat4(int index){\nvec4 quat=uniform_PoseMatrix[index*2+0];\nvec4 translation=uniform_PoseMatrix[index*2+1];\nfloat xy2=2.0*quat.x*quat.y;\nfloat xz2=2.0*quat.x*quat.z;\nfloat xw2=2.0*quat.x*quat.w;\nfloat yz2=2.0*quat.y*quat.z;\nfloat yw2=2.0*quat.y*quat.w;\nfloat zw2=2.0*quat.z*quat.w;\nfloat xx=quat.x*quat.x;\nfloat yy=quat.y*quat.y;\nfloat zz=quat.z*quat.z;\nfloat ww=quat.w*quat.w;\nmat4 matrix=mat4(\nxx-yy-zz+ww,xy2+zw2,xz2-yw2,0,\nxy2-zw2,-xx+yy-zz+ww,yz2+xw2,0,\nxz2+yw2,yz2-xw2,-xx-yy+zz+ww,0,\ntranslation.x,translation.y,translation.z,1\n);\nreturn matrix;\n}\nvoid main(){\ne_boneIndex=attribute_boneIndex;\ne_boneWeight=attribute_boneWeight;\nvec4 temp_position=vec4(attribute_position,1.0);\nvec4 temp_normal=vec4(attribute_normal,0.0);\nmat4 m0=buildMat4(int(e_boneIndex.x));\nmat4 m1=buildMat4(int(e_boneIndex.y));\nmat4 m2=buildMat4(int(e_boneIndex.z));\nmat4 m3=buildMat4(int(e_boneIndex.w));\noutPosition=m0*temp_position*e_boneWeight.x;\noutPosition+=m1*temp_position*e_boneWeight.y;\noutPosition+=m2*temp_position*e_boneWeight.z;\noutPosition+=m3*temp_position*e_boneWeight.w;\ne_position=outPosition.xyz;\nvec4 temp_n;\ntemp_n=m0*temp_normal*e_boneWeight.x;\ntemp_n+=m1*temp_normal*e_boneWeight.y;\ntemp_n+=m2*temp_normal*e_boneWeight.z;\ntemp_n+=m3*temp_normal*e_boneWeight.w;\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_modelViewPosition=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition.xyzw=varying_modelViewPosition.xyzw;\nvarying_color=attribute_color;\n}";
+        const spotLight_fs = "const int max_spotLight=0;\nuniform float uniform_spotLightSource[12*max_spotLight];\nstruct SpotLight{\nvec3 position;\nvec3 direction;\nvec3 diffuse;\nvec3 ambient;\nfloat range;\nfloat coneCos;\nfloat penumbraCos;\n};\nvoid calculateSpotLight(MaterialSource materialSource){\nvec3 viewDir=normalize(uniform_eyepos-varying_worldPosition.xyz);\nfor(int i=0;i<max_spotLight;i++){\nSpotLight spotLight;\nspotLight.position=vec3(uniform_spotLightSource[i*12],uniform_spotLightSource[i*12+1],uniform_spotLightSource[i*12+2]);\nspotLight.direction=vec3(uniform_spotLightSource[i*12+3],uniform_spotLightSource[i*12+4],uniform_spotLightSource[i*12+5]);\nspotLight.diffuse=vec3(uniform_spotLightSource[i*12+6],uniform_spotLightSource[i*12+7],uniform_spotLightSource[i*12+8]);\nspotLight.range=uniform_spotLightSource[i*12+9];\nspotLight.coneCos=uniform_spotLightSource[i*12+10];\nspotLight.penumbraCos=uniform_spotLightSource[i*12+11];\nvec3 lightOffset=spotLight.position-varying_worldPosition.xyz;\nvec3 lightDir=normalize(lightOffset);\nfloat angleCos=dot(lightDir,-spotLight.direction);\nif(angleCos>spotLight.coneCos){\nfloat spotEffect=smoothstep(spotLight.coneCos,spotLight.penumbraCos,angleCos);\nfloat falloff=computeDistanceLightFalloff(length(lightOffset)*angleCos,spotLight.range);\nfloat diffuse=calculateLightDiffuse(varying_worldNormal,lightDir);\nfloat specular=calculateLightSpecular(varying_worldNormal,lightDir,viewDir,materialSource.specularScale);\nlight.xyz+=(materialSource.ambient+diffuse*materialSource.diffuse+specular*materialSource.specular)*spotLight.diffuse*falloff*spotEffect;\n}\n}\n}\nvoid main(){\ncalculateSpotLight(materialSource);\n}";
     }
 }
 declare namespace dou3d {
@@ -4532,7 +4313,7 @@ declare namespace dou3d {
         /**
          * 返回组合着色器后的内容
          */
-        function fillShaderContent(shaderBase: ShaderBase, shaderNameList: string[], usage: PassUsage): Shader;
+        function fillShaderContent(shaderComposer: ShaderComposer, shaderNameList: string[], usage: PassUsage): Shader;
     }
 }
 declare namespace dou3d {
@@ -4625,41 +4406,17 @@ declare namespace dou3d {
          */
         premultiplyAlpha: boolean;
         /**
-         * gl.LINEAR
-         * gl.NEAREST
-         * gl.LINEAR_MIPMAP_LINEAR
-         * gl.LINEAR_MIPMAP_NEAREST
-         * gl.NEAREST_MIPMAP_LINEAR
-         * gl.NEAREST_MIPMAP_NEAREST
-         */
-        min_filter: number;
-        /**
-         * gl.LINEAR
-         * gl.NEAREST
-         * gl.LINEAR_MIPMAP_LINEAR
-         * gl.LINEAR_MIPMAP_NEAREST
-         * gl.NEAREST_MIPMAP_LINEAR
-         * gl.NEAREST_MIPMAP_NEAREST
-         */
-        mag_filter: number;
-        /**
-         * gl.REPEAT
-         * gl.MIRRORED_REPEAT
-         * gl.CLAMP_TO_EDGE
-         */
-        wrap_u_filter: number;
-        /**
-         * gl.REPEAT
-         * gl.MIRRORED_REPEAT
-         * gl.CLAMP_TO_EDGE
-         */
-        wrap_v_filter: number;
-        /**
          * 是否需要颠倒 uv
          * gl.filp_y
          */
         filp_y: boolean;
+        /**
+         * 当前贴图如果是大图集的一部分则这里用来记录位于大图集中的区域信息
+         */
         uvRectangle: Rectangle;
+        /**
+         * 大图集贴图对象
+         */
         parentTexture: TextureBase;
         /**
          * 是否有 Mipmap
@@ -4678,6 +4435,9 @@ declare namespace dou3d {
          */
         mimapData: Array<MipmapData>;
         private _ready;
+        /**
+         * 从大图集中的某一区域进行拷贝
+         */
         copyFromTexture(texture: TextureBase, x: number, y: number, width: number, height: number): void;
         /**
          * 上传贴图数据给GPU

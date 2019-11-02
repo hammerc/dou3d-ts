@@ -9,19 +9,23 @@ namespace examples {
 
                 if (data && data instanceof dou3d.ImageTexture) {
                     // 从上向下照射的平行光
-                    let directLight = new dou3d.DirectLight(new dou3d.Vector3(0, -1, 0));
-                    directLight.diffuse = 0xffffff;
+                    let directLight = new dou3d.DirectLight(0xffffff);
+                    view3D.scene.root.addChild(directLight);
 
                     // 位于中心点照射半径为 1000 的点光源
-                    let lightGroup2 = new dou3d.LightGroup();
                     let pointLight = new dou3d.PointLight(0xffffff);
-                    pointLight.radius = 1000;
-                    pointLight.x = 0;
-                    pointLight.y = 0;
-                    pointLight.z = 0;
+                    pointLight.radius = 500;
+                    view3D.scene.root.addChild(pointLight);
 
                     // Z 轴正方向的聚光灯
                     let spotLight = new dou3d.SpotLight(0xffffff);
+                    spotLight.x = -100;
+                    spotLight.y = -100;
+                    spotLight.z = -50;
+                    spotLight.range = 200;
+                    spotLight.angle = 120;
+                    spotLight.penumbra = 0;
+                    view3D.scene.root.addChild(spotLight);
 
                     let cube1 = this.createCube(data, -100, 100, 0);
                     view3D.scene.root.addChild(cube1);
@@ -31,9 +35,9 @@ namespace examples {
 
                     let cube2 = this.createCube(data, 100, 100, 0);
                     view3D.scene.root.addChild(cube2);
+                    let lightGroup2 = new dou3d.LightGroup();
                     lightGroup2.addLight(pointLight);
                     cube2.material.lightGroup = lightGroup2;
-                    view3D.scene.root.addChild(pointLight);
 
                     let cube3 = this.createCube(data, -100, -100, 0);
                     view3D.scene.root.addChild(cube3);
@@ -46,11 +50,12 @@ namespace examples {
                     let lightGroup4 = new dou3d.LightGroup();
                     lightGroup4.addLight(directLight);
                     lightGroup4.addLight(pointLight);
-                    lightGroup4.addLight(spotLight);
                     cube4.material.lightGroup = lightGroup4;
+
                 }
 
             }, this);
+
         }
 
         private createCube(texture: dou3d.ImageTexture, x: number, y: number, z: number): dou3d.Mesh {

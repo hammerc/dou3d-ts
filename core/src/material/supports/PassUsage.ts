@@ -46,7 +46,7 @@ namespace dou3d {
         /** 点光源信息 */
         public uniform_pointLightSource: Uniform;
         /** 聚光灯信息 */
-        public uniform_sportLightSource: Uniform;
+        public uniform_spotLightSource: Uniform;
 
         /** 阴影渲染摄像机 uniform_ViewProjectionMatrix 矩阵 */
         public uniform_ShadowMatrix: Uniform;

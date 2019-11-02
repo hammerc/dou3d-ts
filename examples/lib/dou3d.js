@@ -67,7 +67,6 @@ var dou3d;
             Context3DProxy.gl.getExtension("WEBGL_draw_buffers");
             Context3DProxy.gl.getExtension("WEBGL_depth_texture");
             Context3DProxy.gl.getExtension("WEBGL_lose_context");
-            dou3d.ContextConfig.register(Context3DProxy.gl);
         };
         /**
          * 视口设置定义
@@ -80,7 +79,7 @@ var dou3d;
          * 设置矩形裁切区域
          */
         Context3DProxy.prototype.setScissorRectangle = function (x, y, width, height) {
-            Context3DProxy.gl.scissor(x, dou3d.ContextConfig.canvasRectangle.h - height - y, width, height);
+            Context3DProxy.gl.scissor(x, Context3DProxy.canvasRectangle.h - height - y, width, height);
         };
         /**
          * 创建顶点着色器
@@ -496,9 +495,11 @@ var dou3d;
             Context3DProxy.gl.bindRenderbuffer(Context3DProxy.gl.RENDERBUFFER, null);
         };
         /**
-         * 设置贴图采样 第一个参数并不是类型
-         * @param samplerIndex
-         * @see ContextSamplerType
+         * 设置贴图采样
+         * @param samplerIndex 激活和绑定的采样器单元, 对应 gl.TEXTURE_0 ~ gl.TEXTURE_8
+         * @param uniLocation 着色器中对应的取样器索引
+         * @param index 赋值给取样器变量的纹理单元编号, 纹理单元对应的编号: 如果第一个参数是 gl.TEXTURE_0 则这里传递 0
+         * @param texture 贴图对象
          */
         Context3DProxy.prototype.setTexture2DAt = function (samplerIndex, uniLocation, index, texture) {
             Context3DProxy.gl.activeTexture(samplerIndex);
@@ -506,14 +507,13 @@ var dou3d;
             Context3DProxy.gl.uniform1i(uniLocation, index);
         };
         /**
-         * 设置贴图采样 第一个参数并不是类型
-         * @param samplerIndex
-         * @see ContextSamplerType
+         * 设置贴图采样
+         * @param samplerIndex 激活和绑定的采样器单元, 对应 gl.TEXTURE_0 ~ gl.TEXTURE_8
+         * @param uniLocation 着色器中对应的取样器索引
+         * @param index 赋值给取样器变量的纹理单元编号, 纹理单元对应的编号: 如果第一个参数是 gl.TEXTURE_0 则这里传递 0
+         * @param texture 贴图对象
          */
         Context3DProxy.prototype.setCubeTextureAt = function (samplerIndex, uniLocation, index, texture) {
-            if (!texture) {
-                return;
-            }
             Context3DProxy.gl.activeTexture(samplerIndex);
             Context3DProxy.gl.bindTexture(Context3DProxy.gl.TEXTURE_CUBE_MAP, texture.texture);
             Context3DProxy.gl.uniform1i(uniLocation, index);
@@ -531,8 +531,8 @@ var dou3d;
         };
         /**
          * 设置剔除模式
-         * @see ContextConfig.FRONT
-         * @see ContextConfig.BACK
+         * @see Context3DProxy.gl.FRONT
+         * @see Context3DProxy.gl.BACK
          */
         Context3DProxy.prototype.setCulling = function (mode) {
             if (this._cullingMode == mode) {
@@ -549,7 +549,7 @@ var dou3d;
                 return;
             }
             this._depthTest = true;
-            Context3DProxy.gl.enable(dou3d.ContextConfig.DEPTH_TEST);
+            Context3DProxy.gl.enable(Context3DProxy.gl.DEPTH_TEST);
         };
         /**
          * 关闭深度测试模式
@@ -559,7 +559,7 @@ var dou3d;
                 return;
             }
             this._depthTest = false;
-            Context3DProxy.gl.disable(dou3d.ContextConfig.DEPTH_TEST);
+            Context3DProxy.gl.disable(Context3DProxy.gl.DEPTH_TEST);
         };
         /**
          * 开启剔除面模式
@@ -569,7 +569,7 @@ var dou3d;
                 return;
             }
             this._cullFace = true;
-            Context3DProxy.gl.enable(dou3d.ContextConfig.CULL_FACE);
+            Context3DProxy.gl.enable(Context3DProxy.gl.CULL_FACE);
         };
         /**
          * 关闭剔除面模式
@@ -579,7 +579,7 @@ var dou3d;
                 return;
             }
             this._cullFace = false;
-            Context3DProxy.gl.disable(dou3d.ContextConfig.CULL_FACE);
+            Context3DProxy.gl.disable(Context3DProxy.gl.CULL_FACE);
         };
         /**
          * 开启混合模式
@@ -589,7 +589,7 @@ var dou3d;
             //     return;
             // }
             // this._blend = true;
-            Context3DProxy.gl.enable(dou3d.ContextConfig.BLEND);
+            Context3DProxy.gl.enable(Context3DProxy.gl.BLEND);
         };
         /**
          * 关闭混合模式
@@ -599,7 +599,7 @@ var dou3d;
             //     return;
             // }
             // this._blend = false;
-            Context3DProxy.gl.disable(dou3d.ContextConfig.BLEND);
+            Context3DProxy.gl.disable(Context3DProxy.gl.BLEND);
         };
         /**
          * 深度测试比较模式
@@ -658,56 +658,6 @@ var dou3d;
         return Context3DProxy;
     }());
     dou3d.Context3DProxy = Context3DProxy;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 3D 相关配置
-     * @author wizardc
-     */
-    var ContextConfig;
-    (function (ContextConfig) {
-        function register(gl) {
-            ContextConfig.BLEND = gl.BLEND;
-            ContextConfig.DEPTH_TEST = gl.DEPTH_TEST;
-            ContextConfig.CULL_FACE = gl.CULL_FACE;
-            ContextConfig.FRONT = gl.FRONT;
-            ContextConfig.BACK = gl.BACK;
-            ContextConfig.FRONT_AND_BACK = gl.FRONT_AND_BACK;
-            ContextConfig.ColorFormat_RGB565 = gl.RGB565;
-            ContextConfig.ColorFormat_RGBA5551 = gl.RGB5_A1;
-            ContextConfig.ColorFormat_RGBA4444 = gl.RGBA4;
-            ContextConfig.ColorFormat_RGBA8888 = gl.RGBA;
-            ContextConfig.BYTE = gl.BYTE;
-            ContextConfig.SHORT = gl.SHORT;
-            ContextConfig.INT = gl.INT;
-            ContextConfig.UNSIGNED_BYTE = gl.UNSIGNED_BYTE;
-            ContextConfig.UNSIGNED_SHORT = gl.UNSIGNED_SHORT;
-            ContextConfig.UNSIGNED_INT = gl.UNSIGNED_INT;
-            ContextConfig.FLOAT = gl.FLOAT;
-            ContextConfig.LEQUAL = gl.LEQUAL;
-            ContextConfig.POINTS = gl.POINTS;
-            ContextConfig.LINES = gl.LINES;
-            ContextConfig.LINE_STRIP = gl.LINE_STRIP;
-            ContextConfig.TRIANGLES = gl.TRIANGLES;
-            ContextConfig.ONE = gl.ONE;
-            ContextConfig.ZERO = gl.ZERO;
-            ContextConfig.SRC_ALPHA = gl.SRC_ALPHA;
-            ContextConfig.ONE_MINUS_SRC_ALPHA = gl.ONE_MINUS_SRC_ALPHA;
-            ContextConfig.SRC_COLOR = gl.SRC_COLOR;
-            ContextConfig.ONE_MINUS_SRC_COLOR = gl.ONE_MINUS_SRC_COLOR;
-            dou3d.ContextSamplerType.TEXTURE_0 = gl.TEXTURE0;
-            dou3d.ContextSamplerType.TEXTURE_1 = gl.TEXTURE1;
-            dou3d.ContextSamplerType.TEXTURE_2 = gl.TEXTURE2;
-            dou3d.ContextSamplerType.TEXTURE_3 = gl.TEXTURE3;
-            dou3d.ContextSamplerType.TEXTURE_4 = gl.TEXTURE4;
-            dou3d.ContextSamplerType.TEXTURE_5 = gl.TEXTURE5;
-            dou3d.ContextSamplerType.TEXTURE_6 = gl.TEXTURE6;
-            dou3d.ContextSamplerType.TEXTURE_7 = gl.TEXTURE7;
-            dou3d.ContextSamplerType.TEXTURE_8 = gl.TEXTURE8;
-        }
-        ContextConfig.register = register;
-    })(ContextConfig = dou3d.ContextConfig || (dou3d.ContextConfig = {}));
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -1801,7 +1751,7 @@ var dou3d;
             _this.geometry = new dou3d.Geometry();
             _this.material = new dou3d.ColorMaterial(color);
             _this.addSubMaterial(0, _this.material);
-            _this.material.drawMode = dou3d.ContextConfig.LINES;
+            _this.material.drawMode = dou3d.Context3DProxy.gl.LINES;
             _this.geometry.vertexFormat = 1 /* VF_POSITION */ | 2 /* VF_NORMAL */ | 8 /* VF_COLOR */ | 16 /* VF_UV0 */;
             return _this;
         }
@@ -1858,7 +1808,7 @@ var dou3d;
         function SkyBox(geometry, material, camera) {
             var _this = _super.call(this, geometry, material) || this;
             _this.camera = camera;
-            material.cullMode = dou3d.ContextConfig.FRONT;
+            material.cullMode = dou3d.Context3DProxy.gl.FRONT;
             return _this;
         }
         SkyBox.prototype.update = function (time, delay, camera) {
@@ -2057,7 +2007,7 @@ var dou3d;
             dou.Tween.tick(passedTime, false);
             var viewRect = this._engine.viewRect;
             var view3Ds = this._engine.view3Ds;
-            dou3d.ContextConfig.canvasRectangle = viewRect;
+            dou3d.Context3DProxy.canvasRectangle = viewRect;
             dou3d.Engine.context3DProxy.viewPort(0, 0, viewRect.w, viewRect.h);
             dou3d.Engine.context3DProxy.setScissorRectangle(0, 0, viewRect.w, viewRect.h);
             for (var i = 0; i < view3Ds.length; i++) {
@@ -4035,33 +3985,113 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
-     * 着色器小片段类型
+     * 着色器片段类型
      * @author wizardc
      */
     var ShaderPhaseType;
     (function (ShaderPhaseType) {
+        // -----
+        // 顶点着色器
+        // -----
         /**
-         * 自定义顶点着色器类型, 设定了这个字段的着色器之后就只会使用设定的着色器进行渲染不会动态加入其它的着色器
+         * 自定义顶点着色器类型
+         * * 定了这个字段的着色器之后就只会使用设定的着色器进行渲染不会动态加入其它的着色器
          */
-        ShaderPhaseType[ShaderPhaseType["base_vertex"] = 0] = "base_vertex";
+        ShaderPhaseType[ShaderPhaseType["custom_vertex"] = 0] = "custom_vertex";
+        /**
+         * 顶点着色器写入顺序: 0
+         * * 自动写入 base_vs
+         */
+        /**
+         * 顶点着色器写入顺序: 1
+         * * 该片段添加过着色器片段则使用添加的着色器片段, 没有添加过则使用默认的 diffuse_vs 着色器片段
+         * * 目前会添加的是 skeleton_vs
+         */
         ShaderPhaseType[ShaderPhaseType["start_vertex"] = 1] = "start_vertex";
-        ShaderPhaseType[ShaderPhaseType["local_vertex"] = 2] = "local_vertex";
-        ShaderPhaseType[ShaderPhaseType["global_vertex"] = 3] = "global_vertex";
-        ShaderPhaseType[ShaderPhaseType["end_vertex"] = 4] = "end_vertex";
         /**
-         * 自定义片段着色器类型, 设定了这个字段的着色器之后就只会使用设定的着色器进行渲染不会动态加入其它的着色器
+         * 顶点着色器写入顺序: 2
+         * * 无默认着色器片段
+         * * 目前会添加的是 shadowMapping_vs
          */
-        ShaderPhaseType[ShaderPhaseType["base_fragment"] = 5] = "base_fragment";
+        ShaderPhaseType[ShaderPhaseType["vertex_1"] = 2] = "vertex_1";
+        /**
+         * 顶点着色器写入顺序: 3
+         * * 无默认着色器片段
+         * * 目前会添加的是 cube_vs
+         */
+        ShaderPhaseType[ShaderPhaseType["vertex_2"] = 3] = "vertex_2";
+        /**
+         * 顶点着色器写入顺序: 最后
+         * * 该片段添加过着色器片段则使用添加的着色器片段, 没有添加过则使用默认的 end_vs 着色器片段
+         * * 目前会添加的是
+         */
+        ShaderPhaseType[ShaderPhaseType["end_vertex"] = 4] = "end_vertex";
+        // -----
+        // 片段着色器
+        // -----
+        /**
+         * 自定义片段着色器类型
+         * * 设定了这个字段的着色器之后就只会使用设定的着色器进行渲染不会动态加入其它的着色器
+         */
+        ShaderPhaseType[ShaderPhaseType["custom_fragment"] = 5] = "custom_fragment";
+        /**
+         * 片段着色器写入顺序: 0
+         * * 自动写入 base_fs
+         */
+        /**
+         * 片段着色器写入顺序: 1
+         * * 无默认着色器片段
+         * * 目前会添加的是
+         */
         ShaderPhaseType[ShaderPhaseType["start_fragment"] = 6] = "start_fragment";
+        /**
+         * 片段着色器写入顺序: 2
+         * * 解码 materialsource 数据
+         * * 该片段添加过着色器片段则使用添加的着色器片段, 没有添加过则使用默认的 materialSource_fs 着色器片段
+         * * 目前会添加的是
+         */
         ShaderPhaseType[ShaderPhaseType["materialsource_fragment"] = 7] = "materialsource_fragment";
+        /**
+         * 片段着色器写入顺序: 3
+         * * 漫反射
+         * * 该片段添加过着色器片段则使用添加的着色器片段, 没有添加过则使用默认的 diffuse_fs 着色器片段
+         * * 目前会添加的是 color_fs
+         */
         ShaderPhaseType[ShaderPhaseType["diffuse_fragment"] = 8] = "diffuse_fragment";
+        /**
+         * 片段着色器写入顺序: 4
+         * * 法线贴图
+         * * 无默认着色器片段
+         * * 目前会添加的是
+         */
         ShaderPhaseType[ShaderPhaseType["normal_fragment"] = 9] = "normal_fragment";
-        ShaderPhaseType[ShaderPhaseType["matCap_fragment"] = 10] = "matCap_fragment";
-        ShaderPhaseType[ShaderPhaseType["specular_fragment"] = 11] = "specular_fragment";
-        ShaderPhaseType[ShaderPhaseType["shadow_fragment"] = 12] = "shadow_fragment";
-        ShaderPhaseType[ShaderPhaseType["lighting_fragment"] = 13] = "lighting_fragment";
-        ShaderPhaseType[ShaderPhaseType["multi_end_fragment"] = 14] = "multi_end_fragment";
-        ShaderPhaseType[ShaderPhaseType["end_fragment"] = 15] = "end_fragment";
+        /**
+         * 片段着色器写入顺序: 5
+         * * 阴影贴图渲染
+         * * 无默认着色器片段
+         * * 目前会添加的是 shadowMapping_fss
+         */
+        ShaderPhaseType[ShaderPhaseType["shadow_fragment"] = 10] = "shadow_fragment";
+        /**
+         * 片段着色器写入顺序: 6
+         * * 灯光渲染
+         * * 无默认着色器片段
+         * * 目前会添加的是 lightingBase_fs、directLight_fs、pointLight_fs、spotLight_fs
+         */
+        ShaderPhaseType[ShaderPhaseType["lighting_fragment"] = 11] = "lighting_fragment";
+        /**
+         * 片段着色器写入顺序: 7
+         * * 高光贴图
+         * * 无默认着色器片段
+         * * 目前会添加的是 specularMap_fs
+         */
+        ShaderPhaseType[ShaderPhaseType["specular_fragment"] = 12] = "specular_fragment";
+        /**
+         * 片段着色器写入顺序: 最后
+         * * 该片段添加过着色器片段则使用添加的着色器片段, 没有添加过则使用默认的 end_fs 着色器片段
+         * * 目前会添加的是 colorPassEnd_fs、normalPassEnd_fs
+         */
+        ShaderPhaseType[ShaderPhaseType["end_fragment"] = 13] = "end_fragment";
     })(ShaderPhaseType = dou3d.ShaderPhaseType || (dou3d.ShaderPhaseType = {}));
 })(dou3d || (dou3d = {}));
 var dou3d;
@@ -5583,6 +5613,49 @@ var dou3d;
             rawData[11] = n43;
             rawData[15] = n44;
             return this;
+        };
+        /**
+         * 前方 (+Z轴方向)
+         */
+        Matrix4.prototype.forward = function (result) {
+            return this.copyColumnTo(2, result).normalize();
+        };
+        /**
+         * 上方 (+y轴方向)
+         */
+        Matrix4.prototype.up = function (result) {
+            return this.copyColumnTo(1, result).normalize();
+        };
+        /**
+         * 右方 (+x轴方向)
+         */
+        Matrix4.prototype.right = function (result) {
+            return this.copyColumnTo(0, result).normalize();
+        };
+        /**
+         * 后方 (-z轴方向)
+         */
+        Matrix4.prototype.back = function (result) {
+            return this.copyColumnTo(2, result).normalize().negate();
+        };
+        /**
+         * 下方 (-y轴方向)
+         */
+        Matrix4.prototype.down = function (result) {
+            return this.copyColumnTo(1, result).normalize().negate();
+        };
+        /**
+         * 左方 (-x轴方向)
+         */
+        Matrix4.prototype.left = function (result) {
+            return this.copyColumnTo(0, result).normalize().negate();
+        };
+        Matrix4.prototype.copyColumnTo = function (column, result) {
+            result = result || new dou3d.Vector3();
+            result.x = this.rawData[column * 4 + 0];
+            result.y = this.rawData[column * 4 + 1];
+            result.z = this.rawData[column * 4 + 2];
+            return result;
         };
         /**
          * 通过平移向量、四元数旋转、缩放向量设置该矩阵
@@ -7629,7 +7702,7 @@ var dou3d;
                         passUsage.attribute_position.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_position.varName);
                     }
                     passUsage.attribute_position.size = dou3d.Geometry.positionSize;
-                    passUsage.attribute_position.dataType = dou3d.ContextConfig.FLOAT;
+                    passUsage.attribute_position.dataType = dou3d.Context3DProxy.gl.FLOAT;
                     passUsage.attribute_position.normalized = false;
                     passUsage.attribute_position.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_position.offsetBytes = offsetBytes;
@@ -7644,7 +7717,7 @@ var dou3d;
                         passUsage.attribute_normal.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_normal.varName);
                     }
                     passUsage.attribute_normal.size = dou3d.Geometry.normalSize;
-                    passUsage.attribute_normal.dataType = dou3d.ContextConfig.FLOAT;
+                    passUsage.attribute_normal.dataType = dou3d.Context3DProxy.gl.FLOAT;
                     passUsage.attribute_normal.normalized = false;
                     passUsage.attribute_normal.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_normal.offsetBytes = offsetBytes;
@@ -7659,7 +7732,7 @@ var dou3d;
                         passUsage.attribute_tangent.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_tangent.varName);
                     }
                     passUsage.attribute_tangent.size = dou3d.Geometry.tangentSize;
-                    passUsage.attribute_tangent.dataType = dou3d.ContextConfig.FLOAT;
+                    passUsage.attribute_tangent.dataType = dou3d.Context3DProxy.gl.FLOAT;
                     passUsage.attribute_tangent.normalized = false;
                     passUsage.attribute_tangent.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_tangent.offsetBytes = offsetBytes;
@@ -7674,7 +7747,7 @@ var dou3d;
                         passUsage.attribute_color.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_color.varName);
                     }
                     passUsage.attribute_color.size = dou3d.Geometry.colorSize;
-                    passUsage.attribute_color.dataType = dou3d.ContextConfig.FLOAT;
+                    passUsage.attribute_color.dataType = dou3d.Context3DProxy.gl.FLOAT;
                     passUsage.attribute_color.normalized = false;
                     passUsage.attribute_color.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_color.offsetBytes = offsetBytes;
@@ -7689,7 +7762,7 @@ var dou3d;
                         passUsage.attribute_uv0.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_uv0.varName);
                     }
                     passUsage.attribute_uv0.size = dou3d.Geometry.uvSize;
-                    passUsage.attribute_uv0.dataType = dou3d.ContextConfig.FLOAT;
+                    passUsage.attribute_uv0.dataType = dou3d.Context3DProxy.gl.FLOAT;
                     passUsage.attribute_uv0.normalized = false;
                     passUsage.attribute_uv0.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_uv0.offsetBytes = offsetBytes;
@@ -7704,7 +7777,7 @@ var dou3d;
                         passUsage.attribute_uv1.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_uv1.varName);
                     }
                     passUsage.attribute_uv1.size = dou3d.Geometry.uv2Size;
-                    passUsage.attribute_uv1.dataType = dou3d.ContextConfig.FLOAT;
+                    passUsage.attribute_uv1.dataType = dou3d.Context3DProxy.gl.FLOAT;
                     passUsage.attribute_uv1.normalized = false;
                     passUsage.attribute_uv1.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_uv1.offsetBytes = offsetBytes;
@@ -7719,7 +7792,7 @@ var dou3d;
                         passUsage.attribute_boneIndex.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_boneIndex.varName);
                     }
                     passUsage.attribute_boneIndex.size = dou3d.Geometry.skinSize / 2;
-                    passUsage.attribute_boneIndex.dataType = dou3d.ContextConfig.FLOAT;
+                    passUsage.attribute_boneIndex.dataType = dou3d.Context3DProxy.gl.FLOAT;
                     passUsage.attribute_boneIndex.normalized = false;
                     passUsage.attribute_boneIndex.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_boneIndex.offsetBytes = offsetBytes;
@@ -7732,7 +7805,7 @@ var dou3d;
                         passUsage.attribute_boneWeight.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, passUsage.attribute_boneWeight.varName);
                     }
                     passUsage.attribute_boneWeight.size = dou3d.Geometry.skinSize / 2;
-                    passUsage.attribute_boneWeight.dataType = dou3d.ContextConfig.FLOAT;
+                    passUsage.attribute_boneWeight.dataType = dou3d.Context3DProxy.gl.FLOAT;
                     passUsage.attribute_boneWeight.normalized = false;
                     passUsage.attribute_boneWeight.stride = this.geometry.vertexSizeInBytes;
                     passUsage.attribute_boneWeight.offsetBytes = offsetBytes;
@@ -7748,7 +7821,7 @@ var dou3d;
                     if (!attribute.uniformIndex) {
                         attribute.uniformIndex = contextPorxy.getShaderAttribLocation(passUsage.program3D, attribute.varName);
                         attribute.size = var0.size;
-                        attribute.dataType = dou3d.ContextConfig.FLOAT;
+                        attribute.dataType = dou3d.Context3DProxy.gl.FLOAT;
                         attribute.normalized = false;
                         attribute.stride = this.geometry.vertexSizeInBytes;
                         attribute.offsetBytes = offsetBytes;
@@ -8512,15 +8585,11 @@ var dou3d;
         __extends(LightBase, _super);
         function LightBase() {
             var _this = _super.call(this) || this;
-            _this._ambientColor = 0;
-            _this._diffuseColor = 0xffffff;
-            _this._specularColor = 0xffffff;
+            _this._color = 0xffffff;
             _this._intensity = 1;
-            _this._halfIntensity = 0;
             _this._change = true;
-            _this._ambient = new dou3d.Vector4(0, 0, 0);
-            _this._diffuse = new dou3d.Vector4(1, 1, 1);
-            _this._specular = new dou3d.Vector4(1, 1, 1);
+            _this._colorVec4 = new dou3d.Vector4(1, 1, 1);
+            _this._direction = new dou3d.Vector3();
             return _this;
         }
         Object.defineProperty(LightBase.prototype, "lightType", {
@@ -8547,80 +8616,37 @@ var dou3d;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(LightBase.prototype, "halfIntensity", {
+        Object.defineProperty(LightBase.prototype, "color", {
             get: function () {
-                return this._halfIntensity;
-            },
-            /**
-             * 背光灯光强度
-             * * 影响灯光的强弱显示, 值的范围 0~没有上限, 但是值过大会导致画面过度曝光
-             */
-            set: function (value) {
-                if (this._halfIntensity != value) {
-                    this._halfIntensity = value;
-                    this._change = false;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(LightBase.prototype, "ambient", {
-            get: function () {
-                return this._ambientColor;
-            },
-            /**
-             * 灯光环境颜色
-             * * 物体在未受到光的直接照射的地方, 模拟间接环境光颜色, 会影响背光面的颜色
-             */
-            set: function (color) {
-                this._ambientColor = color;
-                this._ambient.w = (color >> 24 & 0xff) / 255;
-                this._ambient.x = (color >> 16 & 0xff) / 255;
-                this._ambient.y = (color >> 8 & 0xff) / 255;
-                this._ambient.z = (color & 0xff) / 255;
-                this._change = false;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(LightBase.prototype, "diffuse", {
-            get: function () {
-                return this._diffuseColor;
+                return this._color;
             },
             /**
              * 灯光漫反射颜色
              * * 直接影响最终灯光的颜色色值
              */
-            set: function (color) {
-                this._diffuseColor = color;
-                this._diffuse.w = (color >> 24 & 0xff) / 255;
-                this._diffuse.x = (color >> 16 & 0xff) / 255;
-                this._diffuse.y = (color >> 8 & 0xff) / 255;
-                this._diffuse.z = (color & 0xff) / 255;
+            set: function (value) {
+                this._color = value;
+                this._colorVec4.w = (value >> 24 & 0xff) / 255;
+                this._colorVec4.x = (value >> 16 & 0xff) / 255;
+                this._colorVec4.y = (value >> 8 & 0xff) / 255;
+                this._colorVec4.z = (value & 0xff) / 255;
                 this._change = false;
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(LightBase.prototype, "specular", {
-            get: function () {
-                return this._specularColor;
-            },
-            /**
-             * 灯光镜面高光反射颜色
-             * * 在灯光方向与物体和相机成一个反光角度的时候, 就会产生反光, 高光, 而不同的物体会有不同的颜色色值, 尤其是金属
-             */
-            set: function (color) {
-                this._specularColor = color;
-                this._specular.w = (color >> 24 & 0xff) / 255;
-                this._specular.x = (color >> 16 & 0xff) / 255;
-                this._specular.y = (color >> 8 & 0xff) / 255;
-                this._specular.z = (color & 0xff) / 255;
-                this._change = false;
-            },
-            enumerable: true,
-            configurable: true
-        });
+        LightBase.prototype.onTransformUpdate = function () {
+            _super.prototype.onTransformUpdate.call(this);
+            // 更新方向
+            // 注: 在所有欧拉角都为 0 时, 方向为 Z 轴正方向
+            this._globalMatrix.forward(this._direction);
+        };
+        /**
+         * 更新灯光数据
+         */
+        LightBase.prototype.updateLightData = function (camera, index, lightData) {
+            this.validateTransformNow();
+        };
         return LightBase;
     }(dou3d.ObjectContainer3D));
     dou3d.LightBase = LightBase;
@@ -8634,53 +8660,26 @@ var dou3d;
      */
     var DirectLight = /** @class */ (function (_super) {
         __extends(DirectLight, _super);
-        function DirectLight(direction) {
+        function DirectLight(color) {
+            if (color === void 0) { color = 0xffffff; }
             var _this = _super.call(this) || this;
             _this._lightType = 1 /* direct */;
-            _this._direction = new dou3d.Vector3();
-            _this.direction = direction || new dou3d.Vector3(0, 0, 1);
+            _this.color = color;
             return _this;
         }
-        Object.defineProperty(DirectLight.prototype, "direction", {
-            get: function () {
-                this.validateTransformNow();
-                return this._direction;
-            },
-            set: function (value) {
-                this._direction.copy(value);
-                this._direction.normalize();
-                var quaternion = dou.recyclable(dou3d.Quaternion);
-                quaternion.fromVectors(dou3d.Vector3.ZERO, this._direction);
-                this.orientation = quaternion;
-                quaternion.recycle();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        DirectLight.prototype.onTransformUpdate = function () {
-            _super.prototype.onTransformUpdate.call(this);
-            this.orientation.transformVector(dou3d.Vector3.UP, this._direction);
-            this._direction.normalize();
-            if (this.parent) {
-                this.parent.globalOrientation.transformVector(this._direction, this._direction);
-                this._direction.normalize();
-            }
-        };
         DirectLight.prototype.updateLightData = function (camera, index, lightData) {
-            lightData[index * DirectLight.stride + 0] = this._direction.x;
+            _super.prototype.updateLightData.call(this, camera, index, lightData);
+            lightData[index * DirectLight.stride] = this._direction.x;
             lightData[index * DirectLight.stride + 1] = this._direction.y;
             lightData[index * DirectLight.stride + 2] = this._direction.z;
-            lightData[index * DirectLight.stride + 3] = this._diffuse.x * this._intensity;
-            lightData[index * DirectLight.stride + 4] = this._diffuse.y * this._intensity;
-            lightData[index * DirectLight.stride + 5] = this._diffuse.z * this._intensity;
-            lightData[index * DirectLight.stride + 6] = this._ambient.x;
-            lightData[index * DirectLight.stride + 7] = this._ambient.y;
-            lightData[index * DirectLight.stride + 8] = this._ambient.z;
+            lightData[index * DirectLight.stride + 3] = this._colorVec4.x * this._intensity;
+            lightData[index * DirectLight.stride + 4] = this._colorVec4.y * this._intensity;
+            lightData[index * DirectLight.stride + 5] = this._colorVec4.z * this._intensity;
         };
         /**
          * 光源数据结构长度
          */
-        DirectLight.stride = 9;
+        DirectLight.stride = 6;
         return DirectLight;
     }(dou3d.LightBase));
     dou3d.DirectLight = DirectLight;
@@ -8694,11 +8693,11 @@ var dou3d;
     var PointLight = /** @class */ (function (_super) {
         __extends(PointLight, _super);
         function PointLight(color) {
+            if (color === void 0) { color = 0xffffff; }
             var _this = _super.call(this) || this;
             _this._radius = 100;
-            _this._cutoff = 0.01;
             _this._lightType = 0 /* point */;
-            _this.diffuse = color;
+            _this.color = color;
             return _this;
         }
         Object.defineProperty(PointLight.prototype, "radius", {
@@ -8714,37 +8713,20 @@ var dou3d;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(PointLight.prototype, "cutoff", {
-            get: function () {
-                return this._cutoff;
-            },
-            /**
-             * 灯光衰减度
-             */
-            set: function (value) {
-                this._cutoff = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
         PointLight.prototype.updateLightData = function (camera, index, lightData) {
+            _super.prototype.updateLightData.call(this, camera, index, lightData);
             lightData[index * PointLight.stride] = this.globalPosition.x;
             lightData[index * PointLight.stride + 1] = this.globalPosition.y;
             lightData[index * PointLight.stride + 2] = this.globalPosition.z;
-            lightData[index * PointLight.stride + 3] = this._diffuse.x * this._intensity;
-            lightData[index * PointLight.stride + 4] = this._diffuse.y * this._intensity;
-            lightData[index * PointLight.stride + 5] = this._diffuse.z * this._intensity;
-            lightData[index * PointLight.stride + 6] = this._ambient.x;
-            lightData[index * PointLight.stride + 7] = this._ambient.y;
-            lightData[index * PointLight.stride + 8] = this._ambient.z;
-            lightData[index * PointLight.stride + 9] = this._intensity;
-            lightData[index * PointLight.stride + 10] = this._radius;
-            lightData[index * PointLight.stride + 11] = this._cutoff;
+            lightData[index * PointLight.stride + 3] = this._colorVec4.x * this._intensity;
+            lightData[index * PointLight.stride + 4] = this._colorVec4.y * this._intensity;
+            lightData[index * PointLight.stride + 5] = this._colorVec4.z * this._intensity;
+            lightData[index * PointLight.stride + 6] = this._radius;
         };
         /**
          * 光源数据结构长度
          */
-        PointLight.stride = 12;
+        PointLight.stride = 7;
         return PointLight;
     }(dou3d.LightBase));
     dou3d.PointLight = PointLight;
@@ -8758,101 +8740,73 @@ var dou3d;
     var SpotLight = /** @class */ (function (_super) {
         __extends(SpotLight, _super);
         function SpotLight(color) {
+            if (color === void 0) { color = 0xffffff; }
             var _this = _super.call(this) || this;
-            _this._spotExponent = 1.1;
-            _this._spotCosCutoff = 0.1;
-            _this._constantAttenuation = 0.1;
-            _this._linearAttenuation = 0.1;
-            _this._quadraticAttenuation = 0.1;
+            _this._range = 10;
+            _this._angle = 60;
+            _this._penumbra = 0;
             _this._lightType = 2 /* spot */;
-            _this.diffuse = color;
+            _this.color = color;
             return _this;
         }
-        Object.defineProperty(SpotLight.prototype, "spotCosCutoff", {
+        Object.defineProperty(SpotLight.prototype, "range", {
             get: function () {
-                return this._spotCosCutoff;
+                return this._range;
             },
             /**
-             * 裁切范围, 照射范围的大小指数
+             * 光照范围
              */
             set: function (value) {
-                this._spotCosCutoff = value;
+                this._range = value;
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(SpotLight.prototype, "spotExponent", {
+        Object.defineProperty(SpotLight.prototype, "angle", {
             get: function () {
-                return this._spotExponent;
+                return this._angle;
             },
             /**
-             * 灯光强弱, 圆形范围内随半径大小改变发生的灯光强弱指数
+             * 角度
              */
             set: function (value) {
-                this._spotExponent = value;
+                this._angle = value;
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(SpotLight.prototype, "constantAttenuation", {
+        Object.defineProperty(SpotLight.prototype, "penumbra", {
             get: function () {
-                return this._constantAttenuation;
+                return this._penumbra;
             },
             /**
-             * 灯光衰减, 圆形范围内随半径大小改变发生的灯光衰减常数指数
+             * 半影
              */
             set: function (value) {
-                this._constantAttenuation = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(SpotLight.prototype, "linearAttenuation", {
-            get: function () {
-                return this._linearAttenuation;
-            },
-            /**
-             * 灯光线性衰减, 圆形范围内随半径大小改变发生的灯光线性衰减
-             */
-            set: function (value) {
-                this._linearAttenuation = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(SpotLight.prototype, "quadraticAttenuation", {
-            get: function () {
-                return this._quadraticAttenuation;
-            },
-            /**
-             * 灯光线性2次衰减, 圆形范围内随半径大小改变发生的灯光线性2次衰减
-             */
-            set: function (value) {
-                this._quadraticAttenuation = value;
+                this._penumbra = value;
             },
             enumerable: true,
             configurable: true
         });
         SpotLight.prototype.updateLightData = function (camera, index, lightData) {
+            _super.prototype.updateLightData.call(this, camera, index, lightData);
             lightData[index * SpotLight.stride] = this.globalPosition.x;
             lightData[index * SpotLight.stride + 1] = this.globalPosition.y;
             lightData[index * SpotLight.stride + 2] = this.globalPosition.z;
-            lightData[index * SpotLight.stride + 3] = this.globalRotation.x * dou3d.MathUtil.DEG_RAD;
-            lightData[index * SpotLight.stride + 4] = this.globalRotation.y * dou3d.MathUtil.DEG_RAD;
-            lightData[index * SpotLight.stride + 5] = this.globalRotation.z * dou3d.MathUtil.DEG_RAD;
-            lightData[index * SpotLight.stride + 6] = this._diffuse.x;
-            lightData[index * SpotLight.stride + 7] = this._diffuse.y;
-            lightData[index * SpotLight.stride + 8] = this._diffuse.z;
-            lightData[index * SpotLight.stride + 9] = this._spotExponent;
-            lightData[index * SpotLight.stride + 10] = this._spotCosCutoff;
-            lightData[index * SpotLight.stride + 11] = this._constantAttenuation;
-            lightData[index * SpotLight.stride + 12] = this._linearAttenuation;
-            lightData[index * SpotLight.stride + 13] = this._quadraticAttenuation;
+            lightData[index * SpotLight.stride + 3] = this._direction.x;
+            lightData[index * SpotLight.stride + 4] = this._direction.y;
+            lightData[index * SpotLight.stride + 5] = this._direction.z;
+            lightData[index * SpotLight.stride + 6] = this._colorVec4.x * this._intensity;
+            lightData[index * SpotLight.stride + 7] = this._colorVec4.y * this._intensity;
+            lightData[index * SpotLight.stride + 8] = this._colorVec4.z * this._intensity;
+            lightData[index * dou3d.PointLight.stride + 9] = this._range;
+            lightData[index * dou3d.PointLight.stride + 10] = Math.cos(this._angle * 0.5 * dou3d.MathUtil.DEG_RAD);
+            lightData[index * dou3d.PointLight.stride + 11] = Math.cos(this._angle * 0.5 * dou3d.MathUtil.DEG_RAD * (1 - this._penumbra));
         };
         /**
          * 光源数据结构长度
          */
-        SpotLight.stride = 14;
+        SpotLight.stride = 12;
         return SpotLight;
     }(dou3d.LightBase));
     dou3d.SpotLight = SpotLight;
@@ -9539,781 +9493,154 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
-     * 渲染方法基类
+     * 材质渲染数据
      * @author wizardc
      */
-    var MethodBase = /** @class */ (function () {
-        function MethodBase() {
+    var MaterialData = /** @class */ (function () {
+        function MaterialData() {
             /**
-             * 顶点着色器列表
+             * 着色器阶段记录表
+             * 渲染通道类型 -> 着色器片段类型数组
              */
-            this.vsShaderList = [];
+            this.shaderPhaseTypes = {};
             /**
-             * 片段着色器列表
+             * 绘制模式
              */
-            this.fsShaderList = [];
-        }
-        MethodBase.prototype.dispose = function () {
-        };
-        return MethodBase;
-    }());
-    dou3d.MethodBase = MethodBase;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 颜色渲染方法
-     * @author wizardc
-     */
-    var ColorMethod = /** @class */ (function (_super) {
-        __extends(ColorMethod, _super);
-        function ColorMethod() {
-            var _this = _super.call(this) || this;
-            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] = _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] || [];
-            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment].push("color_fs");
-            return _this;
-        }
-        ColorMethod.prototype.upload = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
-        };
-        ColorMethod.prototype.activeState = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
-        };
-        return ColorMethod;
-    }(dou3d.MethodBase));
-    dou3d.ColorMethod = ColorMethod;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 阴影渲染方法
-     * @author wizardc
-     */
-    var ShadowMethod = /** @class */ (function (_super) {
-        __extends(ShadowMethod, _super);
-        function ShadowMethod(material) {
-            var _this = _super.call(this) || this;
-            _this.materialData = material.materialData;
-            _this.vsShaderList[dou3d.ShaderPhaseType.local_vertex] = _this.vsShaderList[dou3d.ShaderPhaseType.local_vertex] || [];
-            _this.vsShaderList[dou3d.ShaderPhaseType.local_vertex].push("shadowMapping_vs");
-            _this.fsShaderList[dou3d.ShaderPhaseType.shadow_fragment] = _this.fsShaderList[dou3d.ShaderPhaseType.shadow_fragment] || [];
-            _this.fsShaderList[dou3d.ShaderPhaseType.shadow_fragment].push("shadowMapping_fs");
-            return _this;
-        }
-        Object.defineProperty(ShadowMethod.prototype, "shadowMapTexture", {
-            get: function () {
-                return this.materialData.shadowMapTexture;
-            },
+            this.drawMode = dou3d.Context3DProxy.gl.TRIANGLES;
             /**
-             * 阴影贴图
+             * 是否开启 MipMap
              */
-            set: function (texture) {
-                if (this.materialData.shadowMapTexture != texture) {
-                    this.materialData.shadowMapTexture = texture;
-                    this.materialData.textureChange = true;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        ShadowMethod.prototype.upload = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
-            if (usage.uniform_ShadowMatrix) {
-                usage.uniform_ShadowMatrix.uniformIndex = context3DProxy.getUniformLocation(usage.program3D, "uniform_ShadowMatrix");
-            }
-        };
-        ShadowMethod.prototype.activeState = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
-            var camera = dou3d.ShadowCast.instance.shadowCamera;
-            if (camera) {
-                if (usage.uniform_ShadowMatrix && usage.uniform_ShadowMatrix.uniformIndex) {
-                    context3DProxy.uniformMatrix4fv(usage.uniform_ShadowMatrix.uniformIndex, false, camera.viewProjectionMatrix.rawData);
-                }
-            }
-            context3DProxy.uniform4fv(usage.uniform_ShadowColor.uniformIndex, this.materialData.shadowColor);
-        };
-        return ShadowMethod;
-    }(dou3d.MethodBase));
-    dou3d.ShadowMethod = ShadowMethod;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 立方体渲染方法
-     * @author wizardc
-     */
-    var CubeMethod = /** @class */ (function (_super) {
-        __extends(CubeMethod, _super);
-        function CubeMethod() {
-            var _this = _super.call(this) || this;
-            _this.vsShaderList[dou3d.ShaderPhaseType.global_vertex] = _this.fsShaderList[dou3d.ShaderPhaseType.global_vertex] || [];
-            _this.vsShaderList[dou3d.ShaderPhaseType.global_vertex].push("cube_vs");
-            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] = _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] || [];
-            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment].push("cube_fs");
-            return _this;
+            this.useMipmap = true;
+            /**
+             * 投射阴影
+             */
+            this.castShadow = false;
+            /**
+             * 接受阴影
+             */
+            this.acceptShadow = false;
+            /**
+             * 阴影颜色
+             */
+            this.shadowColor = new Float32Array([0.2, 0.2, 0.2, 0.003]);
+            /**
+             * 深度测试
+             */
+            this.depthTest = true;
+            /**
+             * 深度测试模式
+             */
+            this.depthMode = 0;
+            /**
+             * 混合模式
+             */
+            this.blendMode = 2 /* NORMAL */;
+            /**
+             * 透明混合
+             */
+            this.alphaBlending = false;
+            /**
+             * 环境光颜色
+             */
+            this.ambientColor = 0x333333;
+            /**
+             * 漫反射颜色
+             */
+            this.diffuseColor = 0xffffff;
+            /**
+             * 高光颜色
+             */
+            this.specularColor = 0xffffff;
+            /**
+             * 色相
+             */
+            this.tintColor = 0x80808080;
+            /**
+             * 材质球的高光强度
+             */
+            this.specularLevel = 50;
+            /**
+             * 材质球的光滑度
+             */
+            this.gloss = 20;
+            /**
+             * 透明度小于该值的像素完全透明
+             */
+            this.cutAlpha = 0;
+            /**
+             * 是否重复
+             */
+            this.repeat = false;
+            /**
+             * 是否进行双面渲染
+             */
+            this.bothside = false;
+            /**
+             * 透明度
+             */
+            this.alpha = 1;
+            /**
+             * 反射颜色的强度值，出射光照的出射率
+             */
+            this.albedo = 0.95;
+            /**
+             * uv 在贴图上的映射区域， 值的范围限制在 0~1 之间
+             */
+            this.uvRectangle = new dou3d.Rectangle(0, 0, 1, 1);
+            /**
+             * 材质数据需要变化
+             */
+            this.materialDataNeedChange = true;
+            /**
+             * 纹理变化
+             */
+            this.textureChange = false;
+            /**
+             * 纹理状态需要更新
+             */
+            this.textureStateChage = true;
+            /**
+             * 剔除模式
+             */
+            this.cullFrontOrBack = dou3d.Context3DProxy.gl.BACK;
+            /**
+             * 材质属性数据
+             */
+            this.materialSourceData = new Float32Array(20);
         }
-        CubeMethod.prototype.upload = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+        MaterialData.prototype.clone = function () {
+            var data = new MaterialData();
+            data.drawMode = this.drawMode;
+            data.diffuseTexture = this.diffuseTexture;
+            data.diffuseTexture3D = this.diffuseTexture3D;
+            data.shadowMapTexture = this.shadowMapTexture;
+            for (var i = 0; i < 4; ++i) {
+                data.shadowColor[i] = this.shadowColor[i];
+            }
+            data.castShadow = this.castShadow;
+            data.acceptShadow = this.acceptShadow;
+            data.depthTest = this.depthTest;
+            data.blendMode = this.blendMode;
+            data.blendSrc = this.blendSrc;
+            data.blendDest = this.blendDest;
+            data.ambientColor = this.ambientColor;
+            data.diffuseColor = this.diffuseColor;
+            data.specularColor = this.specularColor;
+            data.cutAlpha = this.cutAlpha;
+            data.alpha = this.alpha;
+            data.specularLevel = this.specularLevel;
+            data.gloss = this.gloss;
+            data.albedo = this.albedo;
+            data.materialDataNeedChange = this.materialDataNeedChange;
+            data.textureChange = true;
+            data.cullFrontOrBack = this.cullFrontOrBack;
+            return data;
         };
-        CubeMethod.prototype.activeState = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+        MaterialData.prototype.dispose = function () {
         };
-        return CubeMethod;
-    }(dou3d.MethodBase));
-    dou3d.CubeMethod = CubeMethod;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 材质渲染通道
-     * @author wizardc
-     */
-    var MaterialPass = /** @class */ (function () {
-        function MaterialPass(materialData) {
-            this._passChange = true;
-            this._vs_shader_methods = {};
-            this._fs_shader_methods = {};
-            this.methodList = [];
-            this.methodDatas = [];
-            this.vsShaderNames = [];
-            this.fsShaderNames = [];
-            this._materialData = materialData;
-        }
-        /**
-         * 增加渲染方法
-         */
-        MaterialPass.prototype.addMethod = function (method) {
-            var index = this.methodList.indexOf(method);
-            if (index == -1) {
-                this.methodList.push(method);
-                method.materialData = this._materialData;
-                this._passChange = true;
-            }
-        };
-        /**
-         * 获取指定类型的渲染方法实例
-         */
-        MaterialPass.prototype.getMethod = function (type) {
-            for (var i = 0; i < this.methodList.length; ++i) {
-                if (this.methodList[i] instanceof type) {
-                    return this.methodList[i];
-                }
-            }
-            return null;
-        };
-        /**
-         * 移除渲染方法
-         */
-        MaterialPass.prototype.removeMethod = function (method) {
-            var index = this.methodList.indexOf(method);
-            if (index != -1) {
-                this.methodList.slice(index);
-                this._passChange = true;
-            }
-        };
-        MaterialPass.prototype.passInvalid = function () {
-            this._passChange = true;
-        };
-        /**
-         * 重置纹理
-         */
-        MaterialPass.prototype.resetTexture = function (context3DProxy) {
-            var sampler2D;
-            for (var index in this._passUsage.sampler2DList) {
-                sampler2D = this._passUsage.sampler2DList[index];
-                if (this._materialData[sampler2D.varName]) {
-                    sampler2D.texture = this._materialData[sampler2D.varName];
-                }
-            }
-            var sampler3D;
-            for (var index in this._passUsage.sampler3DList) {
-                sampler3D = this._passUsage.sampler3DList[index];
-                if (this._materialData[sampler3D.varName]) {
-                    sampler3D.texture = this._materialData[sampler3D.varName];
-                }
-            }
-            this._materialData.textureChange = false;
-        };
-        MaterialPass.prototype.addMethodShaders = function (shaderBase, shaders) {
-            for (var i = 0; i < shaders.length; i++) {
-                shaderBase.addUseShaderName(shaders[i]);
-            }
-        };
-        MaterialPass.prototype.addShaderPhase = function (passType, sourcePhase, targetPhase) {
-            var names;
-            var phase;
-            var tn;
-            for (phase in sourcePhase) {
-                names = sourcePhase[phase];
-                for (var i = 0; i < names.length; i++) {
-                    targetPhase[phase] = targetPhase[phase] || [];
-                    targetPhase[phase].push(names[i]);
-                    tn = dou3d.ShaderPhaseType[phase];
-                    var index = this._materialData.shaderPhaseTypes[passType].indexOf(dou3d.ShaderPhaseType[tn]);
-                    if (index != -1) {
-                        this._materialData.shaderPhaseTypes[passType].splice(index, 1);
-                    }
-                }
-            }
-        };
-        /**
-         * 初始化所有的渲染方法
-         */
-        MaterialPass.prototype.initUseMethod = function (animation) {
-            this._passChange = false;
-            this._passUsage = new dou3d.PassUsage();
-            this._vs_shader_methods = {};
-            this._fs_shader_methods = {};
-            // 动画
-            if (animation) {
-                // 添加骨骼动画处理着色器
-                if (animation instanceof dou3d.SkeletonAnimation) {
-                    this._passUsage.maxBone = animation.jointNum * 2;
-                    this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex] = [];
-                    this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex].push("skeleton_vs");
-                }
-            }
-            // 根据属性设定加入需要的渲染方法
-            if (this._materialData.acceptShadow) {
-                // 添加接受阴影的 Shader
-                this._vs_shader_methods[dou3d.ShaderPhaseType.global_vertex] = this._vs_shader_methods[dou3d.ShaderPhaseType.global_vertex] || [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment] = this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment] || [];
-            }
-            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.diffuse_fragment) != -1) {
-                this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment].push("diffuse_fs");
-            }
-            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.normal_fragment) != -1) {
-                this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment].push("normalMap_fs");
-            }
-            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.specular_fragment) != -1) {
-                this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment].push("specularMap_fs");
-            }
-            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.matCap_fragment) != -1) {
-                this._fs_shader_methods[dou3d.ShaderPhaseType.matCap_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.matCap_fragment].push("matCap_TextureMult_fs");
-            }
-            // 灯光相关的渲染方法
-            if (this.lightGroup) {
-                this._passUsage.maxDirectLight = this.lightGroup.directList.length;
-                this._passUsage.maxSpotLight = this.lightGroup.spotList.length;
-                this._passUsage.maxPointLight = this.lightGroup.pointList.length;
-                this._vs_shader_methods[dou3d.ShaderPhaseType.local_vertex] = this._vs_shader_methods[dou3d.ShaderPhaseType.local_vertex] || [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("lightingBase_fs");
-                if (this.lightGroup.directList.length) {
-                    this._passUsage.directLightData = new Float32Array(dou3d.DirectLight.stride * this.lightGroup.directList.length);
-                    this._vs_shader_methods[dou3d.ShaderPhaseType.local_vertex].push("varyingViewDir_vs");
-                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("directLight_fs");
-                }
-                if (this.lightGroup.spotList.length) {
-                    this._passUsage.spotLightData = new Float32Array(dou3d.SpotLight.stride * this.lightGroup.spotList.length);
-                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("spotLight_fs");
-                }
-                if (this.lightGroup.pointList.length) {
-                    this._passUsage.pointLightData = new Float32Array(dou3d.PointLight.stride * this.lightGroup.pointList.length);
-                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("pointLight_fs");
-                }
-            }
-            this.initOtherMethods();
-            this.phaseEnd();
-        };
-        /**
-         * 添加手动添加的其它渲染方法
-         */
-        MaterialPass.prototype.initOtherMethods = function () {
-            var shaderPhase;
-            var shaderList;
-            for (var d = 0; d < this.methodList.length; d++) {
-                var method = this.methodList[d];
-                for (shaderPhase in method.vsShaderList) {
-                    shaderList = method.vsShaderList[shaderPhase];
-                    for (var i = 0; i < shaderList.length; i++) {
-                        this._vs_shader_methods[shaderPhase] = this._vs_shader_methods[shaderPhase] || [];
-                        this._vs_shader_methods[shaderPhase].push(shaderList[i]);
-                    }
-                }
-                for (shaderPhase in method.fsShaderList) {
-                    shaderList = method.fsShaderList[shaderPhase];
-                    for (var i = 0; i < shaderList.length; i++) {
-                        this._fs_shader_methods[shaderPhase] = this._fs_shader_methods[shaderPhase] || [];
-                        this._fs_shader_methods[shaderPhase].push(shaderList[i]);
-                    }
-                }
-            }
-        };
-        /**
-         * 将渲染方法的对应着色器加入到对应的 Shader 对象中以便获得最终的着色器对象
-         */
-        MaterialPass.prototype.phaseEnd = function () {
-            var shaderList;
-            // 顶点着色器
-            shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.base_vertex];
-            if (shaderList && shaderList.length > 0) {
-                this.addMethodShaders(this._passUsage.vertexShader, shaderList);
-            }
-            // 没有时加入默认的着色器
-            else {
-                this.addMethodShaders(this._passUsage.vertexShader, ["base_vs"]);
-                // start Phase
-                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
-                }
-                else {
-                    this.addMethodShaders(this._passUsage.vertexShader, ["diffuse_vs"]);
-                }
-                // local
-                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.local_vertex];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
-                }
-                // global
-                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.global_vertex];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
-                }
-                // end
-                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.end_vertex];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
-                }
-                else {
-                    this.addMethodShaders(this._passUsage.vertexShader, ["end_vs"]);
-                }
-            }
-            // 片段着色器
-            shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.base_fragment];
-            if (shaderList && shaderList.length > 0) {
-                this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-            }
-            // 没有时加入默认的着色器
-            else {
-                this.addMethodShaders(this._passUsage.fragmentShader, ["base_fs"]);
-                // start
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.start_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // materialsource
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.materialsource_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                else {
-                    this.addMethodShaders(this._passUsage.fragmentShader, ["materialSource_fs"]);
-                }
-                // diffuse
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                else {
-                    this.addMethodShaders(this._passUsage.fragmentShader, ["diffuse_fs"]);
-                }
-                // normal
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // shadow
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // lighting
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // specular
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // matCap
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.matCap_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // multi_end_fragment
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.multi_end_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // end
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                else {
-                    this.addMethodShaders(this._passUsage.fragmentShader, ["end_fs"]);
-                }
-            }
-        };
-        MaterialPass.prototype.upload = function (time, delay, context3DProxy, modeltransform, camera3D, animation) {
-            this._passChange = false;
-            this.initUseMethod(animation);
-            this._passUsage.vertexShader.shader = this._passUsage.vertexShader.getShader(this._passUsage);
-            this._passUsage.fragmentShader.shader = this._passUsage.fragmentShader.getShader(this._passUsage);
-            this._passUsage.program3D = dou3d.ShaderPool.getProgram(this._passUsage.vertexShader.shader.id, this._passUsage.fragmentShader.shader.id);
-            for (var property in this._passUsage) {
-                if (property.indexOf("uniform") != -1) {
-                    if (this._passUsage[property]) {
-                        this._passUsage[property].uniformIndex = context3DProxy.getUniformLocation(this._passUsage.program3D, property);
-                    }
-                }
-            }
-            var sampler2D;
-            for (var index in this._passUsage.sampler2DList) {
-                sampler2D = this._passUsage.sampler2DList[index];
-                sampler2D.uniformIndex = context3DProxy.getUniformLocation(this._passUsage.program3D, sampler2D.varName);
-                sampler2D.texture = this._materialData[sampler2D.varName];
-            }
-            var sampler3D;
-            for (var index in this._passUsage.sampler3DList) {
-                sampler3D = this._passUsage.sampler3DList[index];
-                sampler3D.uniformIndex = context3DProxy.getUniformLocation(this._passUsage.program3D, sampler3D.varName);
-            }
-            if (this.methodList) {
-                for (var i = 0; i < this.methodList.length; i++) {
-                    this.methodList[i].upload(time, delay, this._passUsage, null, context3DProxy, modeltransform, camera3D);
-                }
-            }
-        };
-        MaterialPass.prototype.draw = function (time, delay, context3DProxy, modelTransform, camera3D, subGeometry, render) {
-            // 如果材质中的变量改变了, 就更新这些变量的数据到 materialSourceData 中
-            if (this._materialData.materialDataNeedChange) {
-                var tintValue = this._materialData.tintColor;
-                var tintAlpha = Math.floor(tintValue / 0x1000000);
-                var tintRed = (tintValue & 0xff0000) / 0x10000;
-                var tintGreen = (tintValue & 0xff00) / 0x100;
-                var tintBlue = (tintValue & 0xff);
-                tintAlpha /= 0x80;
-                tintRed /= 0x80;
-                tintGreen /= 0x80;
-                tintBlue /= 0x80;
-                this._materialData.materialSourceData[0] = tintRed * (this._materialData.diffuseColor >> 16 & 0xff) / 255.0;
-                this._materialData.materialSourceData[1] = tintGreen * (this._materialData.diffuseColor >> 8 & 0xff) / 255.0;
-                this._materialData.materialSourceData[2] = tintBlue * (this._materialData.diffuseColor & 0xff) / 255.0;
-                this._materialData.materialSourceData[3] = (this._materialData.ambientColor >> 16 & 0xff) / 255.0;
-                this._materialData.materialSourceData[4] = (this._materialData.ambientColor >> 8 & 0xff) / 255.0;
-                this._materialData.materialSourceData[5] = (this._materialData.ambientColor & 0xff) / 255.0;
-                this._materialData.materialSourceData[6] = (this._materialData.specularColor >> 16 & 0xff) / 255.0;
-                this._materialData.materialSourceData[7] = (this._materialData.specularColor >> 8 & 0xff) / 255.0;
-                this._materialData.materialSourceData[8] = (this._materialData.specularColor & 0xff) / 255.0;
-                this._materialData.materialSourceData[9] = tintAlpha * this._materialData.alpha;
-                this._materialData.materialSourceData[10] = this._materialData.cutAlpha;
-                this._materialData.materialSourceData[11] = this._materialData.gloss;
-                this._materialData.materialSourceData[12] = this._materialData.specularLevel;
-                this._materialData.materialSourceData[13] = this._materialData.albedo;
-                this._materialData.materialSourceData[14] = this._materialData.uvRectangle.x;
-                this._materialData.materialSourceData[15] = this._materialData.uvRectangle.y; // 保留
-                this._materialData.materialSourceData[16] = this._materialData.uvRectangle.w; // 保留
-                this._materialData.materialSourceData[17] = this._materialData.uvRectangle.h; // 保留
-                this._materialData.materialSourceData[18] = this._materialData.specularLevel; // 保留
-                this._materialData.materialSourceData[19] = window.devicePixelRatio; // 保留
-            }
-            // 通道改变之后需要重新提交
-            if (this._passChange) {
-                this.upload(time, delay, context3DProxy, modelTransform, camera3D, render.animation);
-            }
-            context3DProxy.setProgram(this._passUsage.program3D);
-            subGeometry.activeState(this._passUsage, context3DProxy);
-            if (this._materialData.depthTest) {
-                context3DProxy.enableDepth();
-                context3DProxy.depthFunc(dou3d.ContextConfig.LEQUAL);
-            }
-            else {
-                context3DProxy.disableDepth();
-                context3DProxy.depthFunc(dou3d.ContextConfig.LEQUAL);
-            }
-            context3DProxy.setCulling(this._materialData.cullFrontOrBack);
-            if (this._materialData.bothside) {
-                context3DProxy.disableCullFace();
-            }
-            else {
-                context3DProxy.enableCullFace();
-            }
-            if (this._passID == 3 /* shadowPass */) {
-                context3DProxy.disableBlend();
-                context3DProxy.setBlendFactors(dou3d.ContextConfig.ONE, dou3d.ContextConfig.ZERO);
-            }
-            else {
-                if (this._materialData.alphaBlending) {
-                    dou3d.Context3DProxy.gl.depthMask(false);
-                }
-                context3DProxy.enableBlend();
-                context3DProxy.setBlendFactors(this._materialData.blend_src, this._materialData.blend_dest);
-            }
-            if (this._passUsage.uniform_materialSource) {
-                context3DProxy.uniform1fv(this._passUsage.uniform_materialSource.uniformIndex, this._materialData.materialSourceData);
-            }
-            if (this._materialData.textureChange) {
-                this.resetTexture(context3DProxy);
-            }
-            var sampler2D;
-            for (var index in this._passUsage.sampler2DList) {
-                sampler2D = this._passUsage.sampler2DList[index];
-                sampler2D.texture = this._materialData[sampler2D.varName];
-                if (!sampler2D.texture) {
-                    continue;
-                }
-                sampler2D.texture.upload(context3DProxy);
-                context3DProxy.setTexture2DAt(sampler2D.activeTextureIndex, sampler2D.uniformIndex, sampler2D.index, sampler2D.texture.texture2D);
-                if (sampler2D.texture.useMipmap) {
-                    sampler2D.texture.useMipmap = this._materialData.useMipmap;
-                }
-                sampler2D.texture.repeat = this._materialData.repeat;
-                sampler2D.texture.activeState(context3DProxy);
-                this._materialData.textureStateChage = false;
-            }
-            var sampler3D;
-            for (var index in this._passUsage.sampler3DList) {
-                sampler3D = this._passUsage.sampler3DList[index];
-                sampler3D.texture = this._materialData[sampler3D.varName];
-                if (!sampler3D.texture) {
-                    continue;
-                }
-                sampler3D.texture.upload(context3DProxy);
-                context3DProxy.setCubeTextureAt(sampler3D.activeTextureIndex, sampler3D.uniformIndex, sampler3D.index, sampler3D.texture.texture3D);
-            }
-            if (this.lightGroup) {
-                for (var i = 0; i < this._passUsage.maxDirectLight; i++) {
-                    this.lightGroup.directList[i].updateLightData(camera3D, i, this._passUsage.directLightData);
-                }
-                for (var i = 0; i < this._passUsage.maxSpotLight; i++) {
-                    this.lightGroup.spotList[i].updateLightData(camera3D, i, this._passUsage.spotLightData);
-                }
-                for (var i = 0; i < this._passUsage.maxPointLight; i++) {
-                    this.lightGroup.pointList[i].updateLightData(camera3D, i, this._passUsage.pointLightData);
-                }
-                if (this._passUsage.uniform_directLightSource) {
-                    context3DProxy.uniform1fv(this._passUsage.uniform_directLightSource.uniformIndex, this._passUsage.directLightData);
-                }
-                if (this._passUsage.uniform_sportLightSource) {
-                    context3DProxy.uniform1fv(this._passUsage.uniform_sportLightSource.uniformIndex, this._passUsage.spotLightData);
-                }
-                if (this._passUsage.uniform_pointLightSource) {
-                    context3DProxy.uniform1fv(this._passUsage.uniform_pointLightSource.uniformIndex, this._passUsage.pointLightData);
-                }
-            }
-            if (this._passUsage.uniform_ModelMatrix) {
-                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ModelMatrix.uniformIndex, false, modelTransform.rawData);
-            }
-            if (this._passUsage.uniform_ViewMatrix) {
-                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ViewMatrix.uniformIndex, false, camera3D.viewMatrix.rawData);
-            }
-            if (this._passUsage.uniform_ProjectionMatrix) {
-                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ProjectionMatrix.uniformIndex, false, camera3D.projectMatrix.rawData);
-            }
-            if (this._passUsage.uniform_ViewProjectionMatrix) {
-                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ViewProjectionMatrix.uniformIndex, false, camera3D.viewProjectionMatrix.rawData);
-            }
-            if (this._passUsage.uniform_orthProectMatrix) {
-                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_orthProectMatrix.uniformIndex, false, camera3D.orthProjectionMatrix.rawData);
-            }
-            if (render.animation) {
-                render.animation.activeState(time, delay, this._passUsage, subGeometry, context3DProxy, modelTransform, camera3D);
-            }
-            if (this.methodList) {
-                for (var i = 0; i < this.methodList.length; i++) {
-                    this.methodList[i].activeState(time, delay, this._passUsage, null, context3DProxy, modelTransform, camera3D);
-                }
-            }
-            if (this._passUsage.uniform_eyepos) {
-                context3DProxy.uniform3f(this._passUsage.uniform_eyepos.uniformIndex, camera3D.x, camera3D.y, camera3D.z);
-            }
-            if (this._passUsage.uniform_cameraMatrix) {
-                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_cameraMatrix.uniformIndex, false, camera3D.globalMatrix.rawData);
-            }
-            context3DProxy.drawElement(this._materialData.drawMode, subGeometry.start, subGeometry.count);
-            if (this._materialData.alphaBlending) {
-                dou3d.Context3DProxy.gl.depthMask(true);
-            }
-        };
-        MaterialPass.prototype.deactiveState = function (passUsage, context3DProxy) {
-            var sampler2D;
-            for (var index in passUsage.sampler2DList) {
-                sampler2D = this._passUsage.sampler2DList[index];
-                if (!sampler2D.texture) {
-                    continue;
-                }
-            }
-        };
-        MaterialPass.prototype.dispose = function () {
-            if (this._passUsage) {
-                this._passUsage.dispose();
-            }
-            this._passUsage = null;
-        };
-        return MaterialPass;
+        return MaterialData;
     }());
-    dou3d.MaterialPass = MaterialPass;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 方法中需要用到的数据
-     * @author wizardc
-     */
-    var PassUsage = /** @class */ (function () {
-        function PassUsage() {
-            this.sampler2DList = [];
-            this.sampler3DList = [];
-            //public vertexShaderRegister: ver;
-            this.vertexShader = new dou3d.ShaderBase(0 /* vertex */);
-            this.fragmentShader = new dou3d.ShaderBase(1 /* fragment */);
-            this.maxDirectLight = 0;
-            this.maxSpotLight = 0;
-            this.maxPointLight = 0;
-            this.maxBone = 0;
-            this.attributeDiry = true;
-        }
-        PassUsage.prototype.dispose = function () {
-            if (this.program3D) {
-                this.program3D.dispose();
-            }
-            this.program3D = null;
-            if (this.vertexShader && this.vertexShader.shader) {
-                this.vertexShader.shader.dispose();
-            }
-            this.vertexShader = null;
-            if (this.fragmentShader && this.fragmentShader.shader) {
-                this.fragmentShader.shader.dispose();
-            }
-            this.fragmentShader = null;
-        };
-        return PassUsage;
-    }());
-    dou3d.PassUsage = PassUsage;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 渲染通道工具类
-     * @author wizardc
-     */
-    var PassUtil;
-    (function (PassUtil) {
-        PassUtil.passAuto = [true, true, true, false, false, true, true, true, true, true];
-        function creatPass(pass, materialData) {
-            switch (pass) {
-                case 1 /* colorPass */:
-                    materialData.shaderPhaseTypes[1 /* colorPass */] = [];
-                    return [new dou3d.ColorPass(materialData)];
-                case 0 /* diffusePass */:
-                    materialData.shaderPhaseTypes[0 /* diffusePass */] = [];
-                    return [new dou3d.DiffusePass(materialData)];
-                case 3 /* shadowPass */:
-                    materialData.shaderPhaseTypes[3 /* shadowPass */] = [];
-                    return [new dou3d.ShadowPass(materialData)];
-                case 2 /* normalPass */:
-                    materialData.shaderPhaseTypes[2 /* normalPass */] = [];
-                    return [new dou3d.NormalPass(materialData)];
-            }
-            return null;
-        }
-        PassUtil.creatPass = creatPass;
-    })(PassUtil = dou3d.PassUtil || (dou3d.PassUtil = {}));
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 颜色渲染通道
-     * @author wizardc
-     */
-    var ColorPass = /** @class */ (function (_super) {
-        __extends(ColorPass, _super);
-        function ColorPass(materialData) {
-            var _this = _super.call(this, materialData) || this;
-            _this._passID = 1 /* colorPass */;
-            return _this;
-        }
-        ColorPass.prototype.initUseMethod = function () {
-            this._passChange = false;
-            this._passUsage = new dou3d.PassUsage();
-            this._passUsage.vertexShader.shaderType = 0 /* vertex */;
-            this._passUsage.fragmentShader.shaderType = 1 /* fragment */;
-            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.diffuse_fragment) != -1) {
-                this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment].push("diffuse_fs");
-            }
-            this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment] = this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment] || [];
-            this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment].push("colorPassEnd_fs");
-            this.phaseEnd();
-        };
-        return ColorPass;
-    }(dou3d.MaterialPass));
-    dou3d.ColorPass = ColorPass;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 漫反射渲染通道
-     * @author wizardc
-     */
-    var DiffusePass = /** @class */ (function (_super) {
-        __extends(DiffusePass, _super);
-        function DiffusePass(materialData) {
-            var _this = _super.call(this, materialData) || this;
-            _this._passID = 0 /* diffusePass */;
-            return _this;
-        }
-        return DiffusePass;
-    }(dou3d.MaterialPass));
-    dou3d.DiffusePass = DiffusePass;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 阴影渲染通道
-     * @author wizardc
-     */
-    var ShadowPass = /** @class */ (function (_super) {
-        __extends(ShadowPass, _super);
-        function ShadowPass(materialData) {
-            var _this = _super.call(this, materialData) || this;
-            _this._passID = 3 /* shadowPass */;
-            return _this;
-        }
-        ShadowPass.prototype.initUseMethod = function () {
-            this._passChange = false;
-            this._passUsage = new dou3d.PassUsage();
-            this._vs_shader_methods = {};
-            this._fs_shader_methods = {};
-            this.addMethodShaders(this._passUsage.vertexShader, ["shadowPass_vs"]);
-            this.addMethodShaders(this._passUsage.fragmentShader, ["shadowPass_fs"]);
-        };
-        return ShadowPass;
-    }(dou3d.MaterialPass));
-    dou3d.ShadowPass = ShadowPass;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 法线渲染通道
-     * @author wizardc
-     */
-    var NormalPass = /** @class */ (function (_super) {
-        __extends(NormalPass, _super);
-        function NormalPass(materialData) {
-            var _this = _super.call(this, materialData) || this;
-            _this._passID = 2 /* normalPass */;
-            return _this;
-        }
-        NormalPass.prototype.initUseMethod = function () {
-            this._passChange = false;
-            this._passUsage = new dou3d.PassUsage();
-            this._passUsage.vertexShader.shaderType = 0 /* vertex */;
-            this._passUsage.fragmentShader.shaderType = 1 /* fragment */;
-            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.normal_fragment) != -1) {
-                this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment].push("normalMap_fs");
-            }
-            this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment] = this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment] || [];
-            this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment].push("normalPassEnd_fs");
-            this.phaseEnd();
-        };
-        return NormalPass;
-    }(dou3d.MaterialPass));
-    dou3d.NormalPass = NormalPass;
+    dou3d.MaterialData = MaterialData;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -10415,11 +9742,11 @@ var dou3d;
                 if (texture) {
                     this._materialData.diffuseTexture = texture;
                     this._materialData.textureChange = true;
-                    if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.diffuse_fragment) == -1) {
+                    if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && !this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.diffuse_fragment)) {
                         this._materialData.shaderPhaseTypes[0 /* diffusePass */].push(dou3d.ShaderPhaseType.diffuse_fragment);
                     }
-                    if (this._materialData.shaderPhaseTypes[3 /* shadowPass */] && this._materialData.shaderPhaseTypes[3 /* shadowPass */].indexOf(dou3d.ShaderPhaseType.diffuse_fragment) == -1) {
-                        this._materialData.shaderPhaseTypes[3 /* shadowPass */].push(dou3d.ShaderPhaseType.diffuse_fragment);
+                    if (this._materialData.shaderPhaseTypes[1 /* shadowPass */] && !this._materialData.shaderPhaseTypes[1 /* shadowPass */].contains(dou3d.ShaderPhaseType.diffuse_fragment)) {
+                        this._materialData.shaderPhaseTypes[1 /* shadowPass */].push(dou3d.ShaderPhaseType.diffuse_fragment);
                     }
                 }
             },
@@ -10437,28 +9764,8 @@ var dou3d;
                 if (texture) {
                     this._materialData.normalTexture = texture;
                     this._materialData.textureChange = true;
-                    if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.normal_fragment) == -1) {
+                    if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && !this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.normal_fragment)) {
                         this._materialData.shaderPhaseTypes[0 /* diffusePass */].push(dou3d.ShaderPhaseType.normal_fragment);
-                        this.passInvalid(0 /* diffusePass */);
-                    }
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(MaterialBase.prototype, "matcapTexture", {
-            get: function () {
-                return this._materialData.normalTexture;
-            },
-            /**
-             * 材质球特殊光效算法
-             */
-            set: function (texture) {
-                if (texture) {
-                    this._materialData.matcapTexture = texture;
-                    this._materialData.textureChange = true;
-                    if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.matCap_fragment) == -1) {
-                        this._materialData.shaderPhaseTypes[0 /* diffusePass */].push(dou3d.ShaderPhaseType.matCap_fragment);
                         this.passInvalid(0 /* diffusePass */);
                     }
                 }
@@ -10477,7 +9784,7 @@ var dou3d;
                 if (texture) {
                     this._materialData.specularTexture = texture;
                     this._materialData.textureChange = true;
-                    if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && this._materialData.shaderPhaseTypes[0 /* diffusePass */].indexOf(dou3d.ShaderPhaseType.specular_fragment) == -1) {
+                    if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && !this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.specular_fragment)) {
                         this._materialData.shaderPhaseTypes[0 /* diffusePass */].push(dou3d.ShaderPhaseType.specular_fragment);
                     }
                 }
@@ -10659,12 +9966,12 @@ var dou3d;
                 this._materialData.castShadow = value;
                 if (value) {
                     dou3d.ShadowCast.instance.enableShadow = true;
-                    this.addPass(3 /* shadowPass */);
+                    this.addPass(1 /* shadowPass */);
                 }
                 else {
-                    if (this._passes[3 /* shadowPass */]) {
-                        this.disposePass(3 /* shadowPass */);
-                        this._passes[3 /* shadowPass */] = null;
+                    if (this._passes[1 /* shadowPass */]) {
+                        this.disposePass(1 /* shadowPass */);
+                        this._passes[1 /* shadowPass */] = null;
                     }
                 }
             },
@@ -10783,38 +10090,38 @@ var dou3d;
                 this._materialData.blendMode = value;
                 switch (value) {
                     case 2 /* NORMAL */:
-                        this._materialData.blend_src = dou3d.ContextConfig.ONE;
-                        this._materialData.blend_dest = dou3d.ContextConfig.ONE_MINUS_SRC_ALPHA;
+                        this._materialData.blendSrc = dou3d.Context3DProxy.gl.ONE;
+                        this._materialData.blendDest = dou3d.Context3DProxy.gl.ONE_MINUS_SRC_ALPHA;
                         this._materialData.alphaBlending = false;
                         break;
                     case 1 /* LAYER */:
-                        this._materialData.blend_src = dou3d.ContextConfig.SRC_ALPHA;
-                        this._materialData.blend_dest = dou3d.ContextConfig.ZERO;
+                        this._materialData.blendSrc = dou3d.Context3DProxy.gl.SRC_ALPHA;
+                        this._materialData.blendDest = dou3d.Context3DProxy.gl.ZERO;
                         this._materialData.alphaBlending = true;
                         break;
                     case 3 /* MULTIPLY */:
-                        this._materialData.blend_src = dou3d.ContextConfig.ZERO;
-                        this._materialData.blend_dest = dou3d.ContextConfig.SRC_COLOR;
+                        this._materialData.blendSrc = dou3d.Context3DProxy.gl.ZERO;
+                        this._materialData.blendDest = dou3d.Context3DProxy.gl.SRC_COLOR;
                         this._materialData.alphaBlending = true;
                         break;
                     case 4 /* ADD */:
-                        this._materialData.blend_src = dou3d.ContextConfig.SRC_ALPHA;
-                        this._materialData.blend_dest = dou3d.ContextConfig.ONE;
+                        this._materialData.blendSrc = dou3d.Context3DProxy.gl.SRC_ALPHA;
+                        this._materialData.blendDest = dou3d.Context3DProxy.gl.ONE;
                         this._materialData.alphaBlending = true;
                         break;
                     case 8 /* SOFT_ADD */:
-                        this._materialData.blend_src = dou3d.ContextConfig.SRC_COLOR;
-                        this._materialData.blend_dest = dou3d.ContextConfig.ONE;
+                        this._materialData.blendSrc = dou3d.Context3DProxy.gl.SRC_COLOR;
+                        this._materialData.blendDest = dou3d.Context3DProxy.gl.ONE;
                         this._materialData.alphaBlending = true;
                         break;
                     case 0 /* ALPHA */:
-                        this._materialData.blend_src = dou3d.ContextConfig.ONE;
-                        this._materialData.blend_dest = dou3d.ContextConfig.ONE_MINUS_SRC_ALPHA;
+                        this._materialData.blendSrc = dou3d.Context3DProxy.gl.ONE;
+                        this._materialData.blendDest = dou3d.Context3DProxy.gl.ONE_MINUS_SRC_ALPHA;
                         this._materialData.alphaBlending = true;
                         break;
                     case 7 /* SCREEN */:
-                        this._materialData.blend_src = dou3d.ContextConfig.ONE;
-                        this._materialData.blend_dest = dou3d.ContextConfig.ONE_MINUS_SRC_COLOR;
+                        this._materialData.blendSrc = dou3d.Context3DProxy.gl.ONE;
+                        this._materialData.blendDest = dou3d.Context3DProxy.gl.ONE_MINUS_SRC_COLOR;
                         break;
                 }
             },
@@ -10839,7 +10146,7 @@ var dou3d;
             configurable: true
         });
         MaterialBase.prototype.initPass = function () {
-            this.addPass(1 /* colorPass */);
+            this.addPass(0 /* diffusePass */);
         };
         MaterialBase.prototype.passInvalid = function (passType) {
             if (this._passes[passType] && this._passes[passType].length > 0) {
@@ -10852,7 +10159,7 @@ var dou3d;
          * 添加一个渲染通道
          */
         MaterialBase.prototype.addPass = function (pass) {
-            this._passes[pass] = dou3d.PassUtil.creatPass(pass, this._materialData);
+            this._passes[pass] = dou3d.PassUtil.createPass(pass, this._materialData);
         };
         /**
          * 销毁指定的渲染通道
@@ -10876,159 +10183,535 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
-     * 材质渲染数据
+     * 材质渲染通道基类
      * @author wizardc
      */
-    var MaterialData = /** @class */ (function () {
-        function MaterialData() {
-            /**
-             * 材质类型数组
-             * * 每个材质球可能会有很多种贴图方法, 而这个是做为默认支持的材质方法的添加通道
-             */
-            this.shaderPhaseTypes = {};
-            /**
-             * 渲染模式
-             */
-            this.drawMode = dou3d.ContextConfig.TRIANGLES;
-            /**
-             * 是否开启 MipMap
-             */
-            this.useMipmap = true;
-            /**
-             * 投射阴影
-             */
-            this.castShadow = false;
-            /**
-             * 接受阴影
-             */
-            this.acceptShadow = false;
-            /**
-             * 阴影颜色
-             */
-            this.shadowColor = new Float32Array([0.2, 0.2, 0.2, 0.003]);
-            /**
-             * 深度测试
-             */
-            this.depthTest = true;
-            /**
-             * 深度测试模式
-             */
-            this.depthMode = 0;
-            /**
-             * 混合模式
-             */
-            this.blendMode = 2 /* NORMAL */;
-            /**
-             * alphaBlending
-             */
-            this.alphaBlending = false;
-            /**
-             * ambientColor 值
-             */
-            this.ambientColor = 0x333333;
-            /**
-             * diffuseColor
-             */
-            this.diffuseColor = 0xffffff;
-            /**
-             * specularColor 值
-             */
-            this.specularColor = 0xffffff;
-            /**
-             * 色相
-             */
-            this.tintColor = 0x80808080;
-            /**
-             * 材质球的高光强度
-             */
-            this.specularLevel = 4.0;
-            /**
-             * 材质球的光滑度
-             */
-            this.gloss = 20.0;
-            /**
-             * cutAlpha 值
-             */
-            this.cutAlpha = 0.7;
-            /**
-             * 是否重复
-             */
-            this.repeat = false;
-            /**
-             * bothside 值
-             */
-            this.bothside = false;
-            /**
-             * alpha 值
-             */
-            this.alpha = 1.0;
-            /**
-             * 反射颜色的强度值，出射光照的出射率
-             */
-            this.albedo = 0.95;
-            /**
-             * 高光亮度的强度值,设置较大的值会让高光部分极亮
-             */
-            this.specularScale = 1.0;
-            this.normalScale = 1.0;
-            /**
-             * uv 在贴图上的映射区域，值的范围限制在0.0~1.0之间
-             */
-            this.uvRectangle = new dou3d.Rectangle(0, 0, 1, 1);
-            /**
-             * 材质数据需要变化
-             */
-            this.materialDataNeedChange = true;
-            /**
-             * 纹理变化
-             */
-            this.textureChange = false;
-            /**
-             * 纹理状态需要更新
-             */
-            this.textureStateChage = true;
-            /**
-             * cullFrontOrBack
-             */
-            this.cullFrontOrBack = dou3d.ContextConfig.BACK;
-            this.materialSourceData = new Float32Array(20);
-            this.colorGradientsSource = new Float32Array(10);
+    var MaterialPass = /** @class */ (function () {
+        function MaterialPass(materialData) {
+            this._passChange = true;
+            this._vs_shader_methods = {};
+            this._fs_shader_methods = {};
+            this.methodList = [];
+            this.methodDatas = [];
+            this.vsShaderNames = [];
+            this.fsShaderNames = [];
+            this._materialData = materialData;
         }
-        MaterialData.prototype.clone = function () {
-            var data = new MaterialData();
-            data.drawMode = this.drawMode;
-            data.diffuseTexture = this.diffuseTexture;
-            data.diffuseTexture3D = this.diffuseTexture3D;
-            data.shadowMapTexture = this.shadowMapTexture;
-            for (var i = 0; i < 4; ++i) {
-                data.shadowColor[i] = this.shadowColor[i];
+        /**
+         * 增加渲染方法
+         */
+        MaterialPass.prototype.addMethod = function (method) {
+            var index = this.methodList.indexOf(method);
+            if (index == -1) {
+                this.methodList.push(method);
+                method.materialData = this._materialData;
+                this._passChange = true;
             }
-            data.castShadow = this.castShadow;
-            data.acceptShadow = this.acceptShadow;
-            data.depthTest = this.depthTest;
-            data.blendMode = this.blendMode;
-            data.blend_src = this.blend_src;
-            data.blend_dest = this.blend_dest;
-            data.ambientColor = this.ambientColor;
-            data.diffuseColor = this.diffuseColor;
-            data.specularColor = this.specularColor;
-            data.cutAlpha = this.cutAlpha;
-            data.alpha = this.alpha;
-            data.specularLevel = this.specularLevel;
-            data.gloss = this.gloss;
-            data.albedo = this.albedo;
-            data.specularScale = this.specularScale;
-            data.materialDataNeedChange = this.materialDataNeedChange;
-            data.textureChange = true;
-            data.cullFrontOrBack = this.cullFrontOrBack;
-            data.colorTransform = this.colorTransform;
-            return data;
         };
-        MaterialData.prototype.dispose = function () {
+        /**
+         * 获取指定类型的渲染方法实例
+         */
+        MaterialPass.prototype.getMethod = function (type) {
+            for (var i = 0; i < this.methodList.length; ++i) {
+                if (this.methodList[i] instanceof type) {
+                    return this.methodList[i];
+                }
+            }
+            return null;
         };
-        return MaterialData;
+        /**
+         * 移除渲染方法
+         */
+        MaterialPass.prototype.removeMethod = function (method) {
+            var index = this.methodList.indexOf(method);
+            if (index != -1) {
+                this.methodList.slice(index);
+                this._passChange = true;
+            }
+        };
+        MaterialPass.prototype.passInvalid = function () {
+            this._passChange = true;
+        };
+        /**
+         * 重置纹理
+         */
+        MaterialPass.prototype.resetTexture = function (context3DProxy) {
+            var sampler2D;
+            for (var index in this._passUsage.sampler2DList) {
+                sampler2D = this._passUsage.sampler2DList[index];
+                if (this._materialData[sampler2D.varName]) {
+                    sampler2D.texture = this._materialData[sampler2D.varName];
+                }
+            }
+            var sampler3D;
+            for (var index in this._passUsage.sampler3DList) {
+                sampler3D = this._passUsage.sampler3DList[index];
+                if (this._materialData[sampler3D.varName]) {
+                    sampler3D.texture = this._materialData[sampler3D.varName];
+                }
+            }
+            this._materialData.textureChange = false;
+        };
+        MaterialPass.prototype.addMethodShaders = function (shaderComposer, shaders) {
+            for (var i = 0; i < shaders.length; i++) {
+                shaderComposer.addUseShaderName(shaders[i]);
+            }
+        };
+        /**
+         * 初始化所有的渲染方法
+         */
+        MaterialPass.prototype.initUseMethod = function (animation) {
+            this._passChange = false;
+            this._passUsage = new dou3d.PassUsage();
+            this._vs_shader_methods = {};
+            this._fs_shader_methods = {};
+            // 动画
+            if (animation) {
+                // 添加骨骼动画处理着色器
+                if (animation instanceof dou3d.SkeletonAnimation) {
+                    this._passUsage.maxBone = animation.jointNum * 2;
+                    this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex] = [];
+                    this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex].push("skeleton_vs");
+                }
+            }
+            // 根据属性设定加入需要的渲染方法
+            if (this._materialData.acceptShadow) {
+                // 添加接受阴影的 Shader
+                this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_2] = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_2] || [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment] = this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment] || [];
+            }
+            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.diffuse_fragment)) {
+                this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment] = [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment].push("diffuse_fs");
+            }
+            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.normal_fragment)) {
+                this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment] = [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment].push("normalMap_fs");
+            }
+            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.specular_fragment)) {
+                this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment] = [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment].push("specularMap_fs");
+            }
+            // 灯光相关的渲染方法
+            if (this.lightGroup) {
+                this._passUsage.maxDirectLight = this.lightGroup.directList.length;
+                this._passUsage.maxSpotLight = this.lightGroup.spotList.length;
+                this._passUsage.maxPointLight = this.lightGroup.pointList.length;
+                this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_1] = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_1] || [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment] = [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("lightingBase_fs");
+                if (this.lightGroup.directList.length) {
+                    this._passUsage.directLightData = new Float32Array(dou3d.DirectLight.stride * this.lightGroup.directList.length);
+                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("directLight_fs");
+                }
+                if (this.lightGroup.pointList.length) {
+                    this._passUsage.pointLightData = new Float32Array(dou3d.PointLight.stride * this.lightGroup.pointList.length);
+                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("pointLight_fs");
+                }
+                if (this.lightGroup.spotList.length) {
+                    this._passUsage.spotLightData = new Float32Array(dou3d.SpotLight.stride * this.lightGroup.spotList.length);
+                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("spotLight_fs");
+                }
+            }
+            this.initMethodShader();
+            this.phaseEnd();
+        };
+        /**
+         * 添加来自 Method 的着色器片段
+         */
+        MaterialPass.prototype.initMethodShader = function () {
+            var shaderPhase;
+            var shaderList;
+            for (var d = 0; d < this.methodList.length; d++) {
+                var method = this.methodList[d];
+                for (shaderPhase in method.vsShaderList) {
+                    shaderList = method.vsShaderList[shaderPhase];
+                    for (var i = 0; i < shaderList.length; i++) {
+                        this._vs_shader_methods[shaderPhase] = this._vs_shader_methods[shaderPhase] || [];
+                        this._vs_shader_methods[shaderPhase].push(shaderList[i]);
+                    }
+                }
+                for (shaderPhase in method.fsShaderList) {
+                    shaderList = method.fsShaderList[shaderPhase];
+                    for (var i = 0; i < shaderList.length; i++) {
+                        this._fs_shader_methods[shaderPhase] = this._fs_shader_methods[shaderPhase] || [];
+                        this._fs_shader_methods[shaderPhase].push(shaderList[i]);
+                    }
+                }
+            }
+        };
+        /**
+         * 将渲染方法的对应着色器加入到对应的 Shader 对象中以便获得最终的着色器对象
+         */
+        MaterialPass.prototype.phaseEnd = function () {
+            var shaderList;
+            // 顶点着色器
+            shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.custom_vertex];
+            if (shaderList && shaderList.length > 0) {
+                this.addMethodShaders(this._passUsage.vertexShader, shaderList);
+            }
+            // 没有时加入默认的着色器
+            else {
+                this.addMethodShaders(this._passUsage.vertexShader, ["base_vs"]);
+                // start
+                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
+                }
+                else {
+                    this.addMethodShaders(this._passUsage.vertexShader, ["diffuse_vs"]);
+                }
+                // vertex_1
+                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_1];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
+                }
+                // vertex_2
+                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_2];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
+                }
+                // end
+                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.end_vertex];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
+                }
+                else {
+                    this.addMethodShaders(this._passUsage.vertexShader, ["end_vs"]);
+                }
+            }
+            // 片段着色器
+            shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.custom_fragment];
+            if (shaderList && shaderList.length > 0) {
+                this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+            }
+            // 没有时加入默认的着色器
+            else {
+                this.addMethodShaders(this._passUsage.fragmentShader, ["base_fs"]);
+                // start
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.start_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                // materialsource
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.materialsource_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                else {
+                    this.addMethodShaders(this._passUsage.fragmentShader, ["materialSource_fs"]);
+                }
+                // diffuse
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                else {
+                    this.addMethodShaders(this._passUsage.fragmentShader, ["diffuse_fs"]);
+                }
+                // normal
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                // shadow
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                // lighting
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                // specular
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                // end
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                else {
+                    this.addMethodShaders(this._passUsage.fragmentShader, ["end_fs"]);
+                }
+            }
+        };
+        MaterialPass.prototype.upload = function (time, delay, context3DProxy, modelTransform, camera3D, animation) {
+            this._passChange = false;
+            this.initUseMethod(animation);
+            this._passUsage.vertexShader.shader = this._passUsage.vertexShader.getShader(this._passUsage);
+            this._passUsage.fragmentShader.shader = this._passUsage.fragmentShader.getShader(this._passUsage);
+            this._passUsage.program3D = dou3d.ShaderPool.getProgram(this._passUsage.vertexShader.shader.id, this._passUsage.fragmentShader.shader.id);
+            // 添加 Shader 中所有带有 uniform 名称变量的索引
+            for (var property in this._passUsage) {
+                if (property.indexOf("uniform") != -1) {
+                    if (this._passUsage[property]) {
+                        this._passUsage[property].uniformIndex = context3DProxy.getUniformLocation(this._passUsage.program3D, property);
+                    }
+                }
+            }
+            // 添加取样器的索引
+            var sampler2D;
+            for (var index in this._passUsage.sampler2DList) {
+                sampler2D = this._passUsage.sampler2DList[index];
+                sampler2D.uniformIndex = context3DProxy.getUniformLocation(this._passUsage.program3D, sampler2D.varName);
+                sampler2D.texture = this._materialData[sampler2D.varName];
+            }
+            var sampler3D;
+            for (var index in this._passUsage.sampler3DList) {
+                sampler3D = this._passUsage.sampler3DList[index];
+                sampler3D.uniformIndex = context3DProxy.getUniformLocation(this._passUsage.program3D, sampler3D.varName);
+            }
+            if (this.methodList) {
+                for (var i = 0; i < this.methodList.length; i++) {
+                    this.methodList[i].upload(time, delay, this._passUsage, null, context3DProxy, modelTransform, camera3D);
+                }
+            }
+        };
+        MaterialPass.prototype.draw = function (time, delay, context3DProxy, modelTransform, camera3D, subGeometry, render) {
+            // 如果材质中的变量改变了, 就更新这些变量的数据到 materialSourceData 中
+            if (this._materialData.materialDataNeedChange) {
+                var tintValue = this._materialData.tintColor;
+                var tintAlpha = Math.floor(tintValue / 0x1000000);
+                var tintRed = (tintValue & 0xff0000) / 0x10000;
+                var tintGreen = (tintValue & 0xff00) / 0x100;
+                var tintBlue = (tintValue & 0xff);
+                tintAlpha /= 0x80;
+                tintRed /= 0x80;
+                tintGreen /= 0x80;
+                tintBlue /= 0x80;
+                this._materialData.materialSourceData[0] = tintRed * (this._materialData.diffuseColor >> 16 & 0xff) / 255.0;
+                this._materialData.materialSourceData[1] = tintGreen * (this._materialData.diffuseColor >> 8 & 0xff) / 255.0;
+                this._materialData.materialSourceData[2] = tintBlue * (this._materialData.diffuseColor & 0xff) / 255.0;
+                this._materialData.materialSourceData[3] = (this._materialData.ambientColor >> 16 & 0xff) / 255.0;
+                this._materialData.materialSourceData[4] = (this._materialData.ambientColor >> 8 & 0xff) / 255.0;
+                this._materialData.materialSourceData[5] = (this._materialData.ambientColor & 0xff) / 255.0;
+                this._materialData.materialSourceData[6] = (this._materialData.specularColor >> 16 & 0xff) / 255.0;
+                this._materialData.materialSourceData[7] = (this._materialData.specularColor >> 8 & 0xff) / 255.0;
+                this._materialData.materialSourceData[8] = (this._materialData.specularColor & 0xff) / 255.0;
+                this._materialData.materialSourceData[9] = tintAlpha * this._materialData.alpha;
+                this._materialData.materialSourceData[10] = this._materialData.cutAlpha;
+                this._materialData.materialSourceData[11] = this._materialData.gloss;
+                this._materialData.materialSourceData[12] = this._materialData.specularLevel;
+                this._materialData.materialSourceData[13] = this._materialData.albedo;
+                this._materialData.materialSourceData[14] = this._materialData.uvRectangle.x;
+                this._materialData.materialSourceData[15] = this._materialData.uvRectangle.y; // 保留
+                this._materialData.materialSourceData[16] = this._materialData.uvRectangle.w; // 保留
+                this._materialData.materialSourceData[17] = this._materialData.uvRectangle.h; // 保留
+                this._materialData.materialSourceData[18] = this._materialData.specularLevel; // 保留
+                this._materialData.materialSourceData[19] = window.devicePixelRatio; // 保留
+            }
+            // 通道改变之后需要重新提交
+            if (this._passChange) {
+                this.upload(time, delay, context3DProxy, modelTransform, camera3D, render.animation);
+            }
+            context3DProxy.setProgram(this._passUsage.program3D);
+            subGeometry.activeState(this._passUsage, context3DProxy);
+            if (this._materialData.depthTest) {
+                context3DProxy.enableDepth();
+                context3DProxy.depthFunc(dou3d.Context3DProxy.gl.LEQUAL);
+            }
+            else {
+                context3DProxy.disableDepth();
+                context3DProxy.depthFunc(dou3d.Context3DProxy.gl.LEQUAL);
+            }
+            context3DProxy.setCulling(this._materialData.cullFrontOrBack);
+            if (this._materialData.bothside) {
+                context3DProxy.disableCullFace();
+            }
+            else {
+                context3DProxy.enableCullFace();
+            }
+            if (this._passID == 1 /* shadowPass */) {
+                context3DProxy.disableBlend();
+                context3DProxy.setBlendFactors(dou3d.Context3DProxy.gl.ONE, dou3d.Context3DProxy.gl.ZERO);
+            }
+            else {
+                if (this._materialData.alphaBlending) {
+                    dou3d.Context3DProxy.gl.depthMask(false);
+                }
+                context3DProxy.enableBlend();
+                context3DProxy.setBlendFactors(this._materialData.blendSrc, this._materialData.blendDest);
+            }
+            if (this._passUsage.uniform_materialSource) {
+                context3DProxy.uniform1fv(this._passUsage.uniform_materialSource.uniformIndex, this._materialData.materialSourceData);
+            }
+            if (this._materialData.textureChange) {
+                this.resetTexture(context3DProxy);
+            }
+            var sampler2D;
+            for (var index in this._passUsage.sampler2DList) {
+                sampler2D = this._passUsage.sampler2DList[index];
+                sampler2D.texture = this._materialData[sampler2D.varName];
+                if (!sampler2D.texture) {
+                    continue;
+                }
+                sampler2D.texture.upload(context3DProxy);
+                context3DProxy.setTexture2DAt(sampler2D.activeTextureIndex, sampler2D.uniformIndex, sampler2D.index, sampler2D.texture.texture2D);
+                if (sampler2D.texture.useMipmap) {
+                    sampler2D.texture.useMipmap = this._materialData.useMipmap;
+                }
+                sampler2D.texture.repeat = this._materialData.repeat;
+                sampler2D.texture.activeState(context3DProxy);
+                this._materialData.textureStateChage = false;
+            }
+            var sampler3D;
+            for (var index in this._passUsage.sampler3DList) {
+                sampler3D = this._passUsage.sampler3DList[index];
+                sampler3D.texture = this._materialData[sampler3D.varName];
+                if (!sampler3D.texture) {
+                    continue;
+                }
+                sampler3D.texture.upload(context3DProxy);
+                context3DProxy.setCubeTextureAt(sampler3D.activeTextureIndex, sampler3D.uniformIndex, sampler3D.index, sampler3D.texture.texture3D);
+            }
+            if (this.lightGroup) {
+                for (var i = 0; i < this._passUsage.maxDirectLight; i++) {
+                    this.lightGroup.directList[i].updateLightData(camera3D, i, this._passUsage.directLightData);
+                }
+                for (var i = 0; i < this._passUsage.maxSpotLight; i++) {
+                    this.lightGroup.spotList[i].updateLightData(camera3D, i, this._passUsage.spotLightData);
+                }
+                for (var i = 0; i < this._passUsage.maxPointLight; i++) {
+                    this.lightGroup.pointList[i].updateLightData(camera3D, i, this._passUsage.pointLightData);
+                }
+                if (this._passUsage.uniform_directLightSource) {
+                    context3DProxy.uniform1fv(this._passUsage.uniform_directLightSource.uniformIndex, this._passUsage.directLightData);
+                }
+                if (this._passUsage.uniform_spotLightSource) {
+                    context3DProxy.uniform1fv(this._passUsage.uniform_spotLightSource.uniformIndex, this._passUsage.spotLightData);
+                }
+                if (this._passUsage.uniform_pointLightSource) {
+                    context3DProxy.uniform1fv(this._passUsage.uniform_pointLightSource.uniformIndex, this._passUsage.pointLightData);
+                }
+            }
+            if (this._passUsage.uniform_ModelMatrix) {
+                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ModelMatrix.uniformIndex, false, modelTransform.rawData);
+            }
+            if (this._passUsage.uniform_ViewMatrix) {
+                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ViewMatrix.uniformIndex, false, camera3D.viewMatrix.rawData);
+            }
+            if (this._passUsage.uniform_ProjectionMatrix) {
+                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ProjectionMatrix.uniformIndex, false, camera3D.projectMatrix.rawData);
+            }
+            if (this._passUsage.uniform_ViewProjectionMatrix) {
+                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_ViewProjectionMatrix.uniformIndex, false, camera3D.viewProjectionMatrix.rawData);
+            }
+            if (this._passUsage.uniform_orthProectMatrix) {
+                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_orthProectMatrix.uniformIndex, false, camera3D.orthProjectionMatrix.rawData);
+            }
+            if (render.animation) {
+                render.animation.activeState(time, delay, this._passUsage, subGeometry, context3DProxy, modelTransform, camera3D);
+            }
+            if (this.methodList) {
+                for (var i = 0; i < this.methodList.length; i++) {
+                    this.methodList[i].activeState(time, delay, this._passUsage, null, context3DProxy, modelTransform, camera3D);
+                }
+            }
+            if (this._passUsage.uniform_eyepos) {
+                context3DProxy.uniform3f(this._passUsage.uniform_eyepos.uniformIndex, camera3D.globalPosition.x, camera3D.globalPosition.y, camera3D.globalPosition.z);
+            }
+            if (this._passUsage.uniform_cameraMatrix) {
+                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_cameraMatrix.uniformIndex, false, camera3D.globalMatrix.rawData);
+            }
+            context3DProxy.drawElement(this._materialData.drawMode, subGeometry.start, subGeometry.count);
+            if (this._materialData.alphaBlending) {
+                dou3d.Context3DProxy.gl.depthMask(true);
+            }
+        };
+        MaterialPass.prototype.deactiveState = function (passUsage, context3DProxy) {
+            var sampler2D;
+            for (var index in passUsage.sampler2DList) {
+                sampler2D = this._passUsage.sampler2DList[index];
+                if (!sampler2D.texture) {
+                    continue;
+                }
+            }
+        };
+        MaterialPass.prototype.dispose = function () {
+            if (this._passUsage) {
+                this._passUsage.dispose();
+            }
+            this._passUsage = null;
+        };
+        return MaterialPass;
     }());
-    dou3d.MaterialData = MaterialData;
+    dou3d.MaterialPass = MaterialPass;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 方法中需要用到的数据
+     * @author wizardc
+     */
+    var PassUsage = /** @class */ (function () {
+        function PassUsage() {
+            /** 2D 采样器 */
+            this.sampler2DList = [];
+            /** 立方体采样器 */
+            this.sampler3DList = [];
+            /** 方向光数量 */
+            this.maxDirectLight = 0;
+            /** 点光源数量 */
+            this.maxPointLight = 0;
+            /** 聚光灯数量 */
+            this.maxSpotLight = 0;
+            /** 骨骼数量 */
+            this.maxBone = 0;
+            /** 属性是否改变, 改变后需要重新提交 */
+            this.attributeDiry = true;
+            this.vertexShader = new dou3d.ShaderComposer(0 /* vertex */);
+            this.fragmentShader = new dou3d.ShaderComposer(1 /* fragment */);
+        }
+        PassUsage.prototype.dispose = function () {
+            if (this.program3D) {
+                this.program3D.dispose();
+            }
+            this.program3D = null;
+            if (this.vertexShader && this.vertexShader.shader) {
+                this.vertexShader.shader.dispose();
+            }
+            this.vertexShader = null;
+            if (this.fragmentShader && this.fragmentShader.shader) {
+                this.fragmentShader.shader.dispose();
+            }
+            this.fragmentShader = null;
+        };
+        return PassUsage;
+    }());
+    dou3d.PassUsage = PassUsage;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 渲染通道工具类
+     * @author wizardc
+     */
+    var PassUtil;
+    (function (PassUtil) {
+        /**
+         * 和 PassType 对应, 指定的渲染通道没有设定时是否创建默认的通道对象
+         */
+        PassUtil.passAuto = [true, true];
+        /**
+         * 创建默认的渲染通道数组
+         */
+        function createPass(pass, materialData) {
+            switch (pass) {
+                case 0 /* diffusePass */:
+                    materialData.shaderPhaseTypes[0 /* diffusePass */] = [];
+                    return [new dou3d.DiffusePass(materialData)];
+                case 1 /* shadowPass */:
+                    materialData.shaderPhaseTypes[1 /* shadowPass */] = [];
+                    return [new dou3d.ShadowPass(materialData)];
+            }
+            return null;
+        }
+        PassUtil.createPass = createPass;
+    })(PassUtil = dou3d.PassUtil || (dou3d.PassUtil = {}));
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -11042,6 +10725,168 @@ var dou3d;
         return MethodData;
     }());
     dou3d.MethodData = MethodData;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 渲染方法基类
+     * @author wizardc
+     */
+    var MethodBase = /** @class */ (function () {
+        function MethodBase() {
+            /**
+             * 顶点着色器列表
+             */
+            this.vsShaderList = [];
+            /**
+             * 片段着色器列表
+             */
+            this.fsShaderList = [];
+        }
+        MethodBase.prototype.dispose = function () {
+        };
+        return MethodBase;
+    }());
+    dou3d.MethodBase = MethodBase;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 颜色渲染方法
+     * @author wizardc
+     */
+    var ColorMethod = /** @class */ (function (_super) {
+        __extends(ColorMethod, _super);
+        function ColorMethod() {
+            var _this = _super.call(this) || this;
+            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] = _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] || [];
+            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment].push("color_fs");
+            return _this;
+        }
+        ColorMethod.prototype.upload = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+        };
+        ColorMethod.prototype.activeState = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+        };
+        return ColorMethod;
+    }(dou3d.MethodBase));
+    dou3d.ColorMethod = ColorMethod;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 阴影渲染方法
+     * @author wizardc
+     */
+    var ShadowMethod = /** @class */ (function (_super) {
+        __extends(ShadowMethod, _super);
+        function ShadowMethod(material) {
+            var _this = _super.call(this) || this;
+            _this.materialData = material.materialData;
+            _this.vsShaderList[dou3d.ShaderPhaseType.vertex_1] = _this.vsShaderList[dou3d.ShaderPhaseType.vertex_1] || [];
+            _this.vsShaderList[dou3d.ShaderPhaseType.vertex_1].push("shadowMapping_vs");
+            _this.fsShaderList[dou3d.ShaderPhaseType.shadow_fragment] = _this.fsShaderList[dou3d.ShaderPhaseType.shadow_fragment] || [];
+            _this.fsShaderList[dou3d.ShaderPhaseType.shadow_fragment].push("shadowMapping_fs");
+            return _this;
+        }
+        Object.defineProperty(ShadowMethod.prototype, "shadowMapTexture", {
+            get: function () {
+                return this.materialData.shadowMapTexture;
+            },
+            /**
+             * 阴影贴图
+             */
+            set: function (texture) {
+                if (this.materialData.shadowMapTexture != texture) {
+                    this.materialData.shadowMapTexture = texture;
+                    this.materialData.textureChange = true;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ShadowMethod.prototype.upload = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+            if (usage.uniform_ShadowMatrix) {
+                usage.uniform_ShadowMatrix.uniformIndex = context3DProxy.getUniformLocation(usage.program3D, "uniform_ShadowMatrix");
+            }
+        };
+        ShadowMethod.prototype.activeState = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+            var camera = dou3d.ShadowCast.instance.shadowCamera;
+            if (camera) {
+                if (usage.uniform_ShadowMatrix && usage.uniform_ShadowMatrix.uniformIndex) {
+                    context3DProxy.uniformMatrix4fv(usage.uniform_ShadowMatrix.uniformIndex, false, camera.viewProjectionMatrix.rawData);
+                }
+            }
+            context3DProxy.uniform4fv(usage.uniform_ShadowColor.uniformIndex, this.materialData.shadowColor);
+        };
+        return ShadowMethod;
+    }(dou3d.MethodBase));
+    dou3d.ShadowMethod = ShadowMethod;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 立方体渲染方法
+     * @author wizardc
+     */
+    var CubeMethod = /** @class */ (function (_super) {
+        __extends(CubeMethod, _super);
+        function CubeMethod() {
+            var _this = _super.call(this) || this;
+            _this.vsShaderList[dou3d.ShaderPhaseType.vertex_2] = _this.fsShaderList[dou3d.ShaderPhaseType.vertex_2] || [];
+            _this.vsShaderList[dou3d.ShaderPhaseType.vertex_2].push("cube_vs");
+            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] = _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment] || [];
+            _this.fsShaderList[dou3d.ShaderPhaseType.diffuse_fragment].push("cube_fs");
+            return _this;
+        }
+        CubeMethod.prototype.upload = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+        };
+        CubeMethod.prototype.activeState = function (time, delay, usage, geometry, context3DProxy, modeltransform, camera3D) {
+        };
+        return CubeMethod;
+    }(dou3d.MethodBase));
+    dou3d.CubeMethod = CubeMethod;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 漫反射渲染通道
+     * @author wizardc
+     */
+    var DiffusePass = /** @class */ (function (_super) {
+        __extends(DiffusePass, _super);
+        function DiffusePass(materialData) {
+            var _this = _super.call(this, materialData) || this;
+            _this._passID = 0 /* diffusePass */;
+            return _this;
+        }
+        return DiffusePass;
+    }(dou3d.MaterialPass));
+    dou3d.DiffusePass = DiffusePass;
+})(dou3d || (dou3d = {}));
+var dou3d;
+(function (dou3d) {
+    /**
+     * 阴影渲染通道
+     * @author wizardc
+     */
+    var ShadowPass = /** @class */ (function (_super) {
+        __extends(ShadowPass, _super);
+        function ShadowPass(materialData) {
+            var _this = _super.call(this, materialData) || this;
+            _this._passID = 1 /* shadowPass */;
+            return _this;
+        }
+        ShadowPass.prototype.initUseMethod = function () {
+            this._passChange = false;
+            this._passUsage = new dou3d.PassUsage();
+            this._vs_shader_methods = {};
+            this._fs_shader_methods = {};
+            this.addMethodShaders(this._passUsage.vertexShader, ["shadowPass_vs"]);
+            this.addMethodShaders(this._passUsage.fragmentShader, ["shadowPass_fs"]);
+        };
+        return ShadowPass;
+    }(dou3d.MaterialPass));
+    dou3d.ShadowPass = ShadowPass;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -11203,7 +11048,7 @@ var dou3d;
                             material.addPass(this._pass);
                         }
                         for (var j = material.passes[this._pass].length - 1; j >= 0; j--) {
-                            material.passes[this._pass] = dou3d.PassUtil.creatPass(this._pass, material.materialData);
+                            material.passes[this._pass] = dou3d.PassUtil.createPass(this._pass, material.materialData);
                             material.passes[this._pass][j].draw(time, delay, context3D, renderItem.globalMatrix, camera, subGeometry, renderItem);
                         }
                     }
@@ -11274,22 +11119,38 @@ var dou3d;
             this.valueType = "";
             /**
              * 变量值
+             * * 类型为宏和常量时
              */
             this.value = "";
             /**
-             * active Texture Index
+             * 要激活的纹理单元
+             * * gl.TEXTURE_0 ~ gl.TEXTURE_8
              */
             this.activeTextureIndex = -1;
             /**
-             * index
+             * 绑定到取样器的纹理索引
+             * * 如果激活的纹理单元是 gl.TEXTURE_0 则这里是 0, 和纹理单元对应
              */
             this.index = -1;
+            /**
+             * 总大小
+             */
             this.size = 0;
+            /**
+             * 数据类型
+             */
             this.dataType = 0;
+            /**
+             * 是否归一化
+             */
             this.normalized = false;
+            /**
+             * 一个完整数据的字节数
+             */
             this.stride = 0;
-            this.offset = 0;
-            this.offsetIndex = 0;
+            /**
+             * 单个数据的偏移量
+             */
             this.offsetBytes = 0;
         }
         VarRegister.prototype.computeVarName = function () {
@@ -11333,24 +11194,6 @@ var dou3d;
         return Attribute;
     }(dou3d.VarRegister));
     dou3d.Attribute = Attribute;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 属性类型
-     * @author wizardc
-     */
-    var AttributeType;
-    (function (AttributeType) {
-        AttributeType.int = "int";
-        AttributeType.float = "float";
-        AttributeType.vec2 = "vec2";
-        AttributeType.vec3 = "vec3";
-        AttributeType.vec4 = "vec4";
-        AttributeType.mat2 = "mat2";
-        AttributeType.mat3 = "mat3";
-        AttributeType.mat4 = "mat4";
-    })(AttributeType = dou3d.AttributeType || (dou3d.AttributeType = {}));
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -11493,33 +11336,6 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
-     * Uniform 属性类型
-     * @author wizardc
-     */
-    var UniformType;
-    (function (UniformType) {
-        UniformType.bool = "bool";
-        UniformType.int = "int";
-        UniformType.float = "float";
-        UniformType.vec2 = "vec2";
-        UniformType.vec3 = "vec3";
-        UniformType.vec4 = "vec4";
-        UniformType.bvec2 = "bvec2";
-        UniformType.bvec3 = "bvec3";
-        UniformType.bvec4 = "bvec4";
-        UniformType.ivec2 = "ivec2";
-        UniformType.ivec3 = "ivec3";
-        UniformType.ivec4 = "ivec4";
-        UniformType.mat2 = "mat2";
-        UniformType.mat3 = "mat3";
-        UniformType.mat4 = "mat4";
-        UniformType.sampler2D = "sampler2D";
-        UniformType.sampleCube = "sampleCube";
-    })(UniformType = dou3d.UniformType || (dou3d.UniformType = {}));
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
      * Varying 属性
      * @author wizardc
      */
@@ -11540,142 +11356,57 @@ var dou3d;
 var dou3d;
 (function (dou3d) {
     /**
-     * Varying 属性类型
+     * 着色器组合器
+     * * 添加多个需要使用的着色器片段, 得到最终可以使用的着色器
      * @author wizardc
      */
-    var VaryingType;
-    (function (VaryingType) {
-        VaryingType.bool = "bool";
-        VaryingType.int = "int";
-        VaryingType.float = "float";
-        VaryingType.vec2 = "vec2";
-        VaryingType.vec3 = "vec3";
-        VaryingType.vec4 = "vec4";
-        VaryingType.bvec2 = "bvec2";
-        VaryingType.bvec3 = "bvec3";
-        VaryingType.bvec4 = "bvec4";
-        VaryingType.ivec2 = "ivec2";
-        VaryingType.ivec3 = "ivec3";
-        VaryingType.ivec4 = "ivec4";
-        VaryingType.mat2 = "mat2";
-        VaryingType.mat3 = "mat3";
-        VaryingType.mat4 = "mat4";
-        VaryingType.sampler2D = "sampler2D";
-        VaryingType.sampleCube = "sampleCube";
-    })(VaryingType = dou3d.VaryingType || (dou3d.VaryingType = {}));
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 着色器基类
-     * @author wizardc
-     */
-    var ShaderBase = /** @class */ (function () {
-        function ShaderBase(type) {
-            this.index = 0;
-            this.shadersName = [];
-            this.endShadername = "";
-            this.stateChange = false;
-            this.maxBone = 0;
-            this.shaderType = -1;
-            this.shaderType = type;
+    var ShaderComposer = /** @class */ (function () {
+        function ShaderComposer(type) {
+            this._shadersName = [];
+            this._endShadername = "";
+            this._shaderType = -1;
+            this._shaderType = type;
         }
-        ShaderBase.prototype.addUseShaderName = function (shaderName) {
-            this.shadersName.push(shaderName);
+        Object.defineProperty(ShaderComposer.prototype, "shaderType", {
+            get: function () {
+                return this._shaderType;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ShaderComposer.prototype, "shader", {
+            get: function () {
+                return this._shader;
+            },
+            set: function (value) {
+                this._shader = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ShaderComposer.prototype.addUseShaderName = function (shaderName) {
+            this._shadersName.push(shaderName);
         };
-        ShaderBase.prototype.addEndShaderName = function (shaderName) {
-            this.endShadername = shaderName;
+        ShaderComposer.prototype.addEndShaderName = function (shaderName) {
+            this._endShadername = shaderName;
         };
-        ShaderBase.prototype.getShader = function (passUsage) {
-            if (this.endShadername != "") {
-                var index = this.shadersName.indexOf(this.endShadername);
+        ShaderComposer.prototype.getShader = function (passUsage) {
+            if (this._endShadername) {
+                var index = this._shadersName.indexOf(this._endShadername);
                 if (index == -1) {
-                    this.shadersName.push(this.endShadername);
+                    this._shadersName.push(this._endShadername);
                 }
             }
-            return dou3d.ShaderUtil.fillShaderContent(this, this.shadersName, passUsage);
+            return dou3d.ShaderUtil.fillShaderContent(this, this._shadersName, passUsage);
         };
-        return ShaderBase;
+        return ShaderComposer;
     }());
-    dou3d.ShaderBase = ShaderBase;
+    dou3d.ShaderComposer = ShaderComposer;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
     /**
-     * Shader 变量名
-     * 这里列出引擎中使用的所有变量名
-     * @author wizardc
-     */
-    var VarConstName;
-    (function (VarConstName) {
-        VarConstName.attribute_position = "attribute_position";
-        VarConstName.attribute_normal = "attribute_normal";
-        VarConstName.attribute_tangent = "attribute_tangent";
-        VarConstName.attribute_vertexColor = "attribute_vertexColor";
-        VarConstName.attribute_uv0 = "attribute_uv0";
-        VarConstName.attribute_uv1 = "attribute_uv1";
-        VarConstName.varying_pos = "varying_pos";
-        VarConstName.varying_normal = "varying_normal";
-        VarConstName.varying_tangent = "varying_tangent";
-        VarConstName.varying_color = "varying_color";
-        VarConstName.varying_uv0 = "varying_uv0";
-        VarConstName.varying_uv1 = "varying_uv1";
-        VarConstName.varying_globalPos = "varying_globalPos";
-        VarConstName.varying_lightDir = "varying_lightDir";
-        VarConstName.varying_eye = "varying_eye";
-        VarConstName.uniform_floatv_0 = "uniform_floatv_0";
-        VarConstName.uniform_floatv_1 = "uniform_floatv_1";
-        VarConstName.uniform_floatv_2 = "uniform_floatv_2";
-        VarConstName.uniform_iv_0 = "uniform_iv_0";
-        VarConstName.uniform_iv_1 = "uniform_iv_1";
-        VarConstName.uniform_iv_2 = "uniform_iv_2";
-        VarConstName.uniform_bv_0 = "uniform_bv_0";
-        VarConstName.uniform_bv_1 = "uniform_bv_1";
-        VarConstName.uniform_bv_2 = "uniform_bv_2";
-        VarConstName.uniform_vec2fv_0 = "uniform_vec2fv_0";
-        VarConstName.uniform_vec2fv_1 = "uniform_vec2fv_1";
-        VarConstName.uniform_vec2fv_2 = "uniform_vec2fv_2";
-        VarConstName.uniform_vec3fv_0 = "uniform_vec3fv_0";
-        VarConstName.uniform_vec3fv_1 = "uniform_vec3fv_1";
-        VarConstName.uniform_vec3fv_2 = "uniform_vec3fv_2";
-        VarConstName.uniform_vec4fv_0 = "uniform_vec4fv_0";
-        VarConstName.uniform_vec4fv_1 = "uniform_vec4fv_1";
-        VarConstName.uniform_vec4fv_2 = "uniform_vec4fv_2";
-        VarConstName.uniform_vec2iv_0 = "uniform_vec2iv_0";
-        VarConstName.uniform_vec2iv_1 = "uniform_vec2iv_1";
-        VarConstName.uniform_vec2iv_2 = "uniform_vec2iv_2";
-        VarConstName.uniform_vec3iv_0 = "uniform_vec3iv_0";
-        VarConstName.uniform_vec3iv_1 = "uniform_vec3iv_1";
-        VarConstName.uniform_vec3iv_2 = "uniform_vec3iv_2";
-        VarConstName.uniform_vec4iv_0 = "uniform_vec4iv_0";
-        VarConstName.uniform_vec4iv_1 = "uniform_vec4iv_1";
-        VarConstName.uniform_vec4iv_2 = "uniform_vec4iv_2";
-        VarConstName.uniform_vec2bv_0 = "uniform_vec2bv_0";
-        VarConstName.uniform_vec2bv_1 = "uniform_vec2bv_1";
-        VarConstName.uniform_vec2bv_2 = "uniform_vec2bv_2";
-        VarConstName.uniform_vec3bv_0 = "uniform_vec3bv_0";
-        VarConstName.uniform_vec3bv_1 = "uniform_vec3bv_1";
-        VarConstName.uniform_vec3bv_2 = "uniform_vec3bv_2";
-        VarConstName.uniform_vec4bv_0 = "uniform_vec4bv_0";
-        VarConstName.uniform_vec4bv_1 = "uniform_vec4bv_1";
-        VarConstName.uniform_vec4bv_2 = "uniform_vec4bv_2";
-        VarConstName.uniform_modelMatrix = "uniform_modelMatrix";
-        VarConstName.uniform_projectionMatrix = "uniform_projectionMatrix";
-        VarConstName.uniform_normalMatrix = "uniform_normalMatrix";
-        VarConstName.uniform_eye = "uniform_eye";
-        VarConstName.uniform_lightDir = "uniform_lightDir";
-        VarConstName.texture2D_0 = "texture2D_0";
-        VarConstName.texture2D_1 = "texture2D_1";
-        VarConstName.texture2D_2 = "texture2D_2";
-        VarConstName.texture2D_3 = "texture2D_3";
-        VarConstName.texture2D_4 = "texture2D_4";
-    })(VarConstName = dou3d.VarConstName || (dou3d.VarConstName = {}));
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 解析着色器并对其内容进行分类
-     * 方便后面进行着色器合并
+     * 解析着色器并对其内容进行分类, 同时提供着色器合并的功能
      * @author wizardc
      */
     var ShaderContent = /** @class */ (function () {
@@ -11991,7 +11722,6 @@ var dou3d;
      */
     var ShaderPool;
     (function (ShaderPool) {
-        //总shader的map容器
         var _programlib = {};
         var _vsShaderHashMap = {};
         var _fsShaderHashMap = {};
@@ -12035,15 +11765,9 @@ var dou3d;
             return _programlib[name];
         }
         ShaderPool.getProgram = getProgram;
-        function unRegisterShader(list) {
-            //to delet shader
-        }
         function registerProgram(vsShader, fsShader) {
             var program3D = _context.createProgram(vsShader, fsShader);
             return program3D;
-        }
-        function unRegisterProgram(vsKey, fsKey) {
-            //to delet program
         }
     })(ShaderPool = dou3d.ShaderPool || (dou3d.ShaderPool = {}));
 })(dou3d || (dou3d = {}));
@@ -12055,29 +11779,26 @@ var dou3d;
      */
     var ShaderLib;
     (function (ShaderLib) {
-        ShaderLib.base_fs = "#extension GL_OES_standard_derivatives:enable\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nuniform mat4 uniform_ViewMatrix;\nvec4 outColor;\nvec4 diffuseColor;\nvec4 specularColor;\nvec4 ambientColor;\nvec4 light;\nvec3 normal;\nvec2 uv_0;\nvec3 flatNormals(vec3 pos){\nvec3 fdx=dFdx(pos);vec3 fdy=dFdy(pos);return normalize(cross(fdx,fdy));\n}\nvoid main(){\ndiffuseColor=vec4(1.0,1.0,1.0,1.0);\nspecularColor=vec4(0.0,0.0,0.0,0.0);\nambientColor=vec4(0.0,0.0,0.0,0.0);\nlight=vec4(1.0,1.0,1.0,1.0);\nnormal=normalize(varying_eyeNormal);\nuv_0=varying_uv0;\n}";
-        ShaderLib.base_vs = "attribute vec3 attribute_position;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nvec3 e_position=vec3(0.0,0.0,0.0);\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvec4 outPosition;\nmat4 transpose(mat4 inMatrix){\nvec4 i0=inMatrix[0];\nvec4 i1=inMatrix[1];\nvec4 i2=inMatrix[2];\nvec4 i3=inMatrix[3];\nmat4 outMatrix=mat4(\nvec4(i0.x,i1.x,i2.x,i3.x),\nvec4(i0.y,i1.y,i2.y,i3.y),\nvec4(i0.z,i1.z,i2.z,i3.z),\nvec4(i0.w,i1.w,i2.w,i3.w)\n);\nreturn outMatrix;\n}\nmat4 inverse(mat4 m){\nfloat\na00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\na10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\na20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\na30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\nb00=a00*a11-a01*a10,\nb01=a00*a12-a02*a10,\nb02=a00*a13-a03*a10,\nb03=a01*a12-a02*a11,\nb04=a01*a13-a03*a11,\nb05=a02*a13-a03*a12,\nb06=a20*a31-a21*a30,\nb07=a20*a32-a22*a30,\nb08=a20*a33-a23*a30,\nb09=a21*a32-a22*a31,\nb10=a21*a33-a23*a31,\nb11=a22*a33-a23*a32,\ndet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\nreturn mat4(\na11*b11-a12*b10+a13*b09,\na02*b10-a01*b11-a03*b09,\na31*b05-a32*b04+a33*b03,\na22*b04-a21*b05-a23*b03,\na12*b08-a10*b11-a13*b07,\na00*b11-a02*b08+a03*b07,\na32*b02-a30*b05-a33*b01,\na20*b05-a22*b02+a23*b01,\na10*b10-a11*b08+a13*b06,\na01*b08-a00*b10-a03*b06,\na30*b04-a31*b02+a33*b00,\na21*b02-a20*b04-a23*b00,\na11*b07-a10*b09-a12*b06,\na00*b09-a01*b07+a02*b06,\na31*b01-a30*b03-a32*b00,\na20*b03-a21*b01+a22*b00)/det;\n}\nvoid main(){\ne_position=attribute_position;\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\n}";
-        ShaderLib.colorPassEnd_fs = "void main(){\ngl_FragColor=vec4(diffuseColor.xyz,1.0);\n}";
-        ShaderLib.color_fs = "vec4 diffuseColor;\nvoid main(){\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=vec4(1.0,1.0,1.0,1.0);\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\nelse{\ndiffuseColor.xyz*=diffuseColor.w;\n}\n}";
-        ShaderLib.cube_fs = "uniform samplerCube diffuseTexture3D;\nvarying vec3 varying_pos;\nvec4 diffuseColor;\nvoid main(){\nif(diffuseColor.w==0.0){\ndiscard;\n}\nvec3 uvw=normalize(varying_pos.xyz);\ndiffuseColor=vec4(textureCube(diffuseTexture3D,uvw.xyz));\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\nelse{\ndiffuseColor.xyz*=diffuseColor.w;\n}\n}";
+        ShaderLib.base_fs = "#extension GL_OES_standard_derivatives:enable\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_worldPosition;\nvarying vec3 varying_worldNormal;\nuniform mat4 uniform_ViewMatrix;\nuniform vec3 uniform_eyepos;\nvec4 diffuseColor;\nvec4 specularColor;\nvec4 ambientColor;\nvec4 light;\nvec3 normal;\nvec2 uv_0;\nvoid main(){\ndiffuseColor=vec4(1.0,1.0,1.0,1.0);\nspecularColor=vec4(0.0,0.0,0.0,0.0);\nambientColor=vec4(0.0,0.0,0.0,0.0);\nlight=vec4(1.0,1.0,1.0,1.0);\nnormal=normalize(varying_eyeNormal);\nuv_0=varying_uv0;\n}";
+        ShaderLib.base_vs = "attribute vec3 attribute_position;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nvec3 e_position=vec3(0.0,0.0,0.0);\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec3 varying_eyeNormal;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_worldPosition;\nvarying vec3 varying_worldNormal;\nvec4 outPosition;\nmat4 transpose(mat4 inMatrix){\nvec4 i0=inMatrix[0];\nvec4 i1=inMatrix[1];\nvec4 i2=inMatrix[2];\nvec4 i3=inMatrix[3];\nmat4 outMatrix=mat4(\nvec4(i0.x,i1.x,i2.x,i3.x),\nvec4(i0.y,i1.y,i2.y,i3.y),\nvec4(i0.z,i1.z,i2.z,i3.z),\nvec4(i0.w,i1.w,i2.w,i3.w)\n);\nreturn outMatrix;\n}\nmat4 inverse(mat4 m){\nfloat\na00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\na10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\na20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\na30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\nb00=a00*a11-a01*a10,\nb01=a00*a12-a02*a10,\nb02=a00*a13-a03*a10,\nb03=a01*a12-a02*a11,\nb04=a01*a13-a03*a11,\nb05=a02*a13-a03*a12,\nb06=a20*a31-a21*a30,\nb07=a20*a32-a22*a30,\nb08=a20*a33-a23*a30,\nb09=a21*a32-a22*a31,\nb10=a21*a33-a23*a31,\nb11=a22*a33-a23*a32,\ndet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\nreturn mat4(\na11*b11-a12*b10+a13*b09,\na02*b10-a01*b11-a03*b09,\na31*b05-a32*b04+a33*b03,\na22*b04-a21*b05-a23*b03,\na12*b08-a10*b11-a13*b07,\na00*b11-a02*b08+a03*b07,\na32*b02-a30*b05-a33*b01,\na20*b05-a22*b02+a23*b01,\na10*b10-a11*b08+a13*b06,\na01*b08-a00*b10-a03*b06,\na30*b04-a31*b02+a33*b00,\na21*b02-a20*b04-a23*b00,\na11*b07-a10*b09-a12*b06,\na00*b09-a01*b07+a02*b06,\na31*b01-a30*b03-a32*b00,\na20*b03-a21*b01+a22*b00)/det;\n}\nvoid main(){\ne_position=attribute_position;\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\nvarying_worldPosition=uniform_ModelMatrix*vec4(e_position,1.0);\nvarying_worldNormal=normalize((uniform_ModelMatrix*vec4(attribute_normal,0.0)).xyz);\n}";
+        ShaderLib.color_fs = "void main(){\n}";
+        ShaderLib.cube_fs = "uniform samplerCube diffuseTexture3D;\nvarying vec3 varying_pos;\nvec4 diffuseColor;\nvoid main(){\nvec3 uvw=normalize(varying_pos.xyz);\ndiffuseColor=vec4(textureCube(diffuseTexture3D,uvw.xyz));\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\nelse{\ndiffuseColor.xyz*=diffuseColor.w;\n}\n}";
         ShaderLib.cube_vs = "varying vec3 varying_pos;\nvoid main(){\nvarying_pos=e_position;\n}";
         ShaderLib.diffuse_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvoid main(){\ndiffuseColor=texture2D(diffuseTexture,uv_0);\nif(diffuseColor.w<materialSource.cutAlpha){\ndiscard;\n}\n}";
-        ShaderLib.diffuse_vs = "attribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvarying vec4 varying_mvPose;\nvarying vec4 varying_color;\nvoid main(){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_mvPose=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition=varying_mvPose;\nvarying_color=attribute_color;\n}";
-        ShaderLib.directLight_fs = "const int max_directLight=0;\nuniform float uniform_directLightSource[9*max_directLight];\nvarying vec4 varying_mvPose;\nuniform mat4 uniform_ViewMatrix;\nmat4 normalMatrix;\nstruct DirectLight{\nvec3 direction;\nvec3 diffuse;\nvec3 ambient;\n};\nmat4 transpose(mat4 inMatrix){\nvec4 i0=inMatrix[0];\nvec4 i1=inMatrix[1];\nvec4 i2=inMatrix[2];\nvec4 i3=inMatrix[3];\nmat4 outMatrix=mat4(\nvec4(i0.x,i1.x,i2.x,i3.x),\nvec4(i0.y,i1.y,i2.y,i3.y),\nvec4(i0.z,i1.z,i2.z,i3.z),\nvec4(i0.w,i1.w,i2.w,i3.w)\n);\nreturn outMatrix;\n}\nmat4 inverse(mat4 m){\nfloat\na00=m[0][0],a01=m[0][1],a02=m[0][2],a03=m[0][3],\na10=m[1][0],a11=m[1][1],a12=m[1][2],a13=m[1][3],\na20=m[2][0],a21=m[2][1],a22=m[2][2],a23=m[2][3],\na30=m[3][0],a31=m[3][1],a32=m[3][2],a33=m[3][3],\nb00=a00*a11-a01*a10,\nb01=a00*a12-a02*a10,\nb02=a00*a13-a03*a10,\nb03=a01*a12-a02*a11,\nb04=a01*a13-a03*a11,\nb05=a02*a13-a03*a12,\nb06=a20*a31-a21*a30,\nb07=a20*a32-a22*a30,\nb08=a20*a33-a23*a30,\nb09=a21*a32-a22*a31,\nb10=a21*a33-a23*a31,\nb11=a22*a33-a23*a32,\ndet=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;\nreturn mat4(\na11*b11-a12*b10+a13*b09,\na02*b10-a01*b11-a03*b09,\na31*b05-a32*b04+a33*b03,\na22*b04-a21*b05-a23*b03,\na12*b08-a10*b11-a13*b07,\na00*b11-a02*b08+a03*b07,\na32*b02-a30*b05-a33*b01,\na20*b05-a22*b02+a23*b01,\na10*b10-a11*b08+a13*b06,\na01*b08-a00*b10-a03*b06,\na30*b04-a31*b02+a33*b00,\na21*b02-a20*b04-a23*b00,\na11*b07-a10*b09-a12*b06,\na00*b09-a01*b07+a02*b06,\na31*b01-a30*b03-a32*b00,\na20*b03-a21*b01+a22*b00)/det;\n}\nvoid calculateDirectLight(MaterialSource materialSource){\nfloat lambertTerm,specular;\nvec3 dir,viewDir=normalize(varying_mvPose.xyz/varying_mvPose.w);\nfor(int i=0;i<max_directLight;i++){\nDirectLight directLight;\ndirectLight.direction=(normalMatrix*vec4(uniform_directLightSource[i*9],uniform_directLightSource[i*9+1],uniform_directLightSource[i*9+2],1.0)).xyz;\ndirectLight.diffuse=vec3(uniform_directLightSource[i*9+3],uniform_directLightSource[i*9+4],uniform_directLightSource[i*9+5]);\ndirectLight.ambient=vec3(uniform_directLightSource[i*9+6],uniform_directLightSource[i*9+7],uniform_directLightSource[i*9+8]);\ndir=normalize(directLight.direction);\nlight.xyzw+=LightingBlinnPhong(dir,directLight.diffuse,directLight.ambient,normal,viewDir,0.5);\n}\n}\nvoid main(){\nnormalMatrix=inverse(uniform_ViewMatrix);\nnormalMatrix=transpose(normalMatrix);\ncalculateDirectLight(materialSource);\n}";
+        ShaderLib.diffuse_vs = "attribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvarying vec4 varying_modelViewPosition;\nvarying vec4 varying_color;\nvoid main(){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_modelViewPosition=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition=varying_modelViewPosition;\nvarying_color=attribute_color;\n}";
+        ShaderLib.directLight_fs = "const int max_directLight=0;\nuniform float uniform_directLightSource[6*max_directLight];\nstruct DirectLight{\nvec3 direction;\nvec3 diffuse;\nvec3 ambient;\n};\nvoid calculateDirectLight(MaterialSource materialSource){\nvec3 viewDir=normalize(uniform_eyepos-varying_worldPosition.xyz);\nfor(int i=0;i<max_directLight;i++){\nDirectLight directLight;\ndirectLight.direction=vec3(uniform_directLightSource[i*6],uniform_directLightSource[i*6+1],uniform_directLightSource[i*6+2]);\ndirectLight.diffuse=vec3(uniform_directLightSource[i*6+3],uniform_directLightSource[i*6+4],uniform_directLightSource[i*6+5]);\nvec3 lightDir=-directLight.direction;\nfloat diffuse=calculateLightDiffuse(varying_worldNormal,lightDir);\nfloat specular=calculateLightSpecular(varying_worldNormal,lightDir,viewDir,materialSource.specularScale);\nlight.xyz+=(materialSource.ambient+diffuse*materialSource.diffuse+specular*materialSource.specular)*directLight.diffuse;\n}\n}\nvoid main(){\ncalculateDirectLight(materialSource);\n}";
         ShaderLib.end_fs = "varying vec4 varying_color;\nvec4 outColor;\nvec4 diffuseColor;\nvec4 specularColor;\nvec4 ambientColor;\nvec4 light;\nvoid main(){\noutColor.xyz=(light.xyz+materialSource.ambient)*diffuseColor.xyz*materialSource.diffuse*varying_color.xyz;\noutColor.w=materialSource.alpha*diffuseColor.w*varying_color.w;\noutColor.xyz*=outColor.w;\ngl_FragColor=outColor;\n}";
-        ShaderLib.end_vs = "vec4 endPosition;\nuniform float uniform_materialSource[20];\nvoid main(){\ngl_PointSize=50.0;\ngl_PointSize=uniform_materialSource[18];\ngl_Position=uniform_ProjectionMatrix*outPosition;\n}";
-        ShaderLib.lightingBase_fs = "vec4 LightingBlinnPhong(vec3 lightDir,vec3 lightColor,vec3 lightAmbient,vec3 normal,vec3 viewDir,float atten){\nfloat NdotL=clamp(dot(normal,lightDir),0.0,1.0);\nvec3 diffuse=lightColor.xyz*NdotL;\nvec3 h=normalize(lightDir+normalize(viewDir));\nfloat nh=clamp(dot(normal,h),0.0,1.0);\nfloat specPower=pow(nh,materialSource.shininess)*materialSource.specularScale;\nvec3 specular=lightColor.xyz*specPower*materialSource.specular;\nspecularColor.xyz+=specular;\nvec4 c;\nc.rgb=(diffuse+specular+lightAmbient)*(atten*2.0);\nc.a=materialSource.alpha+(specPower*atten);\nreturn c;\n}\nvoid main(){\nlight.xyzw=vec4(0.0,0.0,0.0,1.0);\n}";
+        ShaderLib.end_vs = "uniform float uniform_materialSource[20];\nvoid main(){\ngl_PointSize=uniform_materialSource[18];\ngl_Position=uniform_ProjectionMatrix*outPosition;\n}";
+        ShaderLib.lightingBase_fs = "float computeDistanceLightFalloff(float lightDistance,float range){\nreturn max(0.0,1.0-lightDistance/range);\n}\nfloat calculateLightDiffuse(vec3 normal,vec3 lightDir){\nreturn clamp(dot(normal,lightDir),0.0,1.0);\n}\nfloat calculateLightSpecular(vec3 normal,vec3 lightDir,vec3 viewDir,float glossiness){\nvec3 halfVec=normalize(lightDir+viewDir);\nfloat specComp=max(dot(normal,halfVec),0.0);\nspecComp=pow(specComp,glossiness);\nreturn specComp;\n}\nvoid main(){\nlight.xyzw=vec4(0.0,0.0,0.0,1.0);\n}";
         ShaderLib.materialSource_fs = "struct MaterialSource{\nvec3 diffuse;\nvec3 ambient;\nvec3 specular;\nfloat alpha;\nfloat cutAlpha;\nfloat shininess;\nfloat roughness;\nfloat albedo;\nvec4 uvRectangle;\nfloat specularScale;\nfloat normalScale;\n};\nuniform float uniform_materialSource[20];\nvarying vec2 varying_uv0;\nMaterialSource materialSource;\nvec2 uv_0;\nvoid main(){\nmaterialSource.diffuse.x=uniform_materialSource[0];\nmaterialSource.diffuse.y=uniform_materialSource[1];\nmaterialSource.diffuse.z=uniform_materialSource[2];\nmaterialSource.ambient.x=uniform_materialSource[3];\nmaterialSource.ambient.y=uniform_materialSource[4];\nmaterialSource.ambient.z=uniform_materialSource[5];\nmaterialSource.specular.x=uniform_materialSource[6];\nmaterialSource.specular.y=uniform_materialSource[7];\nmaterialSource.specular.z=uniform_materialSource[8];\nmaterialSource.alpha=uniform_materialSource[9];\nmaterialSource.cutAlpha=uniform_materialSource[10];\nmaterialSource.shininess=uniform_materialSource[11];\nmaterialSource.specularScale=uniform_materialSource[12];\nmaterialSource.albedo=uniform_materialSource[13];\nmaterialSource.uvRectangle.x=uniform_materialSource[14];\nmaterialSource.uvRectangle.y=uniform_materialSource[15];\nmaterialSource.uvRectangle.z=uniform_materialSource[16];\nmaterialSource.uvRectangle.w=uniform_materialSource[17];\nmaterialSource.specularScale=uniform_materialSource[18];\nmaterialSource.normalScale=uniform_materialSource[19];\nuv_0=varying_uv0.xy*materialSource.uvRectangle.zw+materialSource.uvRectangle.xy;\n}";
-        ShaderLib.normalMap_fs = "uniform sampler2D normalTexture;\nvarying vec2 varying_uv0;\nvarying vec4 varying_mvPose;\nmat3 TBN;\nmat3 cotangentFrame(vec3 N,vec3 p,vec2 uv){\nvec3 dp1=dFdx(p);\nvec3 dp2=dFdy(p);\nvec2 duv1=dFdx(uv);\nvec2 duv2=dFdy(uv);\nvec3 dp2perp=cross(dp2,N);\nvec3 dp1perp=cross(N,dp1);\nvec3 T=dp2perp*duv1.x+dp1perp*duv2.x;\nvec3 B=dp2perp*duv1.y+dp1perp*duv2.y;\nfloat invmax=1.0/sqrt(max(dot(T,T),dot(B,B)));\nreturn mat3(T*invmax,B*invmax,N);\n}\nvec3 tbn(vec3 map,vec3 N,vec3 V,vec2 texcoord){\nmat3 TBN=cotangentFrame(N,-V,texcoord);\nreturn normalize(TBN*map);\n}\nvoid main(){\nvec3 normalTex=texture2D(normalTexture,uv_0).xyz*2.0-1.0;\nnormalTex.y*=-1.0;\nnormal.xyz=tbn(normalTex.xyz,normal.xyz,varying_mvPose.xyz,uv_0);\n}";
-        ShaderLib.normalPassEnd_fs = "void main(){\ngl_FragColor=vec4(normal,1.0);\n}";
-        ShaderLib.pointLight_fs = "const int max_pointLight=0;\nuniform float uniform_pointLightSource[12*max_pointLight];\nvarying vec4 varying_mvPose;\nstruct PointLight{\nvec3 position;\nvec3 diffuse;\nvec3 ambient;\nfloat intensity;\nfloat radius;\nfloat cutoff;\n};\nvoid calculatePointLight(MaterialSource materialSource){\nvec3 N=normal;\nvec3 viewDir=normalize(varying_mvPose.xyz/varying_mvPose.w);\nfor(int i=0;i<max_pointLight;i++){\nPointLight pointLight;\npointLight.position=vec3(uniform_pointLightSource[i*12],uniform_pointLightSource[i*12+1],uniform_pointLightSource[i*12+2]);\npointLight.diffuse=vec3(uniform_pointLightSource[i*12+3],uniform_pointLightSource[i*12+4],uniform_pointLightSource[i*12+5]);\npointLight.ambient=vec3(uniform_pointLightSource[i*12+6],uniform_pointLightSource[i*12+7],uniform_pointLightSource[i*12+8]);\npointLight.intensity=uniform_pointLightSource[i*12+9];\npointLight.radius=uniform_pointLightSource[i*12+10];\npointLight.cutoff=uniform_pointLightSource[i*12+11];\nvec3 lightCentre=(mat4(uniform_ViewMatrix)*vec4(pointLight.position.xyz,1.0)).xyz;\nfloat r=pointLight.radius*0.5;\nvec3 ldir=varying_mvPose.xyz-lightCentre;\nfloat distance=length(ldir);\nfloat d=max(distance-r,0.0);\nvec3 L=ldir/distance;\nfloat denom=d/r+1.0;\nfloat attenuation=1.0/(denom*denom);\nfloat cutoff=pointLight.cutoff;\nattenuation=(attenuation-cutoff)/(1.0-cutoff);\nattenuation=max(attenuation*pointLight.intensity,0.0);\nlight.xyzw+=LightingBlinnPhong(normalize(ldir),pointLight.diffuse,pointLight.ambient,N,viewDir,attenuation);\n};\n}\nvoid main(){\ncalculatePointLight(materialSource);\n}";
+        ShaderLib.normalMap_fs = "uniform sampler2D normalTexture;\nvarying vec2 varying_uv0;\nvarying vec4 varying_modelViewPosition;\nmat3 cotangentFrame(vec3 N,vec3 p,vec2 uv){\nvec3 dp1=dFdx(p);\nvec3 dp2=dFdy(p);\nvec2 duv1=dFdx(uv);\nvec2 duv2=dFdy(uv);\nvec3 dp2perp=cross(dp2,N);\nvec3 dp1perp=cross(N,dp1);\nvec3 T=dp2perp*duv1.x+dp1perp*duv2.x;\nvec3 B=dp2perp*duv1.y+dp1perp*duv2.y;\nfloat invmax=1.0/sqrt(max(dot(T,T),dot(B,B)));\nreturn mat3(T*invmax,B*invmax,N);\n}\nvec3 tbn(vec3 map,vec3 N,vec3 V,vec2 texcoord){\nmat3 TBN=cotangentFrame(N,-V,texcoord);\nreturn normalize(TBN*map);\n}\nvoid main(){\nvec3 normalTex=texture2D(normalTexture,uv_0).xyz*2.0-1.0;\nnormalTex.y*=-1.0;\nnormal.xyz=tbn(normalTex.xyz,normal.xyz,varying_modelViewPosition.xyz,uv_0);\n}";
+        ShaderLib.pointLight_fs = "const int max_pointLight=0;\nuniform float uniform_pointLightSource[7*max_pointLight];\nstruct PointLight{\nvec3 position;\nvec3 diffuse;\nvec3 ambient;\nfloat intensity;\nfloat radius;\n};\nvoid calculatePointLight(MaterialSource materialSource){\nvec3 viewDir=normalize(uniform_eyepos-varying_worldPosition.xyz);\nfor(int i=0;i<max_pointLight;i++){\nPointLight pointLight;\npointLight.position=vec3(uniform_pointLightSource[i*7],uniform_pointLightSource[i*7+1],uniform_pointLightSource[i*7+2]);\npointLight.diffuse=vec3(uniform_pointLightSource[i*7+3],uniform_pointLightSource[i*7+4],uniform_pointLightSource[i*7+5]);\npointLight.radius=uniform_pointLightSource[i*7+6];\nvec3 lightOffset=pointLight.position-varying_worldPosition.xyz;\nvec3 lightDir=normalize(lightOffset);\nfloat falloff=computeDistanceLightFalloff(length(lightOffset),pointLight.radius);\nfloat diffuse=calculateLightDiffuse(varying_worldNormal,lightDir);\nfloat specular=calculateLightSpecular(varying_worldNormal,lightDir,viewDir,materialSource.specularScale);\nlight.xyz+=(materialSource.ambient+diffuse*materialSource.diffuse+specular*materialSource.specular)*pointLight.diffuse*falloff;\n}\n}\nvoid main(){\ncalculatePointLight(materialSource);\n}";
         ShaderLib.shadowMapping_fs = "uniform sampler2D shadowMapTexture;\nuniform vec4 uniform_ShadowColor;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvec3 shadowColor=vec3(1.0,1.0,1.0);\nfloat offset=uniform_ShadowColor.w;\nvec2 sample=varying_ShadowCoord.xy/varying_ShadowCoord.w*0.5+0.5;\nif(sample.x>=0.0 && sample.x<=1.0 && sample.y>=0.0 && sample.y<=1.0){\nvec4 sampleDepth=texture2D(shadowMapTexture,sample).xyzw;\nfloat depth=varying_ShadowCoord.z;\nif(sampleDepth.z !=0.0){\nif(sampleDepth.z<depth-offset){\nshadowColor=uniform_ShadowColor.xyz;\n}\n}\n}\ndiffuseColor.xyz=diffuseColor.xyz*shadowColor;\n}";
         ShaderLib.shadowMapping_vs = "uniform mat4 uniform_ShadowMatrix;\nuniform mat4 uniform_ModelMatrix;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvarying_ShadowCoord=uniform_ShadowMatrix*uniform_ModelMatrix*vec4(e_position,1.0);\n}";
         ShaderLib.shadowPass_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\ndiffuseColor=varying_color;\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=texture2D(diffuseTexture,varying_uv0);\nif(diffuseColor.w<=0.3){\ndiscard;\n}\ngl_FragColor=vec4(varying_pos.zzz,1.0);\n}";
         ShaderLib.shadowPass_vs = "attribute vec3 attribute_position;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\nvarying_pos=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\ngl_Position=varying_pos;\n}";
-        ShaderLib.skeleton_vs = "attribute vec4 attribute_boneIndex;\nattribute vec4 attribute_boneWeight;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvec4 e_boneIndex=vec4(0.0,0.0,0.0,0.0);\nvec4 e_boneWeight=vec4(0.0,0.0,0.0,0.0);\nconst int bonesNumber=0;\nuniform vec4 uniform_PoseMatrix[bonesNumber];\nvarying vec4 varying_mvPose;\nmat4 buildMat4(int index){\nvec4 quat=uniform_PoseMatrix[index*2+0];\nvec4 translation=uniform_PoseMatrix[index*2+1];\nfloat xy2=2.0*quat.x*quat.y;\nfloat xz2=2.0*quat.x*quat.z;\nfloat xw2=2.0*quat.x*quat.w;\nfloat yz2=2.0*quat.y*quat.z;\nfloat yw2=2.0*quat.y*quat.w;\nfloat zw2=2.0*quat.z*quat.w;\nfloat xx=quat.x*quat.x;\nfloat yy=quat.y*quat.y;\nfloat zz=quat.z*quat.z;\nfloat ww=quat.w*quat.w;\nmat4 matrix=mat4(\nxx-yy-zz+ww,xy2+zw2,xz2-yw2,0,\nxy2-zw2,-xx+yy-zz+ww,yz2+xw2,0,\nxz2+yw2,yz2-xw2,-xx-yy+zz+ww,0,\ntranslation.x,translation.y,translation.z,1\n);\nreturn matrix;\n}\nvoid main(){\ne_boneIndex=attribute_boneIndex;\ne_boneWeight=attribute_boneWeight;\nvec4 temp_position=vec4(attribute_position,1.0);\nvec4 temp_normal=vec4(attribute_normal,0.0);\nmat4 m0=buildMat4(int(e_boneIndex.x));\nmat4 m1=buildMat4(int(e_boneIndex.y));\nmat4 m2=buildMat4(int(e_boneIndex.z));\nmat4 m3=buildMat4(int(e_boneIndex.w));\noutPosition=m0*temp_position*e_boneWeight.x;\noutPosition+=m1*temp_position*e_boneWeight.y;\noutPosition+=m2*temp_position*e_boneWeight.z;\noutPosition+=m3*temp_position*e_boneWeight.w;\ne_position=outPosition.xyz;\nvec4 temp_n;\ntemp_n=m0*temp_normal*e_boneWeight.x;\ntemp_n+=m1*temp_normal*e_boneWeight.y;\ntemp_n+=m2*temp_normal*e_boneWeight.z;\ntemp_n+=m3*temp_normal*e_boneWeight.w;\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_mvPose=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition.xyzw=varying_mvPose.xyzw;\nvarying_color=attribute_color;\n}";
-        ShaderLib.spotLight_fs = "";
-        ShaderLib.varyingViewDir_vs = "varying vec3 varying_ViewDir;\nuniform vec3 uniform_eyepos;\nvoid main(){\nvarying_ViewDir=uniform_eyepos.xyz-e_position;\n}";
+        ShaderLib.skeleton_vs = "attribute vec4 attribute_boneIndex;\nattribute vec4 attribute_boneWeight;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvec4 e_boneIndex=vec4(0.0,0.0,0.0,0.0);\nvec4 e_boneWeight=vec4(0.0,0.0,0.0,0.0);\nconst int bonesNumber=0;\nuniform vec4 uniform_PoseMatrix[bonesNumber];\nvarying vec4 varying_modelViewPosition;\nmat4 buildMat4(int index){\nvec4 quat=uniform_PoseMatrix[index*2+0];\nvec4 translation=uniform_PoseMatrix[index*2+1];\nfloat xy2=2.0*quat.x*quat.y;\nfloat xz2=2.0*quat.x*quat.z;\nfloat xw2=2.0*quat.x*quat.w;\nfloat yz2=2.0*quat.y*quat.z;\nfloat yw2=2.0*quat.y*quat.w;\nfloat zw2=2.0*quat.z*quat.w;\nfloat xx=quat.x*quat.x;\nfloat yy=quat.y*quat.y;\nfloat zz=quat.z*quat.z;\nfloat ww=quat.w*quat.w;\nmat4 matrix=mat4(\nxx-yy-zz+ww,xy2+zw2,xz2-yw2,0,\nxy2-zw2,-xx+yy-zz+ww,yz2+xw2,0,\nxz2+yw2,yz2-xw2,-xx-yy+zz+ww,0,\ntranslation.x,translation.y,translation.z,1\n);\nreturn matrix;\n}\nvoid main(){\ne_boneIndex=attribute_boneIndex;\ne_boneWeight=attribute_boneWeight;\nvec4 temp_position=vec4(attribute_position,1.0);\nvec4 temp_normal=vec4(attribute_normal,0.0);\nmat4 m0=buildMat4(int(e_boneIndex.x));\nmat4 m1=buildMat4(int(e_boneIndex.y));\nmat4 m2=buildMat4(int(e_boneIndex.z));\nmat4 m3=buildMat4(int(e_boneIndex.w));\noutPosition=m0*temp_position*e_boneWeight.x;\noutPosition+=m1*temp_position*e_boneWeight.y;\noutPosition+=m2*temp_position*e_boneWeight.z;\noutPosition+=m3*temp_position*e_boneWeight.w;\ne_position=outPosition.xyz;\nvec4 temp_n;\ntemp_n=m0*temp_normal*e_boneWeight.x;\ntemp_n+=m1*temp_normal*e_boneWeight.y;\ntemp_n+=m2*temp_normal*e_boneWeight.z;\ntemp_n+=m3*temp_normal*e_boneWeight.w;\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_modelViewPosition=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition.xyzw=varying_modelViewPosition.xyzw;\nvarying_color=attribute_color;\n}";
+        ShaderLib.spotLight_fs = "const int max_spotLight=0;\nuniform float uniform_spotLightSource[12*max_spotLight];\nstruct SpotLight{\nvec3 position;\nvec3 direction;\nvec3 diffuse;\nvec3 ambient;\nfloat range;\nfloat coneCos;\nfloat penumbraCos;\n};\nvoid calculateSpotLight(MaterialSource materialSource){\nvec3 viewDir=normalize(uniform_eyepos-varying_worldPosition.xyz);\nfor(int i=0;i<max_spotLight;i++){\nSpotLight spotLight;\nspotLight.position=vec3(uniform_spotLightSource[i*12],uniform_spotLightSource[i*12+1],uniform_spotLightSource[i*12+2]);\nspotLight.direction=vec3(uniform_spotLightSource[i*12+3],uniform_spotLightSource[i*12+4],uniform_spotLightSource[i*12+5]);\nspotLight.diffuse=vec3(uniform_spotLightSource[i*12+6],uniform_spotLightSource[i*12+7],uniform_spotLightSource[i*12+8]);\nspotLight.range=uniform_spotLightSource[i*12+9];\nspotLight.coneCos=uniform_spotLightSource[i*12+10];\nspotLight.penumbraCos=uniform_spotLightSource[i*12+11];\nvec3 lightOffset=spotLight.position-varying_worldPosition.xyz;\nvec3 lightDir=normalize(lightOffset);\nfloat angleCos=dot(lightDir,-spotLight.direction);\nif(angleCos>spotLight.coneCos){\nfloat spotEffect=smoothstep(spotLight.coneCos,spotLight.penumbraCos,angleCos);\nfloat falloff=computeDistanceLightFalloff(length(lightOffset)*angleCos,spotLight.range);\nfloat diffuse=calculateLightDiffuse(varying_worldNormal,lightDir);\nfloat specular=calculateLightSpecular(varying_worldNormal,lightDir,viewDir,materialSource.specularScale);\nlight.xyz+=(materialSource.ambient+diffuse*materialSource.diffuse+specular*materialSource.specular)*spotLight.diffuse*falloff*spotEffect;\n}\n}\n}\nvoid main(){\ncalculateSpotLight(materialSource);\n}";
     })(ShaderLib = dou3d.ShaderLib || (dou3d.ShaderLib = {}));
 })(dou3d || (dou3d = {}));
 var dou3d;
@@ -12516,7 +12237,7 @@ var dou3d;
         /**
          * 返回组合着色器后的内容
          */
-        function fillShaderContent(shaderBase, shaderNameList, usage) {
+        function fillShaderContent(shaderComposer, shaderNameList, usage) {
             var shaderContent;
             var i = 0;
             var varName = "";
@@ -12568,37 +12289,34 @@ var dou3d;
                     case "max_directLight":
                         constR.value = usage.maxDirectLight;
                         break;
-                    case "max_spotLight":
-                        constR.value = usage.maxSpotLight;
-                        break;
                     case "max_pointLight":
                         constR.value = usage.maxPointLight;
                         break;
+                    case "max_spotLight":
+                        constR.value = usage.maxSpotLight;
+                        break;
                     case "bonesNumber":
-                        shaderBase.maxBone = usage.maxBone;
                         constR.value = usage.maxBone;
                         break;
                 }
             }
-            // sampler
             for (i = 0; i < shaderContent.sampler2DList.length; i++) {
                 var sampler2D = shaderContent.sampler2DList[i];
                 sampler2D.index = i;
                 usage.sampler2DList.push(sampler2D);
                 sampler2D.activeTextureIndex = getTexture2DIndex(i);
             }
-            // sampler
             for (i = 0; i < shaderContent.sampler3DList.length; i++) {
                 var sampler3D = shaderContent.sampler3DList[i];
                 sampler3D.activeTextureIndex = getTexture2DIndex(shaderContent.sampler2DList.length + i);
                 sampler3D.index = shaderContent.sampler2DList.length + i;
                 usage.sampler3DList.push(sampler3D);
             }
-            synthesisShader(shaderContent, shaderBase);
-            return dou3d.ShaderPool.getGPUShader(shaderBase.shaderType, shaderContent.name, shaderContent.source);
+            synthesisShader(shaderContent, shaderComposer);
+            return dou3d.ShaderPool.getGPUShader(shaderComposer.shaderType, shaderContent.name, shaderContent.source);
         }
         ShaderUtil.fillShaderContent = fillShaderContent;
-        function synthesisShader(content, shaderBase) {
+        function synthesisShader(content, shaderComposer) {
             var i;
             var source = "";
             for (i = 0; i < content.extensionList.length; i++) {
@@ -12608,36 +12326,28 @@ var dou3d;
             for (i = 0; i < content.defineList.length; i++) {
                 source += connectDefine(content.defineList[i]);
             }
-            // let attribute
             for (i = 0; i < content.attributeList.length; i++) {
                 source += connectAtt(content.attributeList[i]);
             }
-            // let struct
             for (i = 0; i < content.structNames.length; i++) {
                 source += connectStruct(content.structDict[content.structNames[i]]);
             }
-            // let varying
             for (i = 0; i < content.varyingList.length; i++) {
                 source += connectVarying(content.varyingList[i]);
             }
-            // temp
             for (i = 0; i < content.tempList.length; i++) {
                 source += connectTemp(content.tempList[i]);
             }
-            // const
             for (i = 0; i < content.constList.length; i++) {
                 source += connectConst(content.constList[i]);
             }
-            // uniform
             for (i = 0; i < content.uniformList.length; i++) {
                 source += connectUniform(content.uniformList[i]);
             }
-            // sampler
             for (i = 0; i < content.sampler2DList.length; i++) {
                 var sampler2D = content.sampler2DList[i];
                 source += connectSampler(sampler2D);
             }
-            // sampler
             for (i = 0; i < content.sampler3DList.length; i++) {
                 var sampler3D = content.sampler3DList[i];
                 source += connectSampler3D(sampler3D);
@@ -12718,15 +12428,15 @@ var dou3d;
             this._enableShadow = false;
             this._textureWidth = 1024 * 4;
             this._textureHeight = 1024 * 4;
-            this._shadowCamera = new dou3d.Camera3D(1 /* orthogonal */);
-            this._shadowRender = new dou3d.MultiRenderer(3 /* shadowPass */);
-            this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, 3 /* UNSIGNED_BYTE_RGBA */);
-            this.castShadowLight(new dou3d.DirectLight(new dou3d.Vector3(0, -1, 1)));
-            var vec3 = dou.recyclable(dou3d.Vector3);
-            vec3.copy(this._directLight.direction);
-            vec3.negate();
-            vec3.addScalar(1000);
-            this._shadowCamera.globalPosition = vec3;
+            // this._shadowCamera = new Camera3D(CameraType.orthogonal);
+            // this._shadowRender = new MultiRenderer(PassType.shadowPass);
+            // this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, FrameBufferFormat.UNSIGNED_BYTE_RGBA);
+            // this.castShadowLight(new DirectLight(0xffffff, new Vector3(0, -1, 1)));
+            // let vec3 = dou.recyclable(Vector3);
+            // vec3.copy(this._directLight.direction);
+            // vec3.negate();
+            // vec3.addScalar(1000);
+            // this._shadowCamera.globalPosition = vec3;
         }
         Object.defineProperty(ShadowCast, "instance", {
             get: function () {
@@ -12853,6 +12563,9 @@ var dou3d;
             _this._ready = false;
             return _this;
         }
+        /**
+         * 从大图集中的某一区域进行拷贝
+         */
         TextureBase.prototype.copyFromTexture = function (texture, x, y, width, height) {
             this.parentTexture = texture;
             texture.width = width;
@@ -12950,8 +12663,8 @@ var dou3d;
                 this.texture2D.texture = context3D.createTexture();
                 this.texture2D.internalFormat = 0 /* imageData */;
                 this.texture2D.imageData = this._imageData;
-                this.texture2D.dataFormat = dou3d.ContextConfig.UNSIGNED_BYTE;
-                this.texture2D.colorFormat = dou3d.ContextConfig.ColorFormat_RGBA8888;
+                this.texture2D.dataFormat = dou3d.Context3DProxy.gl.UNSIGNED_BYTE;
+                this.texture2D.colorFormat = dou3d.Context3DProxy.gl.RGBA;
                 context3D.upLoadTextureData(0, this);
             }
         };
@@ -13131,8 +12844,8 @@ var dou3d;
                 this.texture2D.texture = this.texture2D.texture || context3D.createTexture();
                 this.texture2D.border = 0;
                 this.texture2D.internalFormat = 2 /* pixelArray */;
-                this.texture2D.dataFormat = dou3d.ContextConfig.UNSIGNED_BYTE;
-                this.texture2D.colorFormat = dou3d.ContextConfig.ColorFormat_RGBA8888;
+                this.texture2D.dataFormat = dou3d.Context3DProxy.gl.UNSIGNED_BYTE;
+                this.texture2D.colorFormat = dou3d.Context3DProxy.gl.RGBA;
                 this.texture2D.mimapData = [];
                 this.texture2D.mimapData.push(new dou3d.MipmapData(this._pixelArray, this.width, this.height));
                 this.texture2D.width = this.width;

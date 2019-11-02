@@ -2,18 +2,22 @@
 // 灯光相关片段着色器
 // -----
 
-vec4 LightingBlinnPhong(vec3 lightDir, vec3 lightColor, vec3 lightAmbient, vec3 normal, vec3 viewDir, float atten) {
-    float NdotL = clamp(dot(normal, lightDir), 0.0, 1.0);
-    vec3 diffuse = lightColor.xyz * NdotL;
-    vec3 h = normalize(lightDir + normalize(viewDir));
-    float nh = clamp(dot(normal, h), 0.0, 1.0);
-    float specPower = pow(nh, materialSource.shininess) * materialSource.specularScale;
-    vec3 specular = lightColor.xyz * specPower * materialSource.specular;
-    specularColor.xyz += specular;
-    vec4 c;
-    c.rgb = (diffuse + specular + lightAmbient) * (atten * 2.0);
-    c.a = materialSource.alpha + (specPower * atten);
-    return c;
+// 根据距离计算衰减
+float computeDistanceLightFalloff(float lightDistance, float range) {
+    return max(0.0, 1.0 - lightDistance / range);
+}
+
+// 计算光照漫反射系数
+float calculateLightDiffuse(vec3 normal, vec3 lightDir) {
+    return clamp(dot(normal, lightDir), 0.0, 1.0);
+}
+
+// 计算光照镜面反射系数
+float calculateLightSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float glossiness) {
+    vec3 halfVec = normalize(lightDir + viewDir);
+    float specComp = max(dot(normal, halfVec), 0.0);
+    specComp = pow(specComp, glossiness);
+    return specComp;
 }
 
 void main() {
