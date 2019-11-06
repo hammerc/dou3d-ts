@@ -14,37 +14,47 @@
 
 1. 在编写代码之前请引入为于**examples/lib**文件夹中的**dou.js**和**dou3d.js**两个文件：
 
-    &#60;script type="text/javascript" src="examples/lib/dou.js"&#62;&#60;/script&#62;
-    &#60;script type="text/javascript" src="examples/lib/dou3d.js"&#62;&#60;/script&#62;
+```html
+<script type="text/javascript" src="examples/lib/dou.js"></script>
+<script type="text/javascript" src="examples/lib/dou3d.js"></script>
+```
 
-2. 需要外部加载资源时，请注册加载类型解析器：
+1. 需要外部加载资源时，请注册加载类型解析器：
 
-    // 注册贴图解析器并绑定对应的文件后缀名
-    dou.loader.registerAnalyzer("texture", new dou3d.TextureAnalyzer());
-    dou.loader.registerExtension("jpg", "texture");
-    dou.loader.registerExtension("jpeg", "texture");
-    dou.loader.registerExtension("png", "texture");
+```javascript
+// 注册贴图解析器并绑定对应的文件后缀名
+dou.loader.registerAnalyzer("texture", new dou3d.TextureAnalyzer());
+dou.loader.registerExtension("jpg", "texture");
+dou.loader.registerExtension("jpeg", "texture");
+dou.loader.registerExtension("png", "texture");
+```
 
-3. 启动引擎并创建View3D对象：
+2. 启动引擎并创建View3D对象：
 
-    var engine = new dou3d.Engine();
-    var viewRect = engine.viewRect;
-    var view3D = new dou3d.View3D(0, 0, viewRect.w, viewRect.h);
-    view3D.on(dou3d.Event3D.RESIZE, function () {
-        view3D.width = viewRect.w;
-        view3D.height = viewRect.h;
-    });
-    engine.addView3D(view3D);
+```javascript
+var engine = new dou3d.Engine();
+var viewRect = engine.viewRect;
+var view3D = new dou3d.View3D(0, 0, viewRect.w, viewRect.h);
+view3D.on(dou3d.Event3D.RESIZE, function () {
+    view3D.width = viewRect.w;
+    view3D.height = viewRect.h;
+});
+engine.addView3D(view3D);
+```
 
-4. 调整摄像机位置：
+3. 调整摄像机位置：
 
-    view3D.camera3D.lookAt(new dou3d.Vector3(0, 0, -1000), new dou3d.Vector3(0, 0, 0));
+```javascript
+view3D.camera3D.lookAt(new dou3d.Vector3(0, 0, -1000), new dou3d.Vector3(0, 0, 0));
+```
 
-5. 添加立方体对象：
+4. 添加立方体对象：
 
-    var geometery = new dou3d.CubeGeometry();
-    var cube = new dou3d.Mesh(geometery);
-    view3D.scene.root.addChild(cube);
+```javascript
+var geometery = new dou3d.CubeGeometry();
+var cube = new dou3d.Mesh(geometery);
+view3D.scene.root.addChild(cube);
+```
 
 ## 未实现的引擎必备功能
 
