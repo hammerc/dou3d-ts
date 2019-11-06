@@ -7,7 +7,7 @@ namespace dou3d {
         private _buffer: WebGLBuffer;
         private _arrayBuffer: Uint16Array;
 
-        constructor(buffer: WebGLBuffer, arrayBuffer: Uint16Array) {
+        public constructor(buffer: WebGLBuffer, arrayBuffer: Uint16Array) {
             this._buffer = buffer;
             this._arrayBuffer = arrayBuffer;
         }

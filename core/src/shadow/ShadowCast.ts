@@ -1,8 +1,8 @@
 namespace dou3d {
     /**
-     * 实时阴影渲染
-     * * 基于 shadow mapping 的阴影算法, 当前阴影只支持方向光,
-     * * 摄像机 near 1 far 3000  width 2048 height 2048, 当渲染阴影的物体超出阴影摄像机的范围阴影将不会渲染阴影
+     * 实时阴影渲染, 生成阴影贴图
+     * * 基于 shadow mapping 的阴影算法, 当前阴影只支持方向光
+     * * 当渲染阴影的物体超出阴影摄像机的范围阴影将不会渲染阴影
      * @author wizardc
      */
     export class ShadowCast {
@@ -22,15 +22,11 @@ namespace dou3d {
         private _directLight: DirectLight;
 
         private constructor() {
-            // this._shadowCamera = new Camera3D(CameraType.orthogonal);
-            // this._shadowRender = new MultiRenderer(PassType.shadowPass);
-            // this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, FrameBufferFormat.UNSIGNED_BYTE_RGBA);
-            // this.castShadowLight(new DirectLight(0xffffff, new Vector3(0, -1, 1)));
-            // let vec3 = dou.recyclable(Vector3);
-            // vec3.copy(this._directLight.direction);
-            // vec3.negate();
-            // vec3.addScalar(1000);
-            // this._shadowCamera.globalPosition = vec3;
+            this._shadowCamera = new Camera3D(CameraType.orthogonal);
+            this._shadowCamera.near = 1;
+            this._shadowCamera.far = 3000;
+            this._shadowRender = new MultiRenderer(PassType.shadowPass);
+            this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, FrameBufferFormat.UNSIGNED_BYTE_RGBA);
         }
 
         public set enableShadow(value: boolean) {
@@ -86,13 +82,10 @@ namespace dou3d {
 
         /**
          * 如需要渲染阴影必须先设置当前阴影灯光, 暂支持方向光, 灯光中的变换会用于阴影像机的变换
-         * * 注意: 在阴影摄像机视锥中的物体, 阴影才会渲染
          */
         public castShadowLight(light: DirectLight): void {
             this._directLight = light;
-            this._shadowCamera.updateViewport(0, 0, 2048, 2048);
-            this._shadowCamera.near = 1;
-            this._shadowCamera.far = 3000;
+            this._shadowCamera.updateViewport(0, 0, this._textureWidth, this._textureHeight);
             light.addChild(this._shadowCamera);
         }
 

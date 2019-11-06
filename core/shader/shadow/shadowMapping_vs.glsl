@@ -1,5 +1,5 @@
 // -----
-// 阴影贴图生成顶点着色器
+// 阴影渲染顶点着色器
 // -----
 
 uniform mat4 uniform_ShadowMatrix;

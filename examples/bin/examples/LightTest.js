@@ -7,7 +7,7 @@ var examples;
             view3D.camera3D.lookAt(new dou3d.Vector3(0, 0, -1000), new dou3d.Vector3(0, 0, 0));
             dou.loader.load("resource/UV_Grid_Sm.jpg", function (data, url) {
                 if (data && data instanceof dou3d.ImageTexture) {
-                    // 从上向下照射的平行光
+                    // Z轴正方向照射的平行光
                     var directLight = new dou3d.DirectLight(0xffffff);
                     view3D.scene.root.addChild(directLight);
                     // 位于中心点照射半径为 1000 的点光源

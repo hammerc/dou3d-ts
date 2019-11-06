@@ -8,7 +8,7 @@ namespace examples {
             dou.loader.load("resource/UV_Grid_Sm.jpg", (data, url) => {
 
                 if (data && data instanceof dou3d.ImageTexture) {
-                    // 从上向下照射的平行光
+                    // Z轴正方向照射的平行光
                     let directLight = new dou3d.DirectLight(0xffffff);
                     view3D.scene.root.addChild(directLight);
 

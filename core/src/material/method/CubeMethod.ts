@@ -4,7 +4,7 @@ namespace dou3d {
      * @author wizardc
      */
     export class CubeMethod extends MethodBase {
-        constructor() {
+        public constructor() {
             super();
             this.vsShaderList[ShaderPhaseType.vertex_2] = this.fsShaderList[ShaderPhaseType.vertex_2] || [];
             this.vsShaderList[ShaderPhaseType.vertex_2].push("cube_vs");

@@ -1,5 +1,5 @@
 // -----
-// 阴影渲染顶点着色器
+// 阴影贴图生成顶点着色器
 // -----
 
 attribute vec3 attribute_position;
@@ -15,8 +15,6 @@ varying vec4 varying_color;
 varying vec4 varying_pos;
 
 void main() {
-    mat4 mvMatrix = mat4(uniform_ViewMatrix * uniform_ModelMatrix);
-
     varying_color = attribute_color;
     varying_uv0 = attribute_uv0;
 

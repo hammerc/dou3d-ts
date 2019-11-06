@@ -4,7 +4,7 @@ namespace dou3d {
      * @author wizardc
      */
     export class ShadowPass extends MaterialPass {
-        constructor(materialData: MaterialData) {
+        public constructor(materialData: MaterialData) {
             super(materialData);
             this._passID = PassType.shadowPass;
         }

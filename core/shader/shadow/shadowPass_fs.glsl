@@ -1,5 +1,5 @@
 // -----
-// 阴影渲染片段着色器
+// 阴影贴图生成片段着色器
 // -----
 
 uniform sampler2D diffuseTexture;

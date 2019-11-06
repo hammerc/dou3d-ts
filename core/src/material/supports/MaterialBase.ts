@@ -258,7 +258,7 @@ namespace dou3d {
         }
 
         /**
-         * 材质是否接受阴影
+         * 材质是否是否产生阴影
          */
         public set castShadow(value: boolean) {
             this._materialData.castShadow = value;
@@ -278,7 +278,7 @@ namespace dou3d {
         }
 
         /**
-         * 材质是否是否产生阴影
+         * 材质是否接受阴影
          */
         public set acceptShadow(value: boolean) {
             if (this._materialData.acceptShadow == value) {
