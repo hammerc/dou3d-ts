@@ -3711,7 +3711,7 @@ declare namespace dou3d {
      * 材质渲染通道基类
      * @author wizardc
      */
-    class MaterialPass {
+    abstract class MaterialPass {
         protected _passID: number;
         protected _passUsage: PassUsage;
         protected _materialData: MaterialData;
@@ -3723,7 +3723,6 @@ declare namespace dou3d {
             [phaseType: number]: string[];
         };
         methodList: MethodBase[];
-        methodDatas: MethodData[];
         vsShaderNames: string[];
         fsShaderNames: string[];
         lightGroup: LightGroup;
@@ -3748,19 +3747,11 @@ declare namespace dou3d {
          */
         protected resetTexture(context3DProxy: Context3DProxy): void;
         protected addMethodShaders(shaderComposer: ShaderComposer, shaders: string[]): void;
+        upload(time: number, delay: number, context3DProxy: Context3DProxy, modelTransform: Matrix4, camera3D: Camera3D, animation: IAnimation): void;
         /**
          * 初始化所有的渲染方法
          */
-        initUseMethod(animation: IAnimation): void;
-        /**
-         * 添加来自 Method 的着色器片段
-         */
-        protected initMethodShader(): void;
-        /**
-         * 将渲染方法的对应着色器加入到对应的 Shader 对象中以便获得最终的着色器对象
-         */
-        protected phaseEnd(): void;
-        upload(time: number, delay: number, context3DProxy: Context3DProxy, modelTransform: Matrix4, camera3D: Camera3D, animation: IAnimation): void;
+        protected abstract initShader(animation: IAnimation): void;
         draw(time: number, delay: number, context3DProxy: Context3DProxy, modelTransform: Matrix4, camera3D: Camera3D, subGeometry: SubGeometry, render: RenderBase): void;
         deactiveState(passUsage: PassUsage, context3DProxy: Context3DProxy): void;
         dispose(): void;
@@ -3863,19 +3854,7 @@ declare namespace dou3d {
         /**
          * 创建默认的渲染通道数组
          */
-        function createPass(pass: PassType, materialData: MaterialData): MaterialPass[];
-    }
-}
-declare namespace dou3d {
-    /**
-     * 渲染方法数据
-     * @author wizardc
-     */
-    class MethodData {
-        name: string;
-        uniform: any;
-        format: number;
-        data: Float32Array;
+        function createPass(pass: PassType, materialData: MaterialData): MaterialPass;
     }
 }
 declare namespace dou3d {
@@ -3949,6 +3928,19 @@ declare namespace dou3d {
      */
     class DiffusePass extends MaterialPass {
         constructor(materialData: MaterialData);
+        protected initShader(animation: IAnimation): void;
+        /**
+         * 根据属性添加需要的着色器片段
+         */
+        private phaseBegin;
+        /**
+         * 添加来自 Method 的着色器片段
+         */
+        protected initMethodShader(): void;
+        /**
+         * 将渲染方法的对应着色器加入到对应的 Shader 对象中以便获得最终的着色器对象
+         */
+        protected phaseEnd(): void;
     }
 }
 declare namespace dou3d {
@@ -3958,7 +3950,7 @@ declare namespace dou3d {
      */
     class ShadowPass extends MaterialPass {
         constructor(materialData: MaterialData);
-        initUseMethod(): void;
+        protected initShader(animation: IAnimation): void;
     }
 }
 declare namespace dou3d {

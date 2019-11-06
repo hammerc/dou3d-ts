@@ -12,14 +12,14 @@ namespace dou3d {
         /**
          * 创建默认的渲染通道数组
          */
-        export function createPass(pass: PassType, materialData: MaterialData): MaterialPass[] {
+        export function createPass(pass: PassType, materialData: MaterialData): MaterialPass {
             switch (pass) {
                 case PassType.diffusePass:
                     materialData.shaderPhaseTypes[PassType.diffusePass] = [];
-                    return [new DiffusePass(materialData)];
+                    return new DiffusePass(materialData);
                 case PassType.shadowPass:
                     materialData.shaderPhaseTypes[PassType.shadowPass] = [];
-                    return [new ShadowPass(materialData)];
+                    return new ShadowPass(materialData);
             }
             return null;
         }

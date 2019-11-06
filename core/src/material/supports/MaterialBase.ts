@@ -11,7 +11,7 @@ namespace dou3d {
         private _shadowMethod: ShadowMethod;
 
         public constructor(materialData?: MaterialData) {
-            this._passes = [];
+            this._passes = {};
             if (materialData) {
                 this.materialData = materialData;
             }
@@ -28,7 +28,7 @@ namespace dou3d {
          * 漫反射通道
          */
         public get diffusePass(): DiffusePass {
-            return this._passes[PassType.diffusePass][0];
+            return this._passes[PassType.diffusePass][0] as DiffusePass;
         }
 
         public set materialData(data: MaterialData) {
@@ -436,7 +436,10 @@ namespace dou3d {
          * 添加一个渲染通道
          */
         public addPass(pass: PassType): void {
-            this._passes[pass] = PassUtil.createPass(pass, this._materialData);
+            if (!this._passes[pass]) {
+                this._passes[pass] = [];
+            }
+            this._passes[pass].push(PassUtil.createPass(pass, this._materialData));
         }
 
         /**

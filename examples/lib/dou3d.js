@@ -9650,7 +9650,7 @@ var dou3d;
      */
     var MaterialBase = /** @class */ (function () {
         function MaterialBase(materialData) {
-            this._passes = [];
+            this._passes = {};
             if (materialData) {
                 this.materialData = materialData;
             }
@@ -10159,7 +10159,10 @@ var dou3d;
          * 添加一个渲染通道
          */
         MaterialBase.prototype.addPass = function (pass) {
-            this._passes[pass] = dou3d.PassUtil.createPass(pass, this._materialData);
+            if (!this._passes[pass]) {
+                this._passes[pass] = [];
+            }
+            this._passes[pass].push(dou3d.PassUtil.createPass(pass, this._materialData));
         };
         /**
          * 销毁指定的渲染通道
@@ -10192,7 +10195,6 @@ var dou3d;
             this._vs_shader_methods = {};
             this._fs_shader_methods = {};
             this.methodList = [];
-            this.methodDatas = [];
             this.vsShaderNames = [];
             this.fsShaderNames = [];
             this._materialData = materialData;
@@ -10257,191 +10259,9 @@ var dou3d;
                 shaderComposer.addUseShaderName(shaders[i]);
             }
         };
-        /**
-         * 初始化所有的渲染方法
-         */
-        MaterialPass.prototype.initUseMethod = function (animation) {
-            this._passChange = false;
-            this._passUsage = new dou3d.PassUsage();
-            this._vs_shader_methods = {};
-            this._fs_shader_methods = {};
-            // 动画
-            if (animation) {
-                // 添加骨骼动画处理着色器
-                if (animation instanceof dou3d.SkeletonAnimation) {
-                    this._passUsage.maxBone = animation.jointNum * 2;
-                    this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex] = [];
-                    this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex].push("skeleton_vs");
-                }
-            }
-            // 根据属性设定加入需要的渲染方法
-            if (this._materialData.acceptShadow) {
-                // 添加接受阴影的 Shader
-                this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_2] = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_2] || [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment] = this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment] || [];
-            }
-            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.diffuse_fragment)) {
-                this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment].push("diffuse_fs");
-            }
-            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.normal_fragment)) {
-                this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment].push("normalMap_fs");
-            }
-            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.specular_fragment)) {
-                this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment].push("specularMap_fs");
-            }
-            // 灯光相关的渲染方法
-            if (this.lightGroup) {
-                this._passUsage.maxDirectLight = this.lightGroup.directList.length;
-                this._passUsage.maxSpotLight = this.lightGroup.spotList.length;
-                this._passUsage.maxPointLight = this.lightGroup.pointList.length;
-                this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_1] = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_1] || [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment] = [];
-                this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("lightingBase_fs");
-                if (this.lightGroup.directList.length) {
-                    this._passUsage.directLightData = new Float32Array(dou3d.DirectLight.stride * this.lightGroup.directList.length);
-                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("directLight_fs");
-                }
-                if (this.lightGroup.pointList.length) {
-                    this._passUsage.pointLightData = new Float32Array(dou3d.PointLight.stride * this.lightGroup.pointList.length);
-                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("pointLight_fs");
-                }
-                if (this.lightGroup.spotList.length) {
-                    this._passUsage.spotLightData = new Float32Array(dou3d.SpotLight.stride * this.lightGroup.spotList.length);
-                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("spotLight_fs");
-                }
-            }
-            this.initMethodShader();
-            this.phaseEnd();
-        };
-        /**
-         * 添加来自 Method 的着色器片段
-         */
-        MaterialPass.prototype.initMethodShader = function () {
-            var shaderPhase;
-            var shaderList;
-            for (var d = 0; d < this.methodList.length; d++) {
-                var method = this.methodList[d];
-                for (shaderPhase in method.vsShaderList) {
-                    shaderList = method.vsShaderList[shaderPhase];
-                    for (var i = 0; i < shaderList.length; i++) {
-                        this._vs_shader_methods[shaderPhase] = this._vs_shader_methods[shaderPhase] || [];
-                        this._vs_shader_methods[shaderPhase].push(shaderList[i]);
-                    }
-                }
-                for (shaderPhase in method.fsShaderList) {
-                    shaderList = method.fsShaderList[shaderPhase];
-                    for (var i = 0; i < shaderList.length; i++) {
-                        this._fs_shader_methods[shaderPhase] = this._fs_shader_methods[shaderPhase] || [];
-                        this._fs_shader_methods[shaderPhase].push(shaderList[i]);
-                    }
-                }
-            }
-        };
-        /**
-         * 将渲染方法的对应着色器加入到对应的 Shader 对象中以便获得最终的着色器对象
-         */
-        MaterialPass.prototype.phaseEnd = function () {
-            var shaderList;
-            // 顶点着色器
-            shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.custom_vertex];
-            if (shaderList && shaderList.length > 0) {
-                this.addMethodShaders(this._passUsage.vertexShader, shaderList);
-            }
-            // 没有时加入默认的着色器
-            else {
-                this.addMethodShaders(this._passUsage.vertexShader, ["base_vs"]);
-                // start
-                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
-                }
-                else {
-                    this.addMethodShaders(this._passUsage.vertexShader, ["diffuse_vs"]);
-                }
-                // vertex_1
-                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_1];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
-                }
-                // vertex_2
-                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_2];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
-                }
-                // end
-                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.end_vertex];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
-                }
-                else {
-                    this.addMethodShaders(this._passUsage.vertexShader, ["end_vs"]);
-                }
-            }
-            // 片段着色器
-            shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.custom_fragment];
-            if (shaderList && shaderList.length > 0) {
-                this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-            }
-            // 没有时加入默认的着色器
-            else {
-                this.addMethodShaders(this._passUsage.fragmentShader, ["base_fs"]);
-                // start
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.start_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // materialsource
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.materialsource_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                else {
-                    this.addMethodShaders(this._passUsage.fragmentShader, ["materialSource_fs"]);
-                }
-                // diffuse
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                else {
-                    this.addMethodShaders(this._passUsage.fragmentShader, ["diffuse_fs"]);
-                }
-                // normal
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // shadow
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // lighting
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // specular
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                // end
-                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment];
-                if (shaderList && shaderList.length > 0) {
-                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
-                }
-                else {
-                    this.addMethodShaders(this._passUsage.fragmentShader, ["end_fs"]);
-                }
-            }
-        };
         MaterialPass.prototype.upload = function (time, delay, context3DProxy, modelTransform, camera3D, animation) {
             this._passChange = false;
-            this.initUseMethod(animation);
+            this.initShader(animation);
             this._passUsage.vertexShader.shader = this._passUsage.vertexShader.getShader(this._passUsage);
             this._passUsage.fragmentShader.shader = this._passUsage.fragmentShader.getShader(this._passUsage);
             this._passUsage.program3D = dou3d.ShaderPool.getProgram(this._passUsage.vertexShader.shader.id, this._passUsage.fragmentShader.shader.id);
@@ -10703,28 +10523,15 @@ var dou3d;
             switch (pass) {
                 case 0 /* diffusePass */:
                     materialData.shaderPhaseTypes[0 /* diffusePass */] = [];
-                    return [new dou3d.DiffusePass(materialData)];
+                    return new dou3d.DiffusePass(materialData);
                 case 1 /* shadowPass */:
                     materialData.shaderPhaseTypes[1 /* shadowPass */] = [];
-                    return [new dou3d.ShadowPass(materialData)];
+                    return new dou3d.ShadowPass(materialData);
             }
             return null;
         }
         PassUtil.createPass = createPass;
     })(PassUtil = dou3d.PassUtil || (dou3d.PassUtil = {}));
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 渲染方法数据
-     * @author wizardc
-     */
-    var MethodData = /** @class */ (function () {
-        function MethodData() {
-        }
-        return MethodData;
-    }());
-    dou3d.MethodData = MethodData;
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -10859,6 +10666,191 @@ var dou3d;
             _this._passID = 0 /* diffusePass */;
             return _this;
         }
+        DiffusePass.prototype.initShader = function (animation) {
+            this._passChange = false;
+            this._passUsage = new dou3d.PassUsage();
+            this._vs_shader_methods = {};
+            this._fs_shader_methods = {};
+            this.phaseBegin(animation);
+            this.initMethodShader();
+            this.phaseEnd();
+        };
+        /**
+         * 根据属性添加需要的着色器片段
+         */
+        DiffusePass.prototype.phaseBegin = function (animation) {
+            // 动画
+            if (animation) {
+                // 添加骨骼动画处理着色器
+                if (animation instanceof dou3d.SkeletonAnimation) {
+                    this._passUsage.maxBone = animation.jointNum * 2;
+                    this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex] = [];
+                    this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex].push("skeleton_vs");
+                }
+            }
+            // 根据属性设定加入需要的渲染方法
+            if (this._materialData.acceptShadow) {
+                // 添加接受阴影的 Shader
+                this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_2] = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_2] || [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment] = this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment] || [];
+            }
+            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.diffuse_fragment)) {
+                this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment] = [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment].push("diffuse_fs");
+            }
+            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.normal_fragment)) {
+                this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment] = [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment].push("normalMap_fs");
+            }
+            if (this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.specular_fragment)) {
+                this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment] = [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment].push("specularMap_fs");
+            }
+            // 灯光相关的渲染方法
+            if (this.lightGroup) {
+                this._passUsage.maxDirectLight = this.lightGroup.directList.length;
+                this._passUsage.maxSpotLight = this.lightGroup.spotList.length;
+                this._passUsage.maxPointLight = this.lightGroup.pointList.length;
+                this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_1] = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_1] || [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment] = [];
+                this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("lightingBase_fs");
+                if (this.lightGroup.directList.length) {
+                    this._passUsage.directLightData = new Float32Array(dou3d.DirectLight.stride * this.lightGroup.directList.length);
+                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("directLight_fs");
+                }
+                if (this.lightGroup.pointList.length) {
+                    this._passUsage.pointLightData = new Float32Array(dou3d.PointLight.stride * this.lightGroup.pointList.length);
+                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("pointLight_fs");
+                }
+                if (this.lightGroup.spotList.length) {
+                    this._passUsage.spotLightData = new Float32Array(dou3d.SpotLight.stride * this.lightGroup.spotList.length);
+                    this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment].push("spotLight_fs");
+                }
+            }
+        };
+        /**
+         * 添加来自 Method 的着色器片段
+         */
+        DiffusePass.prototype.initMethodShader = function () {
+            var shaderPhase;
+            var shaderList;
+            for (var d = 0; d < this.methodList.length; d++) {
+                var method = this.methodList[d];
+                for (shaderPhase in method.vsShaderList) {
+                    shaderList = method.vsShaderList[shaderPhase];
+                    for (var i = 0; i < shaderList.length; i++) {
+                        this._vs_shader_methods[shaderPhase] = this._vs_shader_methods[shaderPhase] || [];
+                        this._vs_shader_methods[shaderPhase].push(shaderList[i]);
+                    }
+                }
+                for (shaderPhase in method.fsShaderList) {
+                    shaderList = method.fsShaderList[shaderPhase];
+                    for (var i = 0; i < shaderList.length; i++) {
+                        this._fs_shader_methods[shaderPhase] = this._fs_shader_methods[shaderPhase] || [];
+                        this._fs_shader_methods[shaderPhase].push(shaderList[i]);
+                    }
+                }
+            }
+        };
+        /**
+         * 将渲染方法的对应着色器加入到对应的 Shader 对象中以便获得最终的着色器对象
+         */
+        DiffusePass.prototype.phaseEnd = function () {
+            var shaderList;
+            // 顶点着色器
+            shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.custom_vertex];
+            if (shaderList && shaderList.length > 0) {
+                this.addMethodShaders(this._passUsage.vertexShader, shaderList);
+            }
+            // 没有时加入默认的着色器
+            else {
+                this.addMethodShaders(this._passUsage.vertexShader, ["base_vs"]);
+                // start
+                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.start_vertex];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
+                }
+                else {
+                    this.addMethodShaders(this._passUsage.vertexShader, ["diffuse_vs"]);
+                }
+                // vertex_1
+                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_1];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
+                }
+                // vertex_2
+                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.vertex_2];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
+                }
+                // end
+                shaderList = this._vs_shader_methods[dou3d.ShaderPhaseType.end_vertex];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.vertexShader, shaderList);
+                }
+                else {
+                    this.addMethodShaders(this._passUsage.vertexShader, ["end_vs"]);
+                }
+            }
+            // 片段着色器
+            shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.custom_fragment];
+            if (shaderList && shaderList.length > 0) {
+                this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+            }
+            // 没有时加入默认的着色器
+            else {
+                this.addMethodShaders(this._passUsage.fragmentShader, ["base_fs"]);
+                // start
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.start_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                // materialsource
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.materialsource_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                else {
+                    this.addMethodShaders(this._passUsage.fragmentShader, ["materialSource_fs"]);
+                }
+                // diffuse
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.diffuse_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                else {
+                    this.addMethodShaders(this._passUsage.fragmentShader, ["diffuse_fs"]);
+                }
+                // normal
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.normal_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                // shadow
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.shadow_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                // lighting
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.lighting_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                // specular
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.specular_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                // end
+                shaderList = this._fs_shader_methods[dou3d.ShaderPhaseType.end_fragment];
+                if (shaderList && shaderList.length > 0) {
+                    this.addMethodShaders(this._passUsage.fragmentShader, shaderList);
+                }
+                else {
+                    this.addMethodShaders(this._passUsage.fragmentShader, ["end_fs"]);
+                }
+            }
+        };
         return DiffusePass;
     }(dou3d.MaterialPass));
     dou3d.DiffusePass = DiffusePass;
@@ -10876,7 +10868,7 @@ var dou3d;
             _this._passID = 1 /* shadowPass */;
             return _this;
         }
-        ShadowPass.prototype.initUseMethod = function () {
+        ShadowPass.prototype.initShader = function (animation) {
             this._passChange = false;
             this._passUsage = new dou3d.PassUsage();
             this._vs_shader_methods = {};
@@ -11046,10 +11038,7 @@ var dou3d;
                     else if (dou3d.PassUtil.passAuto[this._pass]) {
                         if (!material.passes[this._pass]) {
                             material.addPass(this._pass);
-                        }
-                        for (var j = material.passes[this._pass].length - 1; j >= 0; j--) {
-                            material.passes[this._pass] = dou3d.PassUtil.createPass(this._pass, material.materialData);
-                            material.passes[this._pass][j].draw(time, delay, context3D, renderItem.globalMatrix, camera, subGeometry, renderItem);
+                            material.passes[this._pass][0].draw(time, delay, context3D, renderItem.globalMatrix, camera, subGeometry, renderItem);
                         }
                     }
                     material = null;

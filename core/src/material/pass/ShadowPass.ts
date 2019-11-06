@@ -9,11 +9,12 @@ namespace dou3d {
             this._passID = PassType.shadowPass;
         }
 
-        public initUseMethod(): void {
+        protected initShader(animation: IAnimation): void {
             this._passChange = false;
             this._passUsage = new PassUsage();
             this._vs_shader_methods = {};
             this._fs_shader_methods = {};
+
             this.addMethodShaders(this._passUsage.vertexShader, ["shadowPass_vs"]);
             this.addMethodShaders(this._passUsage.fragmentShader, ["shadowPass_fs"]);
         }

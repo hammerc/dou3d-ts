@@ -159,7 +159,6 @@
     "src/material/supports/MaterialPass.ts",
     "src/material/supports/PassUsage.ts",
     "src/material/supports/PassUtil.ts",
-    "src/material/supports/MethodData.ts",
     "src/material/supports/MethodBase.ts",
 
     "src/material/method/ColorMethod.ts",

@@ -39,10 +39,7 @@ namespace dou3d {
                     else if (PassUtil.passAuto[this._pass]) {
                         if (!material.passes[this._pass]) {
                             material.addPass(this._pass);
-                        }
-                        for (let j = material.passes[this._pass].length - 1; j >= 0; j--) {
-                            material.passes[this._pass] = PassUtil.createPass(this._pass, material.materialData);
-                            material.passes[this._pass][j].draw(time, delay, context3D, renderItem.globalMatrix, camera, subGeometry, renderItem);
+                            material.passes[this._pass][0].draw(time, delay, context3D, renderItem.globalMatrix, camera, subGeometry, renderItem);
                         }
                     }
                     material = null;
