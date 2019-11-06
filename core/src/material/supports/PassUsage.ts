@@ -26,7 +26,7 @@ namespace dou3d {
         public uniform_ModelMatrix: Uniform;
 
         /** 摄像机全局转换信息矩阵 */
-        public uniform_cameraMatrix: Uniform;
+        public uniform_CameraMatrix: Uniform;
         /** 摄像机全局转换信息逆矩阵 */
         public uniform_ViewMatrix: Uniform;
         /** 摄像机投影矩阵 */
@@ -36,7 +36,7 @@ namespace dou3d {
         /** 摄像机正交投影矩阵 */
         public uniform_orthProectMatrix: Uniform;
         /** 摄像机本地坐标位置信息 */
-        public uniform_eyepos: Uniform;
+        public uniform_EyePos: Uniform;
 
         /** 材质自身的一些信息数据 */
         public uniform_materialSource: Uniform;

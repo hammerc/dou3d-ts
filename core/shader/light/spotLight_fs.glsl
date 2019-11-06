@@ -16,7 +16,7 @@ struct SpotLight {
 };
 
 void calculateSpotLight(MaterialSource materialSource) {
-    vec3 viewDir = normalize(uniform_eyepos - varying_worldPosition.xyz);
+    vec3 viewDir = normalize(uniform_EyePos - varying_worldPosition.xyz);
 
     for(int i = 0; i < max_spotLight; i++) {
         SpotLight spotLight;

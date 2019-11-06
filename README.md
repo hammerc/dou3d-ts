@@ -12,7 +12,49 @@
 
 ## 开始上手
 
-完善中...
+1. 在编写代码之前请引入为于**examples/lib**文件夹中的**dou.js**和**dou3d.js**两个文件：
+
+    &#60;script type="text/javascript" src="examples/lib/dou.js"&#62;&#60;/script&#62;
+    &#60;script type="text/javascript" src="examples/lib/dou3d.js"&#62;&#60;/script&#62;
+
+2. 需要外部加载资源时，请注册加载类型解析器：
+
+    // 注册贴图解析器并绑定对应的文件后缀名
+    dou.loader.registerAnalyzer("texture", new dou3d.TextureAnalyzer());
+    dou.loader.registerExtension("jpg", "texture");
+    dou.loader.registerExtension("jpeg", "texture");
+    dou.loader.registerExtension("png", "texture");
+
+3. 启动引擎并创建View3D对象：
+
+    var engine = new dou3d.Engine();
+    var viewRect = engine.viewRect;
+    var view3D = new dou3d.View3D(0, 0, viewRect.w, viewRect.h);
+    view3D.on(dou3d.Event3D.RESIZE, function () {
+        view3D.width = viewRect.w;
+        view3D.height = viewRect.h;
+    });
+    engine.addView3D(view3D);
+
+4. 调整摄像机位置：
+
+    view3D.camera3D.lookAt(new dou3d.Vector3(0, 0, -1000), new dou3d.Vector3(0, 0, 0));
+
+5. 添加立方体对象：
+
+    var geometery = new dou3d.CubeGeometry();
+    var cube = new dou3d.Mesh(geometery);
+    view3D.scene.root.addChild(cube);
+
+## 未实现的引擎必备功能
+
+*受时间和精力的限制，这部分的功能实现会在时间充裕之后补上。*
+
+* 包围盒
+
+* 碰撞和拾取
+
+* 粒子效果
 
 ## 引擎示例
 

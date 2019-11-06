@@ -267,11 +267,11 @@ namespace dou3d {
                     this.methodList[i].activeState(time, delay, this._passUsage, null, context3DProxy, modelTransform, camera3D);
                 }
             }
-            if (this._passUsage.uniform_eyepos) {
-                context3DProxy.uniform3f(this._passUsage.uniform_eyepos.uniformIndex, camera3D.globalPosition.x, camera3D.globalPosition.y, camera3D.globalPosition.z);
+            if (this._passUsage.uniform_EyePos) {
+                context3DProxy.uniform3f(this._passUsage.uniform_EyePos.uniformIndex, camera3D.globalPosition.x, camera3D.globalPosition.y, camera3D.globalPosition.z);
             }
-            if (this._passUsage.uniform_cameraMatrix) {
-                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_cameraMatrix.uniformIndex, false, camera3D.globalMatrix.rawData);
+            if (this._passUsage.uniform_CameraMatrix) {
+                context3DProxy.uniformMatrix4fv(this._passUsage.uniform_CameraMatrix.uniformIndex, false, camera3D.globalMatrix.rawData);
             }
             context3DProxy.drawElement(this._materialData.drawMode, subGeometry.start, subGeometry.count);
             if (this._materialData.alphaBlending) {
