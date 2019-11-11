@@ -25,6 +25,7 @@ namespace dou3d {
             this._shadowCamera = new Camera3D(CameraType.orthogonal);
             this._shadowCamera.near = 1;
             this._shadowCamera.far = 3000;
+            this._shadowCamera.updateViewport(0, 0, this._textureWidth, this._textureHeight);
             this._shadowRender = new MultiRenderer(PassType.shadowPass);
             this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, FrameBufferFormat.UNSIGNED_BYTE_RGBA);
         }
@@ -81,17 +82,17 @@ namespace dou3d {
         }
 
         /**
-         * 如需要渲染阴影必须先设置当前阴影灯光, 暂支持方向光, 灯光中的变换会用于阴影像机的变换
+         * 如需要渲染阴影必须先设置当前阴影灯光
+         * * 只支持方向光, 灯光中的变换会用于阴影像机的变换
          */
         public castShadowLight(light: DirectLight): void {
             this._directLight = light;
-            this._shadowCamera.updateViewport(0, 0, this._textureWidth, this._textureHeight);
-            light.addChild(this._shadowCamera);
         }
 
         public update(entityCollect: EntityCollect, camera: Camera3D, time: number, delay: number, viewPort: Rectangle): void {
             Engine.context3DProxy.clearColor(1.0, 1.0, 1.0, 1.0);
             Engine.context3DProxy.clear(Context3DProxy.gl.COLOR_BUFFER_BIT | Context3DProxy.gl.DEPTH_BUFFER_BIT);
+            this._shadowCamera.validateTransformNow();
             this._shadowRender.draw(time, delay, Engine.context3DProxy, entityCollect, this._shadowCamera, viewPort);
         }
     }

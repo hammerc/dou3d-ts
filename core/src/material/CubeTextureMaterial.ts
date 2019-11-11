@@ -6,11 +6,11 @@ namespace dou3d {
     export class CubeTextureMaterial extends MaterialBase {
         public constructor(texture?: CubeTexture, materialData?: MaterialData) {
             super(materialData);
-            this.initMatPass();
+            this.initPass();
             this.materialData.diffuseTexture3D = texture;
         }
 
-        protected initMatPass(): void {
+        protected initPass(): void {
             this.addPass(PassType.diffusePass);
             this.diffusePass.addMethod(new CubeMethod());
         }

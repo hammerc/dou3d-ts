@@ -12,12 +12,10 @@ uniform mat4 uniform_ProjectionMatrix;
 
 varying vec2 varying_uv0;
 varying vec4 varying_color;
-varying vec4 varying_pos;
 
 void main() {
-    varying_color = attribute_color;
     varying_uv0 = attribute_uv0;
+    varying_color = attribute_color;
 
-    varying_pos = uniform_ProjectionMatrix * uniform_ViewMatrix * uniform_ModelMatrix * vec4(attribute_position, 1.0);
-    gl_Position = varying_pos;
+    gl_Position = uniform_ProjectionMatrix * uniform_ViewMatrix * uniform_ModelMatrix * vec4(attribute_position, 1.0);
 }

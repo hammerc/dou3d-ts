@@ -2,9 +2,9 @@
 // 阴影渲染顶点着色器
 // -----
 
+uniform mat4 uniform_ModelMatrix;
 uniform mat4 uniform_ShadowMatrix;
 
-uniform mat4 uniform_ModelMatrix;
 varying vec4 varying_ShadowCoord;
 
 void main() {

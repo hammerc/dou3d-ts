@@ -78,7 +78,7 @@ namespace dou3d {
         /**
          * 增加一个材质
          */
-        public addSubMaterial(id: number, material: MaterialBase) {
+        public addSubMaterial(id: number, material: MaterialBase): void {
             if (!this.multiMaterial[id]) {
                 this._materialCount++;
             }
@@ -89,7 +89,7 @@ namespace dou3d {
         /**
          * 删除一个材质
          */
-        public removeSubMaterial(id: number) {
+        public removeSubMaterial(id: number): void {
             if (this.multiMaterial[id]) {
                 delete this.multiMaterial[id];
                 this._materialCount--;
@@ -110,7 +110,7 @@ namespace dou3d {
             return this._materialCount;
         }
 
-        public update(time: number, delay: number, camera: Camera3D) {
+        public update(time: number, delay: number, camera: Camera3D): void {
             super.update(time, delay, camera);
             if (this.animation) {
                 this.animation.update(time, delay, this._geometry);
@@ -120,7 +120,7 @@ namespace dou3d {
             }
         }
 
-        public dispose() {
+        public dispose(): void {
             this.geometry = null;
             this.multiMaterial = {};
         }

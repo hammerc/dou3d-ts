@@ -109,7 +109,6 @@
     "src/enum/BlendMode.ts",
     "src/enum/CameraType.ts",
     "src/enum/InternalFormat.ts",
-    "src/enum/ContextSamplerType.ts",
     "src/enum/FrameBufferType.ts",
     "src/enum/FrameBufferFormat.ts",
     "src/enum/ShaderType.ts",

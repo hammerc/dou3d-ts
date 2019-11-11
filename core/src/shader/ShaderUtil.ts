@@ -518,9 +518,9 @@ namespace dou3d {
             }
             for (i = 0; i < shaderContent.sampler2DList.length; i++) {
                 let sampler2D = shaderContent.sampler2DList[i];
+                sampler2D.activeTextureIndex = getTexture2DIndex(i);
                 sampler2D.index = i;
                 usage.sampler2DList.push(sampler2D);
-                sampler2D.activeTextureIndex = getTexture2DIndex(i);
             }
             for (i = 0; i < shaderContent.sampler3DList.length; i++) {
                 let sampler3D = shaderContent.sampler3DList[i];
@@ -620,23 +620,23 @@ namespace dou3d {
         function getTexture2DIndex(i: number): number {
             switch (i) {
                 case 0:
-                    return ContextSamplerType.TEXTURE_0;
+                    return Context3DProxy.gl.TEXTURE0;
                 case 1:
-                    return ContextSamplerType.TEXTURE_1;
+                    return Context3DProxy.gl.TEXTURE1;
                 case 2:
-                    return ContextSamplerType.TEXTURE_2;
+                    return Context3DProxy.gl.TEXTURE2;
                 case 3:
-                    return ContextSamplerType.TEXTURE_3;
+                    return Context3DProxy.gl.TEXTURE3;
                 case 4:
-                    return ContextSamplerType.TEXTURE_4;
+                    return Context3DProxy.gl.TEXTURE4;
                 case 5:
-                    return ContextSamplerType.TEXTURE_5;
+                    return Context3DProxy.gl.TEXTURE5;
                 case 6:
-                    return ContextSamplerType.TEXTURE_6;
+                    return Context3DProxy.gl.TEXTURE6;
                 case 7:
-                    return ContextSamplerType.TEXTURE_7;
+                    return Context3DProxy.gl.TEXTURE7;
                 case 8:
-                    return ContextSamplerType.TEXTURE_8;
+                    return Context3DProxy.gl.TEXTURE8;
             }
             throw new Error("texture not big then 8");
         }

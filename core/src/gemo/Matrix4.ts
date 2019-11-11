@@ -466,8 +466,6 @@ namespace dou3d {
 
         /**
          * 根据投影参数设置该矩阵
-         * @param offsetX 投影近平面水平偏移
-         * @param offsetY 投影远平面垂直偏移
          * @param near 投影近平面
          * @param far 投影远平面
          * @param fov 投影视角

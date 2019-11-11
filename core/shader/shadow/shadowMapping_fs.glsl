@@ -3,6 +3,7 @@
 // -----
 
 uniform sampler2D shadowMapTexture;
+
 uniform vec4 uniform_ShadowColor;
 
 varying vec4 varying_ShadowCoord;

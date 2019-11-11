@@ -12,6 +12,7 @@ namespace dou3d {
         private _viewPort: Rectangle;
         private _aspectRatio: number = 1;
         private _fov: number = 0.78;
+        private _size: number = 1;
         private _near: number = 1;
         private _far: number = 10000;
 
@@ -46,16 +47,10 @@ namespace dou3d {
          * 相机类型
          */
         public set cameraType(cameraType: CameraType) {
-            this._cameraType = cameraType;
-            switch (cameraType) {
-                case CameraType.orthogonal:
-                    this._projectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
-                    break;
-                case CameraType.perspective:
-                    this._projectMatrix.fromProjection(this._near, this._far, this._fov, 1, 1, this._aspectRatio, 1);
-                    break;
+            if (this._cameraType != cameraType) {
+                this._cameraType = cameraType;
+                this.updateMatrix();
             }
-            this._orthProjectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
         }
         public get cameraType(): CameraType {
             return this._cameraType;
@@ -67,7 +62,7 @@ namespace dou3d {
         public set aspectRatio(value: number) {
             if (this._aspectRatio != value) {
                 this._aspectRatio = value;
-                this.cameraType = this._cameraType;
+                this.updateMatrix();
             }
         }
         public get aspectRatio(): number {
@@ -76,15 +71,30 @@ namespace dou3d {
 
         /**
          * 投影视角
+         * * 透视相机有效
          */
         public set fieldOfView(value: number) {
             if (this._fov != value) {
                 this._fov = value;
-                this.cameraType = this._cameraType;
+                this.updateMatrix();
             }
         }
         public get fieldOfView(): number {
             return this._fov;
+        }
+
+        /**
+         * 相机尺寸
+         * * 正交相机有效
+         */
+        public set orthSize(value: number) {
+            if (this._size != value) {
+                this._size = value;
+                this.updateMatrix();
+            }
+        }
+        public get orthSize(): number {
+            return this._size;
         }
 
         /**
@@ -93,7 +103,7 @@ namespace dou3d {
         public set near(value: number) {
             if (this._near != value) {
                 this._near = value;
-                this.cameraType = this._cameraType;
+                this.updateMatrix();
             }
         }
         public get near(): number {
@@ -106,7 +116,7 @@ namespace dou3d {
         public set far(value: number) {
             if (this._far != value) {
                 this._far = value;
-                this.cameraType = this._cameraType;
+                this.updateMatrix();
             }
         }
         public get far(): number {
@@ -144,6 +154,21 @@ namespace dou3d {
         }
 
         /**
+         * 相机视图矩阵
+         */
+        public get viewMatrix(): Matrix4 {
+            this.validateTransformNow();
+            return this._viewMatrix;
+        }
+
+        /**
+         * 相机目标点
+         */
+        public get lookAtPosition(): Vector3 {
+            return this._lookAtPosition;
+        }
+
+        /**
          * 更新视口
          */
         public updateViewport(x: number, y: number, width: number, height: number): void {
@@ -173,26 +198,16 @@ namespace dou3d {
             quaternion.recycle();
         }
 
+        private updateMatrix(): void {
+            this._projectMatrix.fromProjection(this._near, this._far, this._fov, this._size, this._cameraType == CameraType.perspective ? 1 : 0, this._aspectRatio, 1);
+            this._orthProjectMatrix.fromProjection(this._near, this._far, this._fov, this._size, 0, this._aspectRatio, 1);
+        }
+
         protected onTransformUpdate(): void {
             super.onTransformUpdate();
 
             this._viewMatrix.copy(this._globalMatrix);
             this._viewMatrix.inverse();
-        }
-
-        /**
-         * 相机视图矩阵
-         */
-        public get viewMatrix(): Matrix4 {
-            this.validateTransformNow();
-            return this._viewMatrix;
-        }
-
-        /**
-         * 相机目标点
-         */
-        public get lookAtPosition(): Vector3 {
-            return this._lookAtPosition;
         }
 
         /**

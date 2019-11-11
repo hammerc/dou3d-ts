@@ -12,10 +12,10 @@ namespace dou3d {
                 texture = CheckerboardTexture.texture;
             }
             this.diffuseTexture = texture;
-            this.initMatPass();
+            this.initPass();
         }
 
-        protected initMatPass(): void {
+        protected initPass(): void {
             this.addPass(PassType.diffusePass);
         }
 

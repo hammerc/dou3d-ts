@@ -7,10 +7,10 @@ namespace dou3d {
         public constructor(color: number = 0xcccccc) {
             super();
             this.color = color;
-            this.initMatPass();
+            this.initPass();
         }
 
-        protected initMatPass(): void {
+        protected initPass(): void {
             this.addPass(PassType.diffusePass);
             this.diffusePass.addMethod(new ColorMethod());
         }

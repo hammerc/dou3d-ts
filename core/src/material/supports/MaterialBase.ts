@@ -31,9 +31,8 @@ namespace dou3d {
             return this._passes[PassType.diffusePass][0] as DiffusePass;
         }
 
-        public set materialData(data: MaterialData) {
-            this._materialData = data;
-            this.initPass();
+        public set materialData(value: MaterialData) {
+            this._materialData = value;
             this.blendMode = BlendMode.NORMAL;
         }
         public get materialData(): MaterialData {
@@ -43,11 +42,11 @@ namespace dou3d {
         /**
          * 材质球接受的灯光组
          */
-        public set lightGroup(group: LightGroup) {
-            this._lightGroup = group;
+        public set lightGroup(value: LightGroup) {
+            this._lightGroup = value;
             if (this._passes[PassType.diffusePass] && this._passes[PassType.diffusePass].length > 0) {
                 for (let i = 0; i < this._passes[PassType.diffusePass].length; i++) {
-                    this._passes[PassType.diffusePass][i].lightGroup = group;
+                    this._passes[PassType.diffusePass][i].lightGroup = value;
                 }
             }
         }
@@ -58,8 +57,8 @@ namespace dou3d {
         /**
          * 是否开启深度测试
          */
-        public set depth(v: boolean) {
-            this._materialData.depthTest = v;
+        public set depth(value: boolean) {
+            this._materialData.depthTest = value;
         }
         public get depth(): boolean {
             return this._materialData.depthTest;
@@ -68,8 +67,8 @@ namespace dou3d {
         /**
          * 深度测试方式
          */
-        public set depthMode(v: number) {
-            this._materialData.depthMode = v;
+        public set depthMode(value: number) {
+            this._materialData.depthMode = value;
         }
         public get depthMode(): number {
             return this._materialData.depthMode;
@@ -78,9 +77,9 @@ namespace dou3d {
         /**
          * 材质球的漫反射贴图
          */
-        public set diffuseTexture(texture: TextureBase) {
-            if (texture) {
-                this._materialData.diffuseTexture = texture;
+        public set diffuseTexture(value: TextureBase) {
+            if (value) {
+                this._materialData.diffuseTexture = value;
                 this._materialData.textureChange = true;
                 if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && !this._materialData.shaderPhaseTypes[PassType.diffusePass].contains(ShaderPhaseType.diffuse_fragment)) {
                     this._materialData.shaderPhaseTypes[PassType.diffusePass].push(ShaderPhaseType.diffuse_fragment);
@@ -97,9 +96,9 @@ namespace dou3d {
         /**
          * 材质球的凹凸法线贴图
          */
-        public set normalTexture(texture: TextureBase) {
-            if (texture) {
-                this._materialData.normalTexture = texture;
+        public set normalTexture(value: TextureBase) {
+            if (value) {
+                this._materialData.normalTexture = value;
                 this._materialData.textureChange = true;
                 if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && !this._materialData.shaderPhaseTypes[PassType.diffusePass].contains(ShaderPhaseType.normal_fragment)) {
                     this._materialData.shaderPhaseTypes[PassType.diffusePass].push(ShaderPhaseType.normal_fragment);
@@ -114,9 +113,9 @@ namespace dou3d {
         /**
          * 材质球的高光贴图
          */
-        public set specularTexture(texture: TextureBase) {
-            if (texture) {
-                this._materialData.specularTexture = texture;
+        public set specularTexture(value: TextureBase) {
+            if (value) {
+                this._materialData.specularTexture = value;
                 this._materialData.textureChange = true;
                 if (this._materialData.shaderPhaseTypes[PassType.diffusePass] && !this._materialData.shaderPhaseTypes[PassType.diffusePass].contains(ShaderPhaseType.specular_fragment)) {
                     this._materialData.shaderPhaseTypes[PassType.diffusePass].push(ShaderPhaseType.specular_fragment);
@@ -130,8 +129,8 @@ namespace dou3d {
         /**
          * 设置模型渲染模式
          */
-        public set drawMode(mode: number) {
-            this._materialData.drawMode = mode;
+        public set drawMode(value: number) {
+            this._materialData.drawMode = value;
         }
         public get drawMode(): number {
             return this._materialData.drawMode;
@@ -140,8 +139,8 @@ namespace dou3d {
         /**
          * 模型渲染中带透明贴图的去除不渲染透明透明部分的阀值
          */
-        public set cutAlpha(v: number) {
-            this._materialData.cutAlpha = v;
+        public set cutAlpha(value: number) {
+            this._materialData.cutAlpha = value;
         }
         public get cutAlpha(): number {
             return this._materialData.cutAlpha;
@@ -150,9 +149,9 @@ namespace dou3d {
         /**
          * 漫反射颜色
          */
-        public set diffuseColor(color: number) {
+        public set diffuseColor(value: number) {
             this._materialData.materialDataNeedChange = true;
-            this._materialData.diffuseColor = color;
+            this._materialData.diffuseColor = value;
         }
         public get diffuseColor(): number {
             return this._materialData.diffuseColor;
@@ -161,9 +160,9 @@ namespace dou3d {
         /**
          * 环境光颜色
          */
-        public set ambientColor(color: number) {
+        public set ambientColor(value: number) {
             this._materialData.materialDataNeedChange = true;
-            this._materialData.ambientColor = color;
+            this._materialData.ambientColor = value;
         }
         public get ambientColor(): number {
             return this._materialData.ambientColor;
@@ -172,9 +171,9 @@ namespace dou3d {
         /**
          * 镜面光反射颜色
          */
-        public set specularColor(color: number) {
+        public set specularColor(value: number) {
             this._materialData.materialDataNeedChange = true;
-            this._materialData.specularColor = color;
+            this._materialData.specularColor = value;
         }
         public get specularColor(): number {
             return this._materialData.specularColor;
@@ -183,9 +182,9 @@ namespace dou3d {
         /**
          * 色相颜色
          */
-        public set tintColor(color: number) {
+        public set tintColor(value: number) {
             this._materialData.materialDataNeedChange = true;
-            this._materialData.tintColor = color;
+            this._materialData.tintColor = value;
         }
         public get tintColor(): number {
             return this._materialData.tintColor;
@@ -246,11 +245,11 @@ namespace dou3d {
         /**
          * 映射贴图 UV 坐标, 设置此材质要显示使用贴图的区域
          */
-        public set uvRectangle(rect: Rectangle) {
-            this._materialData.uvRectangle.x = rect.x;
-            this._materialData.uvRectangle.y = rect.y;
-            this._materialData.uvRectangle.w = rect.w;
-            this._materialData.uvRectangle.h = rect.h;
+        public set uvRectangle(value: Rectangle) {
+            this._materialData.uvRectangle.x = value.x;
+            this._materialData.uvRectangle.y = value.y;
+            this._materialData.uvRectangle.w = value.w;
+            this._materialData.uvRectangle.h = value.h;
             this._materialData.materialDataNeedChange = true;
         }
         public get uvRectangle(): Rectangle {
@@ -303,10 +302,10 @@ namespace dou3d {
         /**
          * 阴影颜色
          */
-        public set shadowColor(color: number) {
-            this._materialData.shadowColor[0] = color >> 16 & 0xff / 255.0;
-            this._materialData.shadowColor[1] = color >> 8 & 0xff / 255.0;
-            this._materialData.shadowColor[2] = color & 0xff / 255.0;
+        public set shadowColor(value: number) {
+            this._materialData.shadowColor[0] = value >> 16 & 0xff / 255.0;
+            this._materialData.shadowColor[1] = value >> 8 & 0xff / 255.0;
+            this._materialData.shadowColor[2] = value & 0xff / 255.0;
         }
         public get shadowColor(): number {
             let color: number = 0;
@@ -319,8 +318,8 @@ namespace dou3d {
         /**
          * 阴影偏移
          */
-        public set shadowOffset(offset: number) {
-            this._materialData.shadowColor[3] = offset;
+        public set shadowOffset(value: number) {
+            this._materialData.shadowColor[3] = value;
         }
         public get shadowOffset(): number {
             return this._materialData.shadowColor[3];
@@ -329,9 +328,9 @@ namespace dou3d {
         /**
          * 是否进行纹理重复采样的方式开关
          */
-        public set repeat(val: boolean) {
-            this._materialData.repeat = val;
+        public set repeat(value: boolean) {
             this._materialData.textureStateChage = true;
+            this._materialData.repeat = value;
         }
         public get repeat(): boolean {
             return this._materialData.repeat;
@@ -340,9 +339,9 @@ namespace dou3d {
         /**
          * 材质是否显示双面的开关
          */
-        public set bothside(val: boolean) {
+        public set bothside(value: boolean) {
             this._materialData.textureStateChage = true;
-            this._materialData.bothside = val;
+            this._materialData.bothside = value;
         }
         public get bothside(): boolean {
             return this._materialData.bothside;
@@ -418,10 +417,6 @@ namespace dou3d {
         }
         public get pointSize(): number {
             return this._materialData.specularLevel;
-        }
-
-        protected initPass(): void {
-            this.addPass(PassType.diffusePass);
         }
 
         protected passInvalid(passType: PassType): void {
