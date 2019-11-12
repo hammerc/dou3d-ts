@@ -58,21 +58,31 @@ var cube = new dou3d.Mesh(geometery);
 view3D.scene.root.addChild(cube);
 ```
 
-## 未实现的引擎必备功能
+## 未来路线图
+
+**当前未实现的引擎必备功能**
 
 *受时间和精力的限制，这部分的功能实现会在时间充裕之后补上。*
 
-* 阴影支持所有类型灯光；
+* 法线贴图、高光贴图等特殊效果贴图；
+
+* 阴影支持所有类型灯光，且支持多个光源；
 
 * 通用模型文件解码；
 
-* 包围盒；
+* 专用模型格式导出插件；
+
+* 包围盒和视野剔除；
 
 * 碰撞和拾取；
 
 * 文本渲染；
 
 * 3D声音；
+
+* 单场景支持多个摄像机；
+
+* 自定义着色器渲染；
 
 * 粒子效果；
 
@@ -92,7 +102,7 @@ view3D.scene.root.addChild(cube);
 
 * [阴影](https://hammerc.github.io/dou3d-ts/examples/index.html?demo=ShadowTest)
 
-    *注：阴影仅支持方向光*
+    *注：阴影仅支持方向光，且只支持一个灯光*
 
 * [骨骼动画](https://hammerc.github.io/dou3d-ts/examples/index.html?demo=AnimationTest)
 

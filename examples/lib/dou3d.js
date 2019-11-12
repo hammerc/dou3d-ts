@@ -3293,6 +3293,7 @@ var dou3d;
             var _this = _super.call(this) || this;
             _this._aspectRatio = 1;
             _this._fov = 0.78;
+            _this._size = 1;
             _this._near = 1;
             _this._far = 10000;
             _this._orthProjectChange = true;
@@ -3326,16 +3327,10 @@ var dou3d;
              * 相机类型
              */
             set: function (cameraType) {
-                this._cameraType = cameraType;
-                switch (cameraType) {
-                    case 1 /* orthogonal */:
-                        this._projectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
-                        break;
-                    case 0 /* perspective */:
-                        this._projectMatrix.fromProjection(this._near, this._far, this._fov, 1, 1, this._aspectRatio, 1);
-                        break;
+                if (this._cameraType != cameraType) {
+                    this._cameraType = cameraType;
+                    this.updateMatrix();
                 }
-                this._orthProjectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
             },
             enumerable: true,
             configurable: true
@@ -3350,7 +3345,7 @@ var dou3d;
             set: function (value) {
                 if (this._aspectRatio != value) {
                     this._aspectRatio = value;
-                    this.cameraType = this._cameraType;
+                    this.updateMatrix();
                 }
             },
             enumerable: true,
@@ -3362,11 +3357,29 @@ var dou3d;
             },
             /**
              * 投影视角
+             * * 透视相机有效
              */
             set: function (value) {
                 if (this._fov != value) {
                     this._fov = value;
-                    this.cameraType = this._cameraType;
+                    this.updateMatrix();
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Camera3D.prototype, "orthSize", {
+            get: function () {
+                return this._size;
+            },
+            /**
+             * 相机尺寸
+             * * 正交相机有效
+             */
+            set: function (value) {
+                if (this._size != value) {
+                    this._size = value;
+                    this.updateMatrix();
                 }
             },
             enumerable: true,
@@ -3382,7 +3395,7 @@ var dou3d;
             set: function (value) {
                 if (this._near != value) {
                     this._near = value;
-                    this.cameraType = this._cameraType;
+                    this.updateMatrix();
                 }
             },
             enumerable: true,
@@ -3398,7 +3411,7 @@ var dou3d;
             set: function (value) {
                 if (this._far != value) {
                     this._far = value;
-                    this.cameraType = this._cameraType;
+                    this.updateMatrix();
                 }
             },
             enumerable: true,
@@ -3422,6 +3435,7 @@ var dou3d;
              * 相机视图投影矩阵
              */
             get: function () {
+                this.validateTransformNow();
                 this._viewProjectionMatrix.copy(this._viewMatrix);
                 this._viewProjectionMatrix.multiply(this._projectMatrix);
                 return this._viewProjectionMatrix;
@@ -3439,6 +3453,27 @@ var dou3d;
                     this._orthProjectMatrix.orthographicProjectMatrix(0, 0, this._viewPort.w, this._viewPort.h, this._near, this._far);
                 }
                 return this._orthProjectMatrix;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Camera3D.prototype, "viewMatrix", {
+            /**
+             * 相机视图矩阵
+             */
+            get: function () {
+                this.validateTransformNow();
+                return this._viewMatrix;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Camera3D.prototype, "lookAtPosition", {
+            /**
+             * 相机目标点
+             */
+            get: function () {
+                return this._lookAtPosition;
             },
             enumerable: true,
             configurable: true
@@ -3472,32 +3507,15 @@ var dou3d;
             this.globalOrientation = quaternion;
             quaternion.recycle();
         };
+        Camera3D.prototype.updateMatrix = function () {
+            this._projectMatrix.fromProjection(this._near, this._far, this._fov, this._size, this._cameraType == 0 /* perspective */ ? 1 : 0, this._aspectRatio, 1);
+            this._orthProjectMatrix.fromProjection(this._near, this._far, this._fov, this._size, 0, this._aspectRatio, 1);
+        };
         Camera3D.prototype.onTransformUpdate = function () {
             _super.prototype.onTransformUpdate.call(this);
             this._viewMatrix.copy(this._globalMatrix);
             this._viewMatrix.inverse();
         };
-        Object.defineProperty(Camera3D.prototype, "viewMatrix", {
-            /**
-             * 相机视图矩阵
-             */
-            get: function () {
-                this.validateTransformNow();
-                return this._viewMatrix;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Camera3D.prototype, "lookAtPosition", {
-            /**
-             * 相机目标点
-             */
-            get: function () {
-                return this._lookAtPosition;
-            },
-            enumerable: true,
-            configurable: true
-        });
         /**
          * 将 3 维空间中的坐标转换为屏幕坐标
          */
@@ -3971,16 +3989,6 @@ var dou3d;
         return HoverController;
     }(dou3d.LookAtController));
     dou3d.HoverController = HoverController;
-})(dou3d || (dou3d = {}));
-var dou3d;
-(function (dou3d) {
-    /**
-     * 贴图采样类型
-     * @author wizardc
-     */
-    var ContextSamplerType;
-    (function (ContextSamplerType) {
-    })(ContextSamplerType = dou3d.ContextSamplerType || (dou3d.ContextSamplerType = {}));
 })(dou3d || (dou3d = {}));
 var dou3d;
 (function (dou3d) {
@@ -5953,8 +5961,6 @@ var dou3d;
         };
         /**
          * 根据投影参数设置该矩阵
-         * @param offsetX 投影近平面水平偏移
-         * @param offsetY 投影远平面垂直偏移
          * @param near 投影近平面
          * @param far 投影远平面
          * @param fov 投影视角
@@ -9679,9 +9685,8 @@ var dou3d;
             get: function () {
                 return this._materialData;
             },
-            set: function (data) {
-                this._materialData = data;
-                this.initPass();
+            set: function (value) {
+                this._materialData = value;
                 this.blendMode = 2 /* NORMAL */;
             },
             enumerable: true,
@@ -9694,11 +9699,11 @@ var dou3d;
             /**
              * 材质球接受的灯光组
              */
-            set: function (group) {
-                this._lightGroup = group;
+            set: function (value) {
+                this._lightGroup = value;
                 if (this._passes[0 /* diffusePass */] && this._passes[0 /* diffusePass */].length > 0) {
                     for (var i = 0; i < this._passes[0 /* diffusePass */].length; i++) {
-                        this._passes[0 /* diffusePass */][i].lightGroup = group;
+                        this._passes[0 /* diffusePass */][i].lightGroup = value;
                     }
                 }
             },
@@ -9712,8 +9717,8 @@ var dou3d;
             /**
              * 是否开启深度测试
              */
-            set: function (v) {
-                this._materialData.depthTest = v;
+            set: function (value) {
+                this._materialData.depthTest = value;
             },
             enumerable: true,
             configurable: true
@@ -9725,8 +9730,8 @@ var dou3d;
             /**
              * 深度测试方式
              */
-            set: function (v) {
-                this._materialData.depthMode = v;
+            set: function (value) {
+                this._materialData.depthMode = value;
             },
             enumerable: true,
             configurable: true
@@ -9738,9 +9743,9 @@ var dou3d;
             /**
              * 材质球的漫反射贴图
              */
-            set: function (texture) {
-                if (texture) {
-                    this._materialData.diffuseTexture = texture;
+            set: function (value) {
+                if (value) {
+                    this._materialData.diffuseTexture = value;
                     this._materialData.textureChange = true;
                     if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && !this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.diffuse_fragment)) {
                         this._materialData.shaderPhaseTypes[0 /* diffusePass */].push(dou3d.ShaderPhaseType.diffuse_fragment);
@@ -9760,9 +9765,9 @@ var dou3d;
             /**
              * 材质球的凹凸法线贴图
              */
-            set: function (texture) {
-                if (texture) {
-                    this._materialData.normalTexture = texture;
+            set: function (value) {
+                if (value) {
+                    this._materialData.normalTexture = value;
                     this._materialData.textureChange = true;
                     if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && !this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.normal_fragment)) {
                         this._materialData.shaderPhaseTypes[0 /* diffusePass */].push(dou3d.ShaderPhaseType.normal_fragment);
@@ -9780,9 +9785,9 @@ var dou3d;
             /**
              * 材质球的高光贴图
              */
-            set: function (texture) {
-                if (texture) {
-                    this._materialData.specularTexture = texture;
+            set: function (value) {
+                if (value) {
+                    this._materialData.specularTexture = value;
                     this._materialData.textureChange = true;
                     if (this._materialData.shaderPhaseTypes[0 /* diffusePass */] && !this._materialData.shaderPhaseTypes[0 /* diffusePass */].contains(dou3d.ShaderPhaseType.specular_fragment)) {
                         this._materialData.shaderPhaseTypes[0 /* diffusePass */].push(dou3d.ShaderPhaseType.specular_fragment);
@@ -9799,8 +9804,8 @@ var dou3d;
             /**
              * 设置模型渲染模式
              */
-            set: function (mode) {
-                this._materialData.drawMode = mode;
+            set: function (value) {
+                this._materialData.drawMode = value;
             },
             enumerable: true,
             configurable: true
@@ -9812,8 +9817,8 @@ var dou3d;
             /**
              * 模型渲染中带透明贴图的去除不渲染透明透明部分的阀值
              */
-            set: function (v) {
-                this._materialData.cutAlpha = v;
+            set: function (value) {
+                this._materialData.cutAlpha = value;
             },
             enumerable: true,
             configurable: true
@@ -9825,9 +9830,9 @@ var dou3d;
             /**
              * 漫反射颜色
              */
-            set: function (color) {
+            set: function (value) {
                 this._materialData.materialDataNeedChange = true;
-                this._materialData.diffuseColor = color;
+                this._materialData.diffuseColor = value;
             },
             enumerable: true,
             configurable: true
@@ -9839,9 +9844,9 @@ var dou3d;
             /**
              * 环境光颜色
              */
-            set: function (color) {
+            set: function (value) {
                 this._materialData.materialDataNeedChange = true;
-                this._materialData.ambientColor = color;
+                this._materialData.ambientColor = value;
             },
             enumerable: true,
             configurable: true
@@ -9853,9 +9858,9 @@ var dou3d;
             /**
              * 镜面光反射颜色
              */
-            set: function (color) {
+            set: function (value) {
                 this._materialData.materialDataNeedChange = true;
-                this._materialData.specularColor = color;
+                this._materialData.specularColor = value;
             },
             enumerable: true,
             configurable: true
@@ -9867,9 +9872,9 @@ var dou3d;
             /**
              * 色相颜色
              */
-            set: function (color) {
+            set: function (value) {
                 this._materialData.materialDataNeedChange = true;
-                this._materialData.tintColor = color;
+                this._materialData.tintColor = value;
             },
             enumerable: true,
             configurable: true
@@ -9945,11 +9950,11 @@ var dou3d;
             /**
              * 映射贴图 UV 坐标, 设置此材质要显示使用贴图的区域
              */
-            set: function (rect) {
-                this._materialData.uvRectangle.x = rect.x;
-                this._materialData.uvRectangle.y = rect.y;
-                this._materialData.uvRectangle.w = rect.w;
-                this._materialData.uvRectangle.h = rect.h;
+            set: function (value) {
+                this._materialData.uvRectangle.x = value.x;
+                this._materialData.uvRectangle.y = value.y;
+                this._materialData.uvRectangle.w = value.w;
+                this._materialData.uvRectangle.h = value.h;
                 this._materialData.materialDataNeedChange = true;
             },
             enumerable: true,
@@ -10015,10 +10020,10 @@ var dou3d;
             /**
              * 阴影颜色
              */
-            set: function (color) {
-                this._materialData.shadowColor[0] = color >> 16 & 0xff / 255.0;
-                this._materialData.shadowColor[1] = color >> 8 & 0xff / 255.0;
-                this._materialData.shadowColor[2] = color & 0xff / 255.0;
+            set: function (value) {
+                this._materialData.shadowColor[0] = value >> 16 & 0xff / 255.0;
+                this._materialData.shadowColor[1] = value >> 8 & 0xff / 255.0;
+                this._materialData.shadowColor[2] = value & 0xff / 255.0;
             },
             enumerable: true,
             configurable: true
@@ -10030,8 +10035,8 @@ var dou3d;
             /**
              * 阴影偏移
              */
-            set: function (offset) {
-                this._materialData.shadowColor[3] = offset;
+            set: function (value) {
+                this._materialData.shadowColor[3] = value;
             },
             enumerable: true,
             configurable: true
@@ -10043,9 +10048,9 @@ var dou3d;
             /**
              * 是否进行纹理重复采样的方式开关
              */
-            set: function (val) {
-                this._materialData.repeat = val;
+            set: function (value) {
                 this._materialData.textureStateChage = true;
+                this._materialData.repeat = value;
             },
             enumerable: true,
             configurable: true
@@ -10057,9 +10062,9 @@ var dou3d;
             /**
              * 材质是否显示双面的开关
              */
-            set: function (val) {
+            set: function (value) {
                 this._materialData.textureStateChage = true;
-                this._materialData.bothside = val;
+                this._materialData.bothside = value;
             },
             enumerable: true,
             configurable: true
@@ -10145,9 +10150,6 @@ var dou3d;
             enumerable: true,
             configurable: true
         });
-        MaterialBase.prototype.initPass = function () {
-            this.addPass(0 /* diffusePass */);
-        };
         MaterialBase.prototype.passInvalid = function (passType) {
             if (this._passes[passType] && this._passes[passType].length > 0) {
                 for (var i = 0; i < this._passes[passType].length; i++) {
@@ -10620,7 +10622,7 @@ var dou3d;
             var camera = dou3d.ShadowCast.instance.shadowCamera;
             if (camera) {
                 if (usage.uniform_ShadowMatrix && usage.uniform_ShadowMatrix.uniformIndex) {
-                    context3DProxy.uniformMatrix4fv(usage.uniform_ShadowMatrix.uniformIndex, false, camera.viewProjectionMatrix.rawData);
+                    context3DProxy.uniformMatrix4fv(usage.uniform_ShadowMatrix.uniformIndex, false, dou3d.ShadowCast.instance.shadowCamera.viewProjectionMatrix.rawData);
                 }
             }
             context3DProxy.uniform4fv(usage.uniform_ShadowColor.uniformIndex, this.materialData.shadowColor);
@@ -10892,10 +10894,10 @@ var dou3d;
             if (color === void 0) { color = 0xcccccc; }
             var _this = _super.call(this) || this;
             _this.color = color;
-            _this.initMatPass();
+            _this.initPass();
             return _this;
         }
-        ColorMaterial.prototype.initMatPass = function () {
+        ColorMaterial.prototype.initPass = function () {
             this.addPass(0 /* diffusePass */);
             this.diffusePass.addMethod(new dou3d.ColorMethod());
         };
@@ -10939,10 +10941,10 @@ var dou3d;
                 texture = dou3d.CheckerboardTexture.texture;
             }
             _this.diffuseTexture = texture;
-            _this.initMatPass();
+            _this.initPass();
             return _this;
         }
-        TextureMaterial.prototype.initMatPass = function () {
+        TextureMaterial.prototype.initPass = function () {
             this.addPass(0 /* diffusePass */);
         };
         TextureMaterial.prototype.clone = function () {
@@ -10962,11 +10964,11 @@ var dou3d;
         __extends(CubeTextureMaterial, _super);
         function CubeTextureMaterial(texture, materialData) {
             var _this = _super.call(this, materialData) || this;
-            _this.initMatPass();
+            _this.initPass();
             _this.materialData.diffuseTexture3D = texture;
             return _this;
         }
-        CubeTextureMaterial.prototype.initMatPass = function () {
+        CubeTextureMaterial.prototype.initPass = function () {
             this.addPass(0 /* diffusePass */);
             this.diffusePass.addMethod(new dou3d.CubeMethod());
         };
@@ -11784,10 +11786,10 @@ var dou3d;
         ShaderLib.pointLight_fs = "const int max_pointLight=0;\nuniform float uniform_pointLightSource[7*max_pointLight];\nstruct PointLight{\nvec3 position;\nvec3 diffuse;\nvec3 ambient;\nfloat intensity;\nfloat radius;\n};\nvoid calculatePointLight(MaterialSource materialSource){\nvec3 viewDir=normalize(uniform_EyePos-varying_worldPosition.xyz);\nfor(int i=0;i<max_pointLight;i++){\nPointLight pointLight;\npointLight.position=vec3(uniform_pointLightSource[i*7],uniform_pointLightSource[i*7+1],uniform_pointLightSource[i*7+2]);\npointLight.diffuse=vec3(uniform_pointLightSource[i*7+3],uniform_pointLightSource[i*7+4],uniform_pointLightSource[i*7+5]);\npointLight.radius=uniform_pointLightSource[i*7+6];\nvec3 lightOffset=pointLight.position-varying_worldPosition.xyz;\nvec3 lightDir=normalize(lightOffset);\nfloat falloff=computeDistanceLightFalloff(length(lightOffset),pointLight.radius);\nfloat diffuse=calculateLightDiffuse(varying_worldNormal,lightDir);\nfloat specular=calculateLightSpecular(varying_worldNormal,lightDir,viewDir,materialSource.specularScale);\nlight.xyz+=(materialSource.ambient+diffuse*materialSource.diffuse+specular*materialSource.specular)*pointLight.diffuse*falloff;\n}\n}\nvoid main(){\ncalculatePointLight(materialSource);\n}";
         ShaderLib.spotLight_fs = "const int max_spotLight=0;\nuniform float uniform_spotLightSource[12*max_spotLight];\nstruct SpotLight{\nvec3 position;\nvec3 direction;\nvec3 diffuse;\nvec3 ambient;\nfloat range;\nfloat coneCos;\nfloat penumbraCos;\n};\nvoid calculateSpotLight(MaterialSource materialSource){\nvec3 viewDir=normalize(uniform_EyePos-varying_worldPosition.xyz);\nfor(int i=0;i<max_spotLight;i++){\nSpotLight spotLight;\nspotLight.position=vec3(uniform_spotLightSource[i*12],uniform_spotLightSource[i*12+1],uniform_spotLightSource[i*12+2]);\nspotLight.direction=vec3(uniform_spotLightSource[i*12+3],uniform_spotLightSource[i*12+4],uniform_spotLightSource[i*12+5]);\nspotLight.diffuse=vec3(uniform_spotLightSource[i*12+6],uniform_spotLightSource[i*12+7],uniform_spotLightSource[i*12+8]);\nspotLight.range=uniform_spotLightSource[i*12+9];\nspotLight.coneCos=uniform_spotLightSource[i*12+10];\nspotLight.penumbraCos=uniform_spotLightSource[i*12+11];\nvec3 lightOffset=spotLight.position-varying_worldPosition.xyz;\nvec3 lightDir=normalize(lightOffset);\nfloat angleCos=dot(lightDir,-spotLight.direction);\nif(angleCos>spotLight.coneCos){\nfloat spotEffect=smoothstep(spotLight.coneCos,spotLight.penumbraCos,angleCos);\nfloat falloff=computeDistanceLightFalloff(length(lightOffset)*angleCos,spotLight.range);\nfloat diffuse=calculateLightDiffuse(varying_worldNormal,lightDir);\nfloat specular=calculateLightSpecular(varying_worldNormal,lightDir,viewDir,materialSource.specularScale);\nlight.xyz+=(materialSource.ambient+diffuse*materialSource.diffuse+specular*materialSource.specular)*spotLight.diffuse*falloff*spotEffect;\n}\n}\n}\nvoid main(){\ncalculateSpotLight(materialSource);\n}";
         ShaderLib.materialSource_fs = "struct MaterialSource{\nvec3 diffuse;\nvec3 ambient;\nvec3 specular;\nfloat alpha;\nfloat cutAlpha;\nfloat shininess;\nfloat roughness;\nfloat albedo;\nvec4 uvRectangle;\nfloat specularScale;\nfloat normalScale;\n};\nuniform float uniform_materialSource[20];\nvarying vec2 varying_uv0;\nMaterialSource materialSource;\nvec2 uv_0;\nvoid main(){\nmaterialSource.diffuse.x=uniform_materialSource[0];\nmaterialSource.diffuse.y=uniform_materialSource[1];\nmaterialSource.diffuse.z=uniform_materialSource[2];\nmaterialSource.ambient.x=uniform_materialSource[3];\nmaterialSource.ambient.y=uniform_materialSource[4];\nmaterialSource.ambient.z=uniform_materialSource[5];\nmaterialSource.specular.x=uniform_materialSource[6];\nmaterialSource.specular.y=uniform_materialSource[7];\nmaterialSource.specular.z=uniform_materialSource[8];\nmaterialSource.alpha=uniform_materialSource[9];\nmaterialSource.cutAlpha=uniform_materialSource[10];\nmaterialSource.shininess=uniform_materialSource[11];\nmaterialSource.specularScale=uniform_materialSource[12];\nmaterialSource.albedo=uniform_materialSource[13];\nmaterialSource.uvRectangle.x=uniform_materialSource[14];\nmaterialSource.uvRectangle.y=uniform_materialSource[15];\nmaterialSource.uvRectangle.z=uniform_materialSource[16];\nmaterialSource.uvRectangle.w=uniform_materialSource[17];\nmaterialSource.specularScale=uniform_materialSource[18];\nmaterialSource.normalScale=uniform_materialSource[19];\nuv_0=varying_uv0.xy*materialSource.uvRectangle.zw+materialSource.uvRectangle.xy;\n}";
-        ShaderLib.shadowMapping_fs = "uniform sampler2D shadowMapTexture;\nuniform vec4 uniform_ShadowColor;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvec3 shadowColor=vec3(1.0,1.0,1.0);\nfloat offset=uniform_ShadowColor.w;\nvec2 sample=varying_ShadowCoord.xy/varying_ShadowCoord.w*0.5+0.5;\nif(sample.x>=0.0 && sample.x<=1.0 && sample.y>=0.0 && sample.y<=1.0){\nvec4 sampleDepth=texture2D(shadowMapTexture,sample).xyzw;\nfloat depth=varying_ShadowCoord.z;\nif(sampleDepth.z !=0.0){\nif(sampleDepth.z<depth-offset){\nshadowColor=uniform_ShadowColor.xyz;\n}\n}\n}\ndiffuseColor.xyz=diffuseColor.xyz*shadowColor;\n}";
-        ShaderLib.shadowMapping_vs = "uniform mat4 uniform_ShadowMatrix;\nuniform mat4 uniform_ModelMatrix;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvarying_ShadowCoord=uniform_ShadowMatrix*uniform_ModelMatrix*vec4(e_position,1.0);\n}";
-        ShaderLib.shadowPass_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\ndiffuseColor=varying_color;\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=texture2D(diffuseTexture,varying_uv0);\nif(diffuseColor.w<=0.3){\ndiscard;\n}\ngl_FragColor=vec4(varying_pos.zzz,1.0);\n}";
-        ShaderLib.shadowPass_vs = "attribute vec3 attribute_position;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvarying vec4 varying_pos;\nvoid main(){\nvarying_color=attribute_color;\nvarying_uv0=attribute_uv0;\nvarying_pos=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\ngl_Position=varying_pos;\n}";
+        ShaderLib.shadowMapping_fs = "uniform sampler2D shadowMapTexture;\nuniform vec4 uniform_ShadowColor;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvec3 shadowColor=vec3(1.0,1.0,1.0);\nvec3 shadowCoord=(varying_ShadowCoord.xyz/varying_ShadowCoord.w)/2.0+0.5;\nvec4 rgbaDepth=texture2D(shadowMapTexture,shadowCoord.xy);\nfloat depth=rgbaDepth.x;\nif(shadowCoord.z>depth+0.005){\nshadowColor=uniform_ShadowColor.xyz;\n}\ndiffuseColor.xyz=diffuseColor.xyz*shadowColor;\n}";
+        ShaderLib.shadowMapping_vs = "uniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ShadowMatrix;\nvarying vec4 varying_ShadowCoord;\nvoid main(){\nvarying_ShadowCoord=uniform_ShadowMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\n}";
+        ShaderLib.shadowPass_fs = "uniform sampler2D diffuseTexture;\nvec4 diffuseColor;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvoid main(){\ndiffuseColor=varying_color;\nif(diffuseColor.w==0.0){\ndiscard;\n}\ndiffuseColor=texture2D(diffuseTexture,varying_uv0);\nif(diffuseColor.w<=0.3){\ndiscard;\n}\ngl_FragColor=vec4(gl_FragCoord.z,0.0,0.0,1.0);\n}";
+        ShaderLib.shadowPass_vs = "attribute vec3 attribute_position;\nattribute vec4 attribute_color;\nattribute vec2 attribute_uv0;\nuniform mat4 uniform_ModelMatrix;\nuniform mat4 uniform_ViewMatrix;\nuniform mat4 uniform_ProjectionMatrix;\nvarying vec2 varying_uv0;\nvarying vec4 varying_color;\nvoid main(){\nvarying_uv0=attribute_uv0;\nvarying_color=attribute_color;\ngl_Position=uniform_ProjectionMatrix*uniform_ViewMatrix*uniform_ModelMatrix*vec4(attribute_position,1.0);\n}";
         ShaderLib.skeleton_vs = "attribute vec4 attribute_boneIndex;\nattribute vec4 attribute_boneWeight;\nattribute vec3 attribute_normal;\nattribute vec4 attribute_color;\nvec4 e_boneIndex=vec4(0.0,0.0,0.0,0.0);\nvec4 e_boneWeight=vec4(0.0,0.0,0.0,0.0);\nconst int bonesNumber=0;\nuniform vec4 uniform_PoseMatrix[bonesNumber];\nvarying vec4 varying_modelViewPosition;\nmat4 buildMat4(int index){\nvec4 quat=uniform_PoseMatrix[index*2+0];\nvec4 translation=uniform_PoseMatrix[index*2+1];\nfloat xy2=2.0*quat.x*quat.y;\nfloat xz2=2.0*quat.x*quat.z;\nfloat xw2=2.0*quat.x*quat.w;\nfloat yz2=2.0*quat.y*quat.z;\nfloat yw2=2.0*quat.y*quat.w;\nfloat zw2=2.0*quat.z*quat.w;\nfloat xx=quat.x*quat.x;\nfloat yy=quat.y*quat.y;\nfloat zz=quat.z*quat.z;\nfloat ww=quat.w*quat.w;\nmat4 matrix=mat4(\nxx-yy-zz+ww,xy2+zw2,xz2-yw2,0,\nxy2-zw2,-xx+yy-zz+ww,yz2+xw2,0,\nxz2+yw2,yz2-xw2,-xx-yy+zz+ww,0,\ntranslation.x,translation.y,translation.z,1\n);\nreturn matrix;\n}\nvoid main(){\ne_boneIndex=attribute_boneIndex;\ne_boneWeight=attribute_boneWeight;\nvec4 temp_position=vec4(attribute_position,1.0);\nvec4 temp_normal=vec4(attribute_normal,0.0);\nmat4 m0=buildMat4(int(e_boneIndex.x));\nmat4 m1=buildMat4(int(e_boneIndex.y));\nmat4 m2=buildMat4(int(e_boneIndex.z));\nmat4 m3=buildMat4(int(e_boneIndex.w));\noutPosition=m0*temp_position*e_boneWeight.x;\noutPosition+=m1*temp_position*e_boneWeight.y;\noutPosition+=m2*temp_position*e_boneWeight.z;\noutPosition+=m3*temp_position*e_boneWeight.w;\ne_position=outPosition.xyz;\nvec4 temp_n;\ntemp_n=m0*temp_normal*e_boneWeight.x;\ntemp_n+=m1*temp_normal*e_boneWeight.y;\ntemp_n+=m2*temp_normal*e_boneWeight.z;\ntemp_n+=m3*temp_normal*e_boneWeight.w;\nmat4 mvMatrix=mat4(uniform_ViewMatrix*uniform_ModelMatrix);\nvarying_modelViewPosition=mvMatrix*vec4(e_position,1.0);\nmat4 normalMatrix=inverse(mvMatrix);\nnormalMatrix=transpose(normalMatrix);\nvarying_eyeNormal=mat3(normalMatrix)*-attribute_normal;\noutPosition.xyzw=varying_modelViewPosition.xyzw;\nvarying_color=attribute_color;\n}";
     })(ShaderLib = dou3d.ShaderLib || (dou3d.ShaderLib = {}));
 })(dou3d || (dou3d = {}));
@@ -12292,9 +12294,9 @@ var dou3d;
             }
             for (i = 0; i < shaderContent.sampler2DList.length; i++) {
                 var sampler2D = shaderContent.sampler2DList[i];
+                sampler2D.activeTextureIndex = getTexture2DIndex(i);
                 sampler2D.index = i;
                 usage.sampler2DList.push(sampler2D);
-                sampler2D.activeTextureIndex = getTexture2DIndex(i);
             }
             for (i = 0; i < shaderContent.sampler3DList.length; i++) {
                 var sampler3D = shaderContent.sampler3DList[i];
@@ -12383,23 +12385,23 @@ var dou3d;
         function getTexture2DIndex(i) {
             switch (i) {
                 case 0:
-                    return dou3d.ContextSamplerType.TEXTURE_0;
+                    return dou3d.Context3DProxy.gl.TEXTURE0;
                 case 1:
-                    return dou3d.ContextSamplerType.TEXTURE_1;
+                    return dou3d.Context3DProxy.gl.TEXTURE1;
                 case 2:
-                    return dou3d.ContextSamplerType.TEXTURE_2;
+                    return dou3d.Context3DProxy.gl.TEXTURE2;
                 case 3:
-                    return dou3d.ContextSamplerType.TEXTURE_3;
+                    return dou3d.Context3DProxy.gl.TEXTURE3;
                 case 4:
-                    return dou3d.ContextSamplerType.TEXTURE_4;
+                    return dou3d.Context3DProxy.gl.TEXTURE4;
                 case 5:
-                    return dou3d.ContextSamplerType.TEXTURE_5;
+                    return dou3d.Context3DProxy.gl.TEXTURE5;
                 case 6:
-                    return dou3d.ContextSamplerType.TEXTURE_6;
+                    return dou3d.Context3DProxy.gl.TEXTURE6;
                 case 7:
-                    return dou3d.ContextSamplerType.TEXTURE_7;
+                    return dou3d.Context3DProxy.gl.TEXTURE7;
                 case 8:
-                    return dou3d.ContextSamplerType.TEXTURE_8;
+                    return dou3d.Context3DProxy.gl.TEXTURE8;
             }
             throw new Error("texture not big then 8");
         }
@@ -12421,6 +12423,7 @@ var dou3d;
             this._shadowCamera = new dou3d.Camera3D(1 /* orthogonal */);
             this._shadowCamera.near = 1;
             this._shadowCamera.far = 3000;
+            this._shadowCamera.updateViewport(0, 0, this._textureWidth, this._textureHeight);
             this._shadowRender = new dou3d.MultiRenderer(1 /* shadowPass */);
             this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, 3 /* UNSIGNED_BYTE_RGBA */);
         }
@@ -12500,16 +12503,16 @@ var dou3d;
             this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, 3 /* UNSIGNED_BYTE_RGBA */);
         };
         /**
-         * 如需要渲染阴影必须先设置当前阴影灯光, 暂支持方向光, 灯光中的变换会用于阴影像机的变换
+         * 如需要渲染阴影必须先设置当前阴影灯光
+         * * 只支持方向光, 灯光中的变换会用于阴影像机的变换
          */
         ShadowCast.prototype.castShadowLight = function (light) {
             this._directLight = light;
-            this._shadowCamera.updateViewport(0, 0, this._textureWidth, this._textureHeight);
-            light.addChild(this._shadowCamera);
         };
         ShadowCast.prototype.update = function (entityCollect, camera, time, delay, viewPort) {
             dou3d.Engine.context3DProxy.clearColor(1.0, 1.0, 1.0, 1.0);
             dou3d.Engine.context3DProxy.clear(dou3d.Context3DProxy.gl.COLOR_BUFFER_BIT | dou3d.Context3DProxy.gl.DEPTH_BUFFER_BIT);
+            this._shadowCamera.validateTransformNow();
             this._shadowRender.draw(time, delay, dou3d.Engine.context3DProxy, entityCollect, this._shadowCamera, viewPort);
         };
         return ShadowCast;

@@ -36,7 +36,7 @@ namespace dou3d {
             let camera = ShadowCast.instance.shadowCamera;
             if (camera) {
                 if (usage.uniform_ShadowMatrix && usage.uniform_ShadowMatrix.uniformIndex) {
-                    context3DProxy.uniformMatrix4fv(usage.uniform_ShadowMatrix.uniformIndex, false, camera.viewProjectionMatrix.rawData);
+                    context3DProxy.uniformMatrix4fv(usage.uniform_ShadowMatrix.uniformIndex, false, ShadowCast.instance.shadowCamera.viewProjectionMatrix.rawData);
                 }
             }
             context3DProxy.uniform4fv(usage.uniform_ShadowColor.uniformIndex, this.materialData.shadowColor);

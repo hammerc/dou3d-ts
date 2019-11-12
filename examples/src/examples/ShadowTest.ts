@@ -9,9 +9,13 @@ namespace examples {
             let directLight = new dou3d.DirectLight(0xffffff);
             directLight.lookAt(new dou3d.Vector3(), new dou3d.Vector3(0, 1, 0));
             view3D.scene.root.addChild(directLight);
-
             // 设定为阴影投射的灯光
             dou3d.ShadowCast.instance.castShadowLight(directLight);
+
+            // 设定阴影摄像机位置和朝向
+            let camera = dou3d.ShadowCast.instance.shadowCamera;
+            camera.orthSize = 1000;
+            camera.lookAt(new dou3d.Vector3(0, 1000, 0), new dou3d.Vector3(0, 0, 0));
 
             dou.loader.load("resource/UV_Grid_Sm.jpg", (data, url) => {
 
@@ -27,12 +31,12 @@ namespace examples {
                     let lightGroup = new dou3d.LightGroup();
                     lightGroup.addLight(directLight);
                     cube.material.lightGroup = lightGroup;
-                    cube.material.acceptShadow = true;
+                    cube.material.castShadow = true;
 
                     let plane = new dou3d.Mesh(new dou3d.PlaneGeometry(500, 500), new dou3d.TextureMaterial(data));
                     view3D.scene.root.addChild(plane);
 
-                    plane.material.castShadow = true;
+                    plane.material.acceptShadow = true;
                 }
 
             }, this);

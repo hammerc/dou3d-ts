@@ -137,6 +137,7 @@ namespace dou3d {
          * 相机视图投影矩阵
          */
         public get viewProjectionMatrix(): Matrix4 {
+            this.validateTransformNow();
             this._viewProjectionMatrix.copy(this._viewMatrix);
             this._viewProjectionMatrix.multiply(this._projectMatrix);
             return this._viewProjectionMatrix;

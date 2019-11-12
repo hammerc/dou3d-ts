@@ -10,6 +10,10 @@ var examples;
             view3D.scene.root.addChild(directLight);
             // 设定为阴影投射的灯光
             dou3d.ShadowCast.instance.castShadowLight(directLight);
+            // 设定阴影摄像机位置和朝向
+            var camera = dou3d.ShadowCast.instance.shadowCamera;
+            camera.orthSize = 1000;
+            camera.lookAt(new dou3d.Vector3(0, 1000, 0), new dou3d.Vector3(0, 0, 0));
             dou.loader.load("resource/UV_Grid_Sm.jpg", function (data, url) {
                 if (data && data instanceof dou3d.ImageTexture) {
                     var cube_1 = new dou3d.Mesh(new dou3d.CubeGeometry(), new dou3d.TextureMaterial(data));
@@ -21,10 +25,10 @@ var examples;
                     var lightGroup = new dou3d.LightGroup();
                     lightGroup.addLight(directLight);
                     cube_1.material.lightGroup = lightGroup;
-                    cube_1.material.acceptShadow = true;
+                    cube_1.material.castShadow = true;
                     var plane = new dou3d.Mesh(new dou3d.PlaneGeometry(500, 500), new dou3d.TextureMaterial(data));
                     view3D.scene.root.addChild(plane);
-                    plane.material.castShadow = true;
+                    plane.material.acceptShadow = true;
                 }
             }, this);
         }
