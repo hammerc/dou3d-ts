@@ -19,7 +19,6 @@ namespace dou3d {
 
         private _shadowCamera: Camera3D;
         private _shadowRender: MultiRenderer;
-        private _directLight: DirectLight;
 
         private constructor() {
             this._shadowCamera = new Camera3D(CameraType.orthogonal);
@@ -66,27 +65,12 @@ namespace dou3d {
         }
 
         /**
-         * 用于渲染的平行光
-         */
-        public get directLight(): DirectLight {
-            return this._directLight;
-        }
-
-        /**
          * 设置阴影贴图的宽度和高度
          */
         public setTextureSize(width: number, height: number): void {
             this._textureWidth = width;
             this._textureHeight = height;
             this._shadowRender.setRenderToTexture(this._textureWidth, this._textureHeight, FrameBufferFormat.UNSIGNED_BYTE_RGBA);
-        }
-
-        /**
-         * 如需要渲染阴影必须先设置当前阴影灯光
-         * * 只支持方向光, 灯光中的变换会用于阴影像机的变换
-         */
-        public castShadowLight(light: DirectLight): void {
-            this._directLight = light;
         }
 
         public update(entityCollect: EntityCollect, camera: Camera3D, time: number, delay: number, viewPort: Rectangle): void {

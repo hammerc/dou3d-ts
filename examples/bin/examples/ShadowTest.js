@@ -6,10 +6,8 @@ var examples;
             view3D.camera3D.lookAt(new dou3d.Vector3(0, 1000, -1000), new dou3d.Vector3(0, 0, 0));
             // 从上向下照射的平行光
             var directLight = new dou3d.DirectLight(0xffffff);
-            directLight.lookAt(new dou3d.Vector3(), new dou3d.Vector3(0, 1, 0));
+            directLight.rotationX = 90;
             view3D.scene.root.addChild(directLight);
-            // 设定为阴影投射的灯光
-            dou3d.ShadowCast.instance.castShadowLight(directLight);
             // 设定阴影摄像机位置和朝向
             var camera = dou3d.ShadowCast.instance.shadowCamera;
             camera.orthSize = 1000;

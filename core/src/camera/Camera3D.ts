@@ -138,8 +138,8 @@ namespace dou3d {
          */
         public get viewProjectionMatrix(): Matrix4 {
             this.validateTransformNow();
-            this._viewProjectionMatrix.copy(this._viewMatrix);
-            this._viewProjectionMatrix.multiply(this._projectMatrix);
+            this._viewProjectionMatrix.copy(this._projectMatrix);
+            this._viewProjectionMatrix.multiply(this._viewMatrix);
             return this._viewProjectionMatrix;
         }
 
