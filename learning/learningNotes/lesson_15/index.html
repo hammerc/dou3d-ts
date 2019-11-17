@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>物体轮廓</title>
+    <title>模板测试</title>
 
     <script src="gl-matrix.js"></script>
     <script src="webgl-debug.js"></script>
@@ -40,6 +40,18 @@
         }
     </script>
 
+    <!-- 片段着色器，纯绿色渲染 -->
+    <script id="shader-fs-2" type="x-shader/x-fragment">
+        precision mediump float;
+
+        varying vec2 vTextureCoordinates;
+        uniform sampler2D uSampler;
+
+        void main() {
+            gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+        }
+    </script>
+
     <script>
         var stats = new Stats();
 
@@ -55,7 +67,7 @@
             var context = null;
             for (var i = 0; i < names.length; i++) {
                 try {
-                    context = canvas.getContext(names[i]);
+                    context = canvas.getContext(names[i], { stencil: true });
                 } catch (e) { }
                 if (context) {
                     break;
@@ -93,13 +105,52 @@
             // 获取属性位置
             pwgl.vertexPositionAttributeLoc = gl.getAttribLocation(shaderProgram, "aVertexPosition");
             pwgl.vertexTextureAttributeLoc = gl.getAttribLocation(shaderProgram, "aTextureCoordinates");
-            pwgl.uniformMVMatrixLoc = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-            pwgl.uniformProjMatrixLoc = gl.getUniformLocation(shaderProgram, "uPMatrix");
-            pwgl.uniformSamplerLoc = gl.getUniformLocation(shaderProgram, "uSampler");
+            pwgl.uniformMVMatrixLoc_1 = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+            pwgl.uniformProjMatrixLoc_1 = gl.getUniformLocation(shaderProgram, "uPMatrix");
+            pwgl.uniformSamplerLoc_1 = gl.getUniformLocation(shaderProgram, "uSampler");
 
             // 设定为数组类型的变量数据
             gl.enableVertexAttribArray(pwgl.vertexPositionAttributeLoc);
             gl.enableVertexAttribArray(pwgl.vertexTextureAttributeLoc);
+
+            gl.useProgram(null);
+
+            // 正常渲染着色器程序
+            pwgl.program_1 = shaderProgram;
+
+            // 从 DOM 上创建对应的着色器
+            var vertexShader = loadShaderFromDOM("shader-vs");
+            var fragmentShader = loadShaderFromDOM("shader-fs-2");
+
+            // 创建程序并连接着色器
+            shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+
+            // 连接失败的检测
+            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                alert("Failed to setup shaders");
+            }
+
+            // 使用着色器
+            gl.useProgram(shaderProgram);
+
+            // 获取属性位置
+            pwgl.vertexPositionAttributeLoc = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+            pwgl.vertexTextureAttributeLoc = gl.getAttribLocation(shaderProgram, "aTextureCoordinates");
+            pwgl.uniformMVMatrixLoc_2 = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+            pwgl.uniformProjMatrixLoc_2 = gl.getUniformLocation(shaderProgram, "uPMatrix");
+            pwgl.uniformSamplerLoc_2 = gl.getUniformLocation(shaderProgram, "uSampler");
+
+            // 设定为数组类型的变量数据
+            gl.enableVertexAttribArray(pwgl.vertexPositionAttributeLoc);
+            gl.enableVertexAttribArray(pwgl.vertexTextureAttributeLoc);
+
+            gl.useProgram(null);
+
+            // 纯绿色渲染着色器程序
+            pwgl.program_2 = shaderProgram;
 
             // 初始化矩阵
             pwgl.modelViewMatrix = glMatrix.mat4.create();
@@ -367,6 +418,15 @@
             glMatrix.mat4.identity(pwgl.modelViewMatrix);
             glMatrix.mat4.lookAt(pwgl.modelViewMatrix, [8, 5, -10], [0, 0, 0], [0, 1, 0]);
 
+            gl.useProgram(pwgl.program_1);
+            gl.uniform1i(pwgl.uniformSamplerLoc_1, 0);
+            gl.useProgram(pwgl.program_2);
+            gl.uniform1i(pwgl.uniformSamplerLoc_2, 0);
+
+            // 使用正常渲染着色器
+            gl.useProgram(pwgl.program_1);
+            pwgl.useProgramNum = 1;
+
             uploadModelViewMatrixToShader();
             uploadProjectionMatrixToShader();
             gl.uniform1i(pwgl.uniformSamplerLoc, 0);
@@ -374,8 +434,49 @@
             // 绘制地板
             drawFloor();
 
+            // ----- 模板方法 begin -----
+
+            // 清除模板缓存
+            gl.clear(gl.STENCIL_BUFFER_BIT);
+            // 开启模板测试
+            gl.enable(gl.STENCIL_TEST);
+
+            // 设置模板测试参数
+            gl.stencilFunc(gl.ALWAYS, 1, 1);
+            // 设置模板值操作
+            gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+
+            // ----- 模板方法 end -----
+
             // 绘制小盒子 1
             pushModelViewMatrix();
+
+            glMatrix.mat4.translate(pwgl.modelViewMatrix, pwgl.modelViewMatrix, [0, 2.5, 0]);
+            glMatrix.mat4.scale(pwgl.modelViewMatrix, pwgl.modelViewMatrix, [1.5, 1.5, 1.5]);
+            uploadModelViewMatrixToShader();
+            uploadProjectionMatrixToShader();
+            drawCube(pwgl.boxTexture);
+            popModelViewMatrix();
+
+            // 使用纯绿色渲染着色器
+            gl.useProgram(pwgl.program_2);
+            pwgl.useProgramNum = 2;
+
+            // ----- 模板方法 begin -----
+
+            //设置模板测试参数
+            gl.stencilFunc(gl.EQUAL, 1, 1);
+            //设置模板测试后的操作
+            gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+            // ----- 模板方法 end -----
+
+            // 关闭深度检测
+            gl.disable(gl.DEPTH_TEST);
+
+            // 绘制小盒子 2
+            pushModelViewMatrix();
+            uploadProjectionMatrixToShader();
 
             pwgl.angle = (1000 / 60) / 2000 * 2 * Math.PI % (2 * Math.PI);
             pwgl.x = Math.cos(pwgl.angle) * pwgl.circleRadius;
@@ -387,14 +488,15 @@
             drawCube(pwgl.boxTexture);
             popModelViewMatrix();
 
-            // 绘制小盒子 2
-            pushModelViewMatrix();
+            // 开启深度检测
+            gl.enable(gl.DEPTH_TEST);
 
-            glMatrix.mat4.translate(pwgl.modelViewMatrix, pwgl.modelViewMatrix, [0, 2.5, 0]);
-            glMatrix.mat4.scale(pwgl.modelViewMatrix, pwgl.modelViewMatrix, [1.5, 1.5, 1.5]);
-            uploadModelViewMatrixToShader();
-            drawCube(pwgl.boxTexture);
-            popModelViewMatrix();
+            // ----- 模板方法 begin -----
+
+            // 关闭模板测试
+            gl.disable(gl.STENCIL_TEST);
+
+            // ----- 模板方法 end -----
 
             stats.end();
 
@@ -403,11 +505,19 @@
         }
 
         function uploadModelViewMatrixToShader() {
-            gl.uniformMatrix4fv(pwgl.uniformMVMatrixLoc, false, pwgl.modelViewMatrix);
+            if (pwgl.useProgramNum == 1) {
+                gl.uniformMatrix4fv(pwgl.uniformMVMatrixLoc_1, false, pwgl.modelViewMatrix);
+            } else if (pwgl.useProgramNum == 2) {
+                gl.uniformMatrix4fv(pwgl.uniformMVMatrixLoc_2, false, pwgl.modelViewMatrix);
+            }
         }
 
         function uploadProjectionMatrixToShader() {
-            gl.uniformMatrix4fv(pwgl.uniformProjMatrixLoc, false, pwgl.projectionMatrix);
+            if (pwgl.useProgramNum == 1) {
+                gl.uniformMatrix4fv(pwgl.uniformProjMatrixLoc_1, false, pwgl.projectionMatrix);
+            } else if (pwgl.useProgramNum == 2) {
+                gl.uniformMatrix4fv(pwgl.uniformProjMatrixLoc_2, false, pwgl.projectionMatrix);
+            }
         }
 
         // 将 modelViewMatrix 矩阵压入堆栈
@@ -540,7 +650,7 @@
             pwgl.x = 0.0;
             pwgl.y = 2.7;
             pwgl.z = 0.0;
-            pwgl.circleRadius = 4.0;
+            pwgl.circleRadius = 2.0;
             pwgl.angle = 0;
 
             // 鼠标点击模拟上下文丢失
