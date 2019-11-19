@@ -32,8 +32,8 @@ namespace dou3d {
          */
 		public static polar(length: number, angle: number, result?: IVector2): IVector2 {
 			result = result || new Vector2();
-			result.x = length * Math.sin(angle);
-			result.y = length * Math.cos(angle);
+			result.x = length * Math.cos(angle);
+			result.y = length * Math.sin(angle);
 			return result;
 		}
 
